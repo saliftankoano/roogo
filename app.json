@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
-    "scheme": "roogo",
+    "scheme": "appwrite-callback-68ca324e0000565cd3cb",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

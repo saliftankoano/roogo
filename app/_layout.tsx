@@ -1,8 +1,8 @@
 import "./global.css"
 import { SplashScreen, Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import {useFonts} from "expo-font"
 import { useEffect } from "react";
+import { GlobalProvider } from "@/lib/global-provider";
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -27,6 +27,8 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null;
   return (
-    <Stack screenOptions={{headerShown: false }}/>
+    <GlobalProvider>
+      <Stack screenOptions={{headerShown: false }}/>
+    </GlobalProvider>
   )
 }
