@@ -12,6 +12,7 @@ export default function HomeScreen() {
       }
     }
     >
+      <Text className="font-bold text-3xl my-10">Welcome to Roogo</Text>
       <Link href="/signin">Sign In</Link>
       <Link href="/explore">Explore</Link>
       <Link href="/profile">Profile</Link>
