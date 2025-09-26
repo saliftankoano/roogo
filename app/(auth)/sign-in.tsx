@@ -114,6 +114,9 @@ export default function SignInScreen() {
               onChangeText={setEmailAddress}
               autoComplete="email"
               autoCapitalize="none"
+              autoCorrect={false}
+              spellCheck={false}
+              keyboardType="email-address"
             />
           </View>
 
