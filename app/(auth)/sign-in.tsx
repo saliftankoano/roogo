@@ -146,21 +146,6 @@ export default function SignInScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Remember Me Checkbox */}
-          <View className="flex-row items-center mt-[20px]">
-            <TouchableOpacity
-              onPress={() => setRememberMe(!rememberMe)}
-              className="w-6 h-6 rounded-lg border-3 border-figma-primary mr-3 items-center justify-center"
-            >
-              {rememberMe && (
-                <View className="w-3 h-3 bg-figma-primary rounded-sm" />
-              )}
-            </TouchableOpacity>
-            <Text className="text-figma-grey-900 text-sm font-semibold tracking-[0.2px] font-urbanist">
-              Se souvenir de moi
-            </Text>
-          </View>
-
           {/* Sign In Button */}
           <TouchableOpacity
             onPress={onSignInPress}
