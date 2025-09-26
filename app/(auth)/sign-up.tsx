@@ -1,37 +1,52 @@
-import { useSignUp } from "@clerk/clerk-expo";
+import { useSignUp, useSSO } from "@clerk/clerk-expo";
+import { Ionicons } from "@expo/vector-icons";
+import * as AuthSession from "expo-auth-session";
+import { Image } from "expo-image";
 import { Link, useRouter } from "expo-router";
-import * as React from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import React, { useEffect, useState } from "react";
+import {
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUpScreen() {
   const { isLoaded, signUp, setActive } = useSignUp();
+  const { startSSOFlow } = useSSO();
   const router = useRouter();
 
-  const [emailAddress, setEmailAddress] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [pendingVerification, setPendingVerification] = React.useState(false);
-  const [code, setCode] = React.useState("");
+  const [emailAddress, setEmailAddress] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [code, setCode] = useState("");
+
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    void WebBrowser.warmUpAsync();
+    return () => {
+      void WebBrowser.coolDownAsync();
+    };
+  }, []);
 
   // Handle submission of sign-up form
   const onSignUpPress = async () => {
     if (!isLoaded) return;
 
-    // Start sign-up process using email and password provided
     try {
       await signUp.create({
         emailAddress,
         password,
       });
 
-      // Send user an email with verification code
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-
-      // Set 'pendingVerification' to true to display second form
-      // and capture OTP code
       setPendingVerification(true);
     } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
       console.error(JSON.stringify(err, null, 2));
     }
   };
@@ -41,70 +56,264 @@ export default function SignUpScreen() {
     if (!isLoaded) return;
 
     try {
-      // Use the code the user provided to attempt verification
       const signUpAttempt = await signUp.attemptEmailAddressVerification({
         code,
       });
 
-      // If verification was completed, set the session to active
-      // and redirect the user
       if (signUpAttempt.status === "complete") {
         await setActive({ session: signUpAttempt.createdSessionId });
         router.replace("/");
       } else {
-        // If the status is not complete, check why. User may need to
-        // complete further steps.
         console.error(JSON.stringify(signUpAttempt, null, 2));
       }
     } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
       console.error(JSON.stringify(err, null, 2));
     }
   };
 
+  async function handleOAuth(
+    strategy: "oauth_google" | "oauth_facebook" | "oauth_apple"
+  ) {
+    try {
+      const redirectUrl = AuthSession.makeRedirectUri({ scheme: "roogo" });
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy,
+        redirectUrl,
+      });
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   if (pendingVerification) {
     return (
-      <>
-        <Text>Verify your email</Text>
-        <TextInput
-          value={code}
-          placeholder="Enter your verification code"
-          onChangeText={(code) => setCode(code)}
-        />
-        <TouchableOpacity onPress={onVerifyPress}>
-          <Text>Verify</Text>
-        </TouchableOpacity>
-      </>
+      <View className="bg-white flex-1">
+        {/* Navigation Header */}
+        <View className="flex-row items-center justify-between px-6 mt-16">
+          <TouchableOpacity onPress={() => router.back()} className="p-2">
+            <Ionicons name="arrow-back" size={24} color="#000000" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Main Content */}
+        <View className="flex-1 px-6 pb-12">
+          {/* Logo */}
+          <View className="items-center mb-8">
+            <Image
+              source={require("../../assets/images/logo_160.png")}
+              style={{ width: 160, height: 160 }}
+              contentFit="contain"
+            />
+          </View>
+
+          {/* Title */}
+          <Text className="text-figma-grey-900 text-[24px] font-bold text-center mb-8 leading-[1.2] font-urbanist">
+            Vérifiez votre e-mail
+          </Text>
+
+          {/* Verification Code Input */}
+          <View className="space-y-5 mb-8">
+            <View className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center">
+              <View className="mr-3">
+                <Image
+                  source={require("../../assets/images/email.png")}
+                  style={{ width: 20, height: 20 }}
+                  contentFit="contain"
+                />
+              </View>
+              <TextInput
+                className="flex-1 text-black text-md font-semibold tracking-[0.2px] font-urbanist"
+                placeholder="Code de vérification"
+                placeholderTextColor="#9E9E9E"
+                value={code}
+                onChangeText={setCode}
+                autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
+                keyboardType="number-pad"
+              />
+            </View>
+
+            {/* Verify Button */}
+            <TouchableOpacity
+              onPress={onVerifyPress}
+              className="bg-figma-primary mt-[20px] h-[58px] rounded-full items-center justify-center"
+            >
+              <Text className="text-white text-base font-bold tracking-[0.2px] font-urbanist">
+                Vérifier
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
     );
   }
 
   return (
-    <View>
-      <>
-        <Text>Sign up</Text>
-        <TextInput
-          autoCapitalize="none"
-          value={emailAddress}
-          placeholder="Enter email"
-          onChangeText={(email) => setEmailAddress(email)}
-        />
-        <TextInput
-          value={password}
-          placeholder="Enter password"
-          secureTextEntry={true}
-          onChangeText={(password) => setPassword(password)}
-        />
-        <TouchableOpacity onPress={onSignUpPress}>
-          <Text>Continue</Text>
+    <View className="bg-white flex-1">
+      {/* Navigation Header */}
+      <View className="flex-row items-center justify-between px-6 mt-16">
+        <TouchableOpacity onPress={() => router.back()} className="p-2">
+          <Ionicons name="arrow-back" size={24} color="#000000" />
         </TouchableOpacity>
-        <View style={{ display: "flex", flexDirection: "row", gap: 3 }}>
-          <Text>Already have an account?</Text>
-          <Link href="/sign-in">
-            <Text>Sign in</Text>
+      </View>
+
+      {/* Main Content */}
+      <View className="flex-1 px-6 pb-12">
+        {/* Logo */}
+        <View className="items-center mb-8">
+          <Image
+            source={require("../../assets/images/logo_160.png")}
+            style={{ width: 160, height: 160 }}
+            contentFit="contain"
+          />
+        </View>
+
+        {/* Title */}
+        <Text className="text-figma-grey-900 text-[24px] font-bold text-center mb-8 leading-[1.2] font-urbanist">
+          Créer un nouveau compte
+        </Text>
+
+        {/* Form */}
+        <View className="space-y-5 mb-8">
+          {/* Email Input */}
+          <View className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center">
+            <View className="mr-3">
+              <Image
+                source={require("../../assets/images/email.png")}
+                style={{ width: 20, height: 20 }}
+                contentFit="contain"
+              />
+            </View>
+            <TextInput
+              className="flex-1 text-black text-md font-semibold tracking-[0.2px] font-urbanist"
+              placeholder="E-mail"
+              placeholderTextColor="#9E9E9E"
+              value={emailAddress}
+              onChangeText={setEmailAddress}
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect={false}
+              spellCheck={false}
+              keyboardType="email-address"
+            />
+          </View>
+
+          {/* Password Input */}
+          <View className="bg-figma-grey-50 h-[60px] mt-[20px] rounded-2xl px-5 flex-row items-center">
+            <View className="mr-3">
+              <Image
+                source={require("../../assets/images/Lock.png")}
+                style={{ width: 20, height: 20 }}
+                contentFit="contain"
+              />
+            </View>
+            <TextInput
+              className="flex-1 text-black text-md font-semibold tracking-[0.2px] font-urbanist"
+              placeholder="Mot de passe"
+              placeholderTextColor="#9E9E9E"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity className="ml-3">
+              <Image
+                source={require("../../assets/images/eye.png")}
+                style={{ width: 20, height: 20 }}
+                contentFit="contain"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Remember Me Checkbox */}
+          <View className="flex-row items-center mt-[20px]">
+            <TouchableOpacity
+              onPress={() => setRememberMe(!rememberMe)}
+              className="w-6 h-6 rounded-lg border-3 border-figma-primary mr-3 items-center justify-center"
+            >
+              {rememberMe && (
+                <View className="w-3 h-3 bg-figma-primary rounded-sm" />
+              )}
+            </TouchableOpacity>
+            <Text className="text-figma-grey-900 text-sm font-semibold tracking-[0.2px] font-urbanist">
+              Se souvenir de moi
+            </Text>
+          </View>
+
+          {/* Sign Up Button */}
+          <TouchableOpacity
+            onPress={onSignUpPress}
+            className="bg-figma-primary mt-[20px] h-[58px] rounded-full items-center justify-center"
+          >
+            <Text className="text-white text-base font-bold tracking-[0.2px] font-urbanist">
+              S&apos;inscrire
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Social Login Section */}
+        <View className="space-y-5">
+          {/* Divider */}
+          <View className="flex-row items-center">
+            <View className="flex-1 h-px bg-figma-border" />
+            <Text className="mx-4 text-figma-grey-600 text-lg font-semibold tracking-[0.2px] font-urbanist">
+              ou continuer avec
+            </Text>
+            <View className="flex-1 h-px bg-figma-border" />
+          </View>
+
+          {/* Social Buttons */}
+          <View className="flex-row justify-center gap-5 mt-[20px]">
+            <TouchableOpacity
+              className="bg-white border border-figma-border w-[87px] h-[60px] rounded-2xl items-center justify-center"
+              onPress={() => handleOAuth("oauth_google")}
+            >
+              <Image
+                source={require("../../assets/images/socials/google.png")}
+                style={{ width: 24, height: 24 }}
+                contentFit="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-white border border-figma-border w-[88px] h-[60px] rounded-2xl items-center justify-center"
+              onPress={() => handleOAuth("oauth_facebook")}
+            >
+              <Image
+                source={require("../../assets/images/socials/fb.png")}
+                style={{ width: 24, height: 24 }}
+                contentFit="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-white border border-figma-border w-[88px] h-[60px] rounded-2xl items-center justify-center"
+              onPress={() => handleOAuth("oauth_apple")}
+            >
+              <Image
+                source={require("../../assets/images/socials/apple.png")}
+                style={{ width: 24, height: 24 }}
+                contentFit="contain"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Sign In Link */}
+        <View className="flex-row justify-center items-center mt-8">
+          <Text className="text-figma-grey-500 text-sm font-normal tracking-[0.2px] font-urbanist">
+            Vous avez déjà un compte ?{" "}
+          </Text>
+          <Link href="/(auth)/sign-in" asChild>
+            <TouchableOpacity>
+              <Text className="text-figma-primary text-sm font-semibold tracking-[0.2px] font-urbanist">
+                Se connecter
+              </Text>
+            </TouchableOpacity>
           </Link>
         </View>
-      </>
+      </View>
     </View>
   );
 }
