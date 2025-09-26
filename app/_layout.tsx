@@ -1,6 +1,9 @@
+import { ClerkProvider } from "@clerk/clerk-expo";
+import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
+import { Slot, SplashScreen } from "expo-router";
 import { useEffect } from "react";
+
 import "../global.css";
 
 export default function RootLayout() {
@@ -9,6 +12,7 @@ export default function RootLayout() {
     garamond: require("../assets/fonts/garamond.ttf"),
     inter: require("../assets/fonts/inter.ttf"),
     oswald: require("../assets/fonts/oswald.ttf"),
+    urbanist: require("../assets/fonts/urbanist.ttf"),
   });
 
   useEffect(() => {
@@ -17,5 +21,9 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <ClerkProvider tokenCache={tokenCache}>
+      <Slot />
+    </ClerkProvider>
+  );
 }
