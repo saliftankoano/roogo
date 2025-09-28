@@ -1,4 +1,4 @@
-import { useSignUp, useSSO } from "@clerk/clerk-expo";
+import { useAuth, useSignUp, useSSO, useUser } from "@clerk/clerk-expo";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as AuthSession from "expo-auth-session";
@@ -14,12 +14,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import UserTypeSelection from "../components/UserTypeSelection";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUpScreen() {
   const { isLoaded, signUp, setActive } = useSignUp();
   const { startSSOFlow } = useSSO();
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const router = useRouter();
 
   const [firstName, setFirstName] = useState("");
@@ -28,11 +31,14 @@ export default function SignUpScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [sex, setSex] = useState("");
   const [showSexPicker, setShowSexPicker] = useState(false);
+  const [userType, setUserType] = useState("");
+  const [showUserTypePicker, setShowUserTypePicker] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState("");
+  const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -50,6 +56,42 @@ export default function SignUpScreen() {
     return `${day}/${month}/${year}`;
   };
 
+  // Sync chosen user type to your backend to be written into privateMetadata
+  const syncUserTypeToPrivate = async (selected?: string) => {
+    try {
+      const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL;
+      if (!apiBaseUrl) {
+        return;
+      }
+
+      const token = await getToken();
+      if (!token) {
+        return;
+      }
+
+      const userTypeToSync = selected ?? userType;
+      const url = `${apiBaseUrl.replace(/\/$/, "")}/api/clerk/users/me/metadata`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          privateMetadata: { userType: userTypeToSync },
+        }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.warn("Failed to sync private metadata:", text);
+      }
+    } catch (error) {
+      console.error("Error syncing private metadata:", error);
+    }
+  };
+
   // Handle date picker change
   const onDateChange = (event: any, selectedDate?: Date) => {
     if (selectedDate) {
@@ -61,6 +103,38 @@ export default function SignUpScreen() {
   const selectSex = (selectedSex: string) => {
     setSex(selectedSex);
     setShowSexPicker(false);
+  };
+
+  // Handle user type selection
+  const selectUserType = (selectedUserType: string) => {
+    setUserType(selectedUserType);
+    setShowUserTypePicker(false);
+  };
+
+  // Handle post-SSO user type selection
+  const handlePostSSOUserTypeSelection = async (selectedUserType: string) => {
+    try {
+      if (user) {
+        // Update user metadata with the selected user type
+        await user.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            userType: selectedUserType,
+          },
+        });
+      }
+
+      // Mirror into private metadata via backend
+      await syncUserTypeToPrivate(selectedUserType);
+
+      // Close the modal and proceed to main app
+      setShowUserTypeSelection(false);
+      router.replace("/");
+    } catch (error) {
+      console.error("Error updating user type:", error);
+      // Re-throw to let the component handle the error
+      throw error;
+    }
   };
 
   // Handle submission of sign-up form
@@ -76,6 +150,7 @@ export default function SignUpScreen() {
         unsafeMetadata: {
           dateOfBirth: formatDate(dateOfBirth),
           sex,
+          userType,
         },
       });
 
@@ -97,6 +172,8 @@ export default function SignUpScreen() {
 
       if (signUpAttempt.status === "complete") {
         await setActive({ session: signUpAttempt.createdSessionId });
+        // Mirror userType into private metadata via backend
+        await syncUserTypeToPrivate();
         router.replace("/");
       } else {
         console.error(JSON.stringify(signUpAttempt, null, 2));
@@ -117,6 +194,8 @@ export default function SignUpScreen() {
       });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
+        // Show user type selection after successful SSO
+        setShowUserTypeSelection(true);
       }
     } catch (e) {
       console.error(e);
@@ -244,6 +323,26 @@ export default function SignUpScreen() {
             />
           </View>
 
+          {/* User Type Input */}
+          <TouchableOpacity
+            className="bg-figma-grey-50 h-[50px] mt-[10px] rounded-2xl px-5 flex-row items-center"
+            onPress={() => setShowUserTypePicker(!showUserTypePicker)}
+          >
+            <View className="mr-3">
+              <MaterialIcons name="business" size={20} color="#9E9E9E" />
+            </View>
+            <Text className="flex-1 text-black text-md font-semibold tracking-[0.2px] font-urbanist">
+              {userType || "Type d'utilisateur"}
+            </Text>
+            <MaterialIcons
+              name={
+                showUserTypePicker ? "keyboard-arrow-up" : "keyboard-arrow-down"
+              }
+              size={20}
+              color="#9E9E9E"
+            />
+          </TouchableOpacity>
+
           {/* Date and Sex Row */}
           <View className="flex-row gap-3 mt-[10px]">
             {/* Date of Birth Input */}
@@ -369,6 +468,52 @@ export default function SignUpScreen() {
             </View>
           </Modal>
 
+          <Modal
+            visible={showUserTypePicker}
+            transparent={true}
+            animationType="slide"
+          >
+            <View className="flex-1 justify-end bg-black/50">
+              <View className="bg-white rounded-t-3xl p-6">
+                <View className="flex-row justify-between items-center mb-4">
+                  <Text className="text-lg font-bold text-figma-grey-900 font-urbanist">
+                    Sélectionner le type d&apos;utilisateur
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowUserTypePicker(false)}
+                    className="p-2"
+                  >
+                    <MaterialIcons name="close" size={24} color="#9E9E9E" />
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center mb-3"
+                  onPress={() => selectUserType("agent")}
+                >
+                  <View className="mr-3">
+                    <MaterialIcons name="business" size={24} color="#9E9E9E" />
+                  </View>
+                  <Text className="text-black text-lg font-semibold tracking-[0.2px] font-urbanist">
+                    Agent immobilier
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center"
+                  onPress={() => selectUserType("regular")}
+                >
+                  <View className="mr-3">
+                    <MaterialIcons name="home" size={24} color="#9E9E9E" />
+                  </View>
+                  <Text className="text-black text-lg font-semibold tracking-[0.2px] font-urbanist">
+                    Acheteur/Locataire
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
           {/* Email Input */}
           <View className="bg-figma-grey-50 h-[50px] mt-[10px] rounded-2xl px-5 flex-row items-center">
             <View className="mr-3">
@@ -488,6 +633,12 @@ export default function SignUpScreen() {
           </Link>
         </View>
       </View>
+
+      {/* Post-SSO User Type Selection Modal */}
+      <UserTypeSelection
+        visible={showUserTypeSelection}
+        onSelectUserType={handlePostSSOUserTypeSelection}
+      />
     </View>
   );
 }
