@@ -1,11 +1,13 @@
 import { useSignUp, useSSO } from "@clerk/clerk-expo";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import * as AuthSession from "expo-auth-session";
 import { Image } from "expo-image";
 import { Link, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useEffect, useState } from "react";
 import {
+  Modal,
   Platform,
   Text,
   TextInput,
@@ -20,9 +22,15 @@ export default function SignUpScreen() {
   const { startSSOFlow } = useSSO();
   const router = useRouter();
 
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [sex, setSex] = useState("");
+  const [showSexPicker, setShowSexPicker] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState("");
 
@@ -34,6 +42,27 @@ export default function SignUpScreen() {
     };
   }, []);
 
+  // Helper function to format date
+  const formatDate = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // Handle date picker change
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    if (selectedDate) {
+      setDateOfBirth(selectedDate);
+    }
+  };
+
+  // Handle sex selection
+  const selectSex = (selectedSex: string) => {
+    setSex(selectedSex);
+    setShowSexPicker(false);
+  };
+
   // Handle submission of sign-up form
   const onSignUpPress = async () => {
     if (!isLoaded) return;
@@ -42,6 +71,12 @@ export default function SignUpScreen() {
       await signUp.create({
         emailAddress,
         password,
+        firstName,
+        lastName,
+        unsafeMetadata: {
+          dateOfBirth: formatDate(dateOfBirth),
+          sex,
+        },
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
@@ -116,13 +151,9 @@ export default function SignUpScreen() {
 
           {/* Verification Code Input */}
           <View className="space-y-5 mb-8">
-            <View className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center">
+            <View className="bg-figma-grey-50 h-[50px] rounded-2xl px-5 flex-row items-center">
               <View className="mr-3">
-                <Image
-                  source={require("../../assets/images/email.png")}
-                  style={{ width: 20, height: 20 }}
-                  contentFit="contain"
-                />
+                <MaterialIcons name="email" size={20} color="#9E9E9E" />
               </View>
               <TextInput
                 className="flex-1 text-black text-md font-semibold tracking-[0.2px] font-urbanist"
@@ -164,7 +195,7 @@ export default function SignUpScreen() {
       {/* Main Content */}
       <View className="flex-1 px-6 pb-12">
         {/* Logo */}
-        <View className="items-center mb-8">
+        <View className="items-center mb-3">
           <Image
             source={require("../../assets/images/logo_160.png")}
             style={{ width: 160, height: 160 }}
@@ -173,20 +204,175 @@ export default function SignUpScreen() {
         </View>
 
         {/* Title */}
-        <Text className="text-figma-grey-900 text-[24px] font-bold text-center mb-8 leading-[1.2] font-urbanist">
+        <Text className="text-figma-grey-900 text-[24px] font-bold text-center mb-6 leading-[1.2] font-urbanist">
           Créer un nouveau compte
         </Text>
 
         {/* Form */}
-        <View className="space-y-5 mb-8">
-          {/* Email Input */}
-          <View className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center">
+        <View className="space-y-2 mb-4">
+          {/* First Name Input */}
+          <View className="bg-figma-grey-50 h-[50px] rounded-2xl px-5 flex-row items-center">
             <View className="mr-3">
-              <Image
-                source={require("../../assets/images/email.png")}
-                style={{ width: 20, height: 20 }}
-                contentFit="contain"
+              <MaterialIcons name="person" size={20} color="#9E9E9E" />
+            </View>
+            <TextInput
+              className="flex-1 text-black text-md font-semibold tracking-[0.2px] font-urbanist"
+              placeholder="Prénom"
+              placeholderTextColor="#9E9E9E"
+              value={firstName}
+              onChangeText={setFirstName}
+              autoCapitalize="words"
+              autoCorrect={false}
+              spellCheck={false}
+            />
+          </View>
+
+          {/* Last Name Input */}
+          <View className="bg-figma-grey-50 h-[60px] mt-[10px] rounded-2xl px-5 flex-row items-center">
+            <View className="mr-3">
+              <MaterialIcons name="family-restroom" size={20} color="#9E9E9E" />
+            </View>
+            <TextInput
+              className="flex-1 text-black text-md font-semibold tracking-[0.2px] font-urbanist"
+              placeholder="Nom de famille"
+              placeholderTextColor="#9E9E9E"
+              value={lastName}
+              onChangeText={setLastName}
+              autoCapitalize="words"
+              autoCorrect={false}
+              spellCheck={false}
+            />
+          </View>
+
+          {/* Date and Sex Row */}
+          <View className="flex-row gap-3 mt-[10px]">
+            {/* Date of Birth Input */}
+            <TouchableOpacity
+              className="bg-figma-grey-50 h-[50px] flex-1 rounded-2xl px-4 flex-row items-center"
+              onPress={() => setShowDatePicker(true)}
+            >
+              <View className="mr-2">
+                <MaterialIcons name="cake" size={18} color="#9E9E9E" />
+              </View>
+              <Text className="flex-1 text-black text-sm font-semibold tracking-[0.2px] font-urbanist">
+                {formatDate(dateOfBirth)}
+              </Text>
+              <MaterialIcons name="calendar-today" size={18} color="#9E9E9E" />
+            </TouchableOpacity>
+
+            {/* Sex Input */}
+            <TouchableOpacity
+              className="bg-figma-grey-50 h-[50px] flex-1 rounded-2xl px-4 flex-row items-center"
+              onPress={() => setShowSexPicker(!showSexPicker)}
+            >
+              <View className="mr-2">
+                <MaterialIcons
+                  name="person-outline"
+                  size={18}
+                  color="#9E9E9E"
+                />
+              </View>
+              <Text className="flex-1 text-black text-sm font-semibold tracking-[0.2px] font-urbanist">
+                {sex || "Sexe"}
+              </Text>
+              <MaterialIcons
+                name={
+                  showSexPicker ? "keyboard-arrow-up" : "keyboard-arrow-down"
+                }
+                size={18}
+                color="#9E9E9E"
               />
+            </TouchableOpacity>
+          </View>
+
+          <Modal
+            visible={showDatePicker}
+            transparent={true}
+            animationType="slide"
+          >
+            <View className="flex-1 justify-end bg-black/50">
+              <View className="bg-white rounded-t-3xl p-6">
+                <View className="flex-row justify-between items-center mb-4">
+                  <Text className="text-lg font-bold text-figma-grey-900 font-urbanist">
+                    Sélectionner la date
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowDatePicker(false)}
+                    className="p-2"
+                  >
+                    <MaterialIcons name="close" size={24} color="#9E9E9E" />
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={dateOfBirth}
+                  mode="date"
+                  display="default"
+                  onChange={onDateChange}
+                  maximumDate={new Date()}
+                  style={{ alignSelf: "center" }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker(false)}
+                  className="bg-figma-primary h-[50px] rounded-2xl items-center justify-center mt-4"
+                >
+                  <Text className="text-white text-base font-bold font-urbanist">
+                    Confirmer
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
+          <Modal
+            visible={showSexPicker}
+            transparent={true}
+            animationType="slide"
+          >
+            <View className="flex-1 justify-end bg-black/50">
+              <View className="bg-white rounded-t-3xl p-6">
+                <View className="flex-row justify-between items-center mb-4">
+                  <Text className="text-lg font-bold text-figma-grey-900 font-urbanist">
+                    Sélectionner le sexe
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowSexPicker(false)}
+                    className="p-2"
+                  >
+                    <MaterialIcons name="close" size={24} color="#9E9E9E" />
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center mb-3"
+                  onPress={() => selectSex("Masculin")}
+                >
+                  <View className="mr-3">
+                    <MaterialIcons name="male" size={24} color="#9E9E9E" />
+                  </View>
+                  <Text className="text-black text-lg font-semibold tracking-[0.2px] font-urbanist">
+                    Masculin
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center"
+                  onPress={() => selectSex("Féminin")}
+                >
+                  <View className="mr-3">
+                    <MaterialIcons name="female" size={24} color="#9E9E9E" />
+                  </View>
+                  <Text className="text-black text-lg font-semibold tracking-[0.2px] font-urbanist">
+                    Féminin
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
+          {/* Email Input */}
+          <View className="bg-figma-grey-50 h-[50px] mt-[10px] rounded-2xl px-5 flex-row items-center">
+            <View className="mr-3">
+              <MaterialIcons name="email" size={20} color="#9E9E9E" />
             </View>
             <TextInput
               className="flex-1 text-black text-md font-semibold tracking-[0.2px] font-urbanist"
@@ -203,35 +389,38 @@ export default function SignUpScreen() {
           </View>
 
           {/* Password Input */}
-          <View className="bg-figma-grey-50 h-[60px] mt-[20px] rounded-2xl px-5 flex-row items-center">
+          <View className="bg-figma-grey-50 h-[60px] mt-[10px] rounded-2xl px-5 flex-row items-center">
             <View className="mr-3">
-              <Image
-                source={require("../../assets/images/Lock.png")}
-                style={{ width: 20, height: 20 }}
-                contentFit="contain"
-              />
+              <MaterialIcons name="lock" size={20} color="#9E9E9E" />
             </View>
             <TextInput
               className="flex-1 text-black text-md font-semibold tracking-[0.2px] font-urbanist"
               placeholder="Mot de passe"
               placeholderTextColor="#9E9E9E"
-              secureTextEntry
+              secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
             />
-            <TouchableOpacity className="ml-3">
-              <Image
-                source={require("../../assets/images/eye.png")}
-                style={{ width: 20, height: 20 }}
-                contentFit="contain"
-              />
+            <TouchableOpacity
+              className="ml-3"
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <MaterialIcons
+                  name="visibility-off"
+                  size={20}
+                  color="#9E9E9E"
+                />
+              ) : (
+                <MaterialIcons name="visibility" size={20} color="#9E9E9E" />
+              )}
             </TouchableOpacity>
           </View>
 
           {/* Sign Up Button */}
           <TouchableOpacity
             onPress={onSignUpPress}
-            className="bg-figma-primary mt-[20px] h-[58px] rounded-full items-center justify-center"
+            className="bg-figma-primary mt-[8px] h-[50px] rounded-full items-center justify-center"
           >
             <Text className="text-white text-base font-bold tracking-[0.2px] font-urbanist">
               S&apos;inscrire
@@ -240,7 +429,7 @@ export default function SignUpScreen() {
         </View>
 
         {/* Social Login Section */}
-        <View className="space-y-5">
+        <View className="space-y-3">
           {/* Divider */}
           <View className="flex-row items-center">
             <View className="flex-1 h-px bg-figma-border" />
@@ -251,9 +440,9 @@ export default function SignUpScreen() {
           </View>
 
           {/* Social Buttons */}
-          <View className="flex-row justify-center gap-5 mt-[20px]">
+          <View className="flex-row justify-center gap-5 mt-[10px]">
             <TouchableOpacity
-              className="bg-white border border-figma-border w-[87px] h-[60px] rounded-2xl items-center justify-center"
+              className="bg-white border border-figma-border w-[87px] h-[50px] rounded-2xl items-center justify-center"
               onPress={() => handleOAuth("oauth_google")}
             >
               <Image
@@ -263,7 +452,7 @@ export default function SignUpScreen() {
               />
             </TouchableOpacity>
             <TouchableOpacity
-              className="bg-white border border-figma-border w-[88px] h-[60px] rounded-2xl items-center justify-center"
+              className="bg-white border border-figma-border w-[88px] h-[50px] rounded-2xl items-center justify-center"
               onPress={() => handleOAuth("oauth_facebook")}
             >
               <Image
@@ -273,7 +462,7 @@ export default function SignUpScreen() {
               />
             </TouchableOpacity>
             <TouchableOpacity
-              className="bg-white border border-figma-border w-[88px] h-[60px] rounded-2xl items-center justify-center"
+              className="bg-white border border-figma-border w-[88px] h-[50px] rounded-2xl items-center justify-center"
               onPress={() => handleOAuth("oauth_apple")}
             >
               <Image
