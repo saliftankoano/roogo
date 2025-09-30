@@ -1,9 +1,8 @@
-import { useSSO } from "@clerk/clerk-expo";
-import * as AuthSession from "expo-auth-session";
+import { useAuth, useClerk, useSSO } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Platform,
   StatusBar,
@@ -15,6 +14,10 @@ import {
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const { signOut } = useClerk();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
   useEffect(() => {
     if (Platform.OS !== "android") return;
     void WebBrowser.warmUpAsync();
@@ -23,24 +26,57 @@ export default function LoginScreen() {
     };
   }, []);
 
+  // Debug authentication state
+  useEffect(() => {
+    console.log("Auth state:", { isSignedIn, isLoaded });
+  }, [isSignedIn, isLoaded]);
+
   const { startSSOFlow } = useSSO();
 
-  async function handleOAuth(
-    strategy: "oauth_google" | "oauth_facebook" | "oauth_apple"
-  ) {
-    try {
-      const redirectUrl = AuthSession.makeRedirectUri({ scheme: "roogo" });
-      const { createdSessionId, setActive } = await startSSOFlow({
-        strategy,
-        redirectUrl,
-      });
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
-      }
-    } catch (e) {
-      console.error(e);
+  // Handle redirect with a delay to avoid conflicts
+  useEffect(() => {
+    if (isSignedIn && isLoaded) {
+      console.log("User is signed in, preparing redirect...");
+      setShouldRedirect(true);
+      // Use a small delay to ensure the redirect works properly
+      setTimeout(() => {
+        router.replace("/");
+      }, 100);
     }
+  }, [isSignedIn, isLoaded]);
+
+  // Show loading while checking authentication status
+  if (!isLoaded) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <Text className="text-lg text-gray-600">Chargement...</Text>
+      </View>
+    );
   }
+
+  // Redirect to home if user is already signed in
+  if (shouldRedirect) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <Text className="text-lg text-gray-600">
+          Redirection vers l&apos;accueil...
+        </Text>
+      </View>
+    );
+  }
+
+  console.log("User is not signed in, showing login screen");
+
+  // Debug function to clear session
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      console.log("Signed out successfully");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   return (
     <View className="w-screen h-screen mt-0 mb-0">
       <StatusBar barStyle="light-content" />
@@ -89,47 +125,16 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </Link>
         </View>
-        {/* Socials Buttons (Google, Facebook, Apple) */}
-        <View className="z-20 mt-8 items-center">
-          <Text className="text-white/80 font-urbanist text-xl">
-            Autres façons de se connecter
-          </Text>
-          <View className="flex-row items-center justify-center gap-5 mt-5">
-            <TouchableOpacity
-              accessibilityLabel="Continuer avec Google"
-              className="h-[60px] w-[60px] bg-white rounded-full border border-white/40 items-center justify-center active:opacity-80"
-              onPress={() => handleOAuth("oauth_google")}
-            >
-              <Image
-                source={require("../assets/images/socials/google.png")}
-                style={{ width: 24, height: 24 }}
-                contentFit="contain"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="Continuer avec Facebook"
-              className="h-[60px] w-[60px] bg-white rounded-full border border-white/40 items-center justify-center active:opacity-80"
-              onPress={() => handleOAuth("oauth_facebook")}
-            >
-              <Image
-                source={require("../assets/images/socials/fb.png")}
-                style={{ width: 24, height: 24 }}
-                contentFit="contain"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="Continuer avec Apple"
-              className="h-[60px] w-[60px] rounded-full bg-white border border-white/40 items-center justify-center active:opacity-80"
-              onPress={() => handleOAuth("oauth_apple")}
-            >
-              <Image
-                source={require("../assets/images/socials/apple.png")}
-                style={{ width: 24, height: 24 }}
-                contentFit="contain"
-              />
-            </TouchableOpacity>
-          </View>
+        {/* Debug Button */}
+        <View className="z-20 mt-4 items-center">
+          <TouchableOpacity
+            onPress={handleSignOut}
+            className="bg-red-500 px-4 py-2 rounded-lg"
+          >
+            <Text className="text-white font-semibold">Debug: Sign Out</Text>
+          </TouchableOpacity>
         </View>
+
         <View className="absolute inset-0 bg-black/40 z-10" />
       </View>
     </View>

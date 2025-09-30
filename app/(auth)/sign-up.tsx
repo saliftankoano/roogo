@@ -182,7 +182,7 @@ export default function SignUpScreen() {
           sex,
           dateOfBirth: formatDate(dateOfBirth),
         });
-        router.replace("/");
+        router.replace("/(tabs)/(home)");
       } else {
         console.error(JSON.stringify(signUpAttempt, null, 2));
       }

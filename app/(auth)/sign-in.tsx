@@ -44,7 +44,8 @@ export default function SignInScreen() {
 
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace("/");
+        console.log("Sign in successful, redirecting to home...");
+        router.replace("/(tabs)/(home)");
       } else {
         console.error(JSON.stringify(signInAttempt, null, 2));
       }
@@ -64,6 +65,8 @@ export default function SignInScreen() {
       });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
+        console.log("OAuth sign in successful, redirecting to home...");
+        router.replace("/(tabs)/(home)");
       }
     } catch (e) {
       console.error(e);
