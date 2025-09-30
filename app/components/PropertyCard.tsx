@@ -1,4 +1,5 @@
 import { Heart, MapPin } from "lucide-react-native";
+import { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
 interface PropertyCardProps {
@@ -13,8 +14,10 @@ interface PropertyCardProps {
     parking: number;
     period?: string;
     image: any;
+    category: "Louer" | "Acheter";
   };
   isHorizontal?: boolean;
+  onPress?: () => void;
 }
 
 // Format price with dots for thousands separator
@@ -25,8 +28,10 @@ const formatPrice = (price: string) => {
 export default function PropertyCard({
   property,
   isHorizontal = false,
+  onPress,
 }: PropertyCardProps) {
-  return (
+  const [isFavorite, setIsFavorite] = useState(false);
+  const content = (
     <View
       className={`bg-white rounded-2xl overflow-hidden border border-gray-200 pb-2 ${
         isHorizontal ? "mr-4" : "mb-4"
@@ -40,13 +45,25 @@ export default function PropertyCard({
           className="w-full h-[200px]"
           resizeMode="cover"
         />
-        {/* For Sale Tag */}
-        <View className="absolute top-3 left-3 bg-green-500 px-3 py-1 rounded-full">
-          <Text className="text-white text-xs font-semibold">À Vendre</Text>
+        {/* Property Category Tag */}
+        <View
+          className={`absolute top-3 left-3 ${property.category === "Louer" ? "bg-blue-500" : "bg-green-500"} px-3 py-1 rounded-full`}
+        >
+          <Text className="text-white text-xs font-semibold">
+            {property.category === "Louer" ? "À Louer" : "À Vendre"}
+          </Text>
         </View>
         {/* Heart Icon */}
-        <TouchableOpacity className="absolute top-3 right-3 bg-white/20 p-2 rounded-full">
-          <Heart size={20} color="white" />
+        <TouchableOpacity
+          className="absolute top-3 right-3 bg-gray-900/50 p-2.5 rounded-full"
+          onPress={() => setIsFavorite(!isFavorite)}
+        >
+          <Heart
+            size={24}
+            color={isFavorite ? "#FF4B4B" : "white"}
+            strokeWidth={2.5}
+            fill={isFavorite ? "#FF4B4B" : "transparent"}
+          />
         </TouchableOpacity>
       </View>
 
@@ -78,13 +95,14 @@ export default function PropertyCard({
             </Text>
             <Text className="text-gray-400 text-sm"> | </Text>
             <Text className="text-gray-700 text-sm font-medium">
-              {property.area}
+              {property.area} m²
             </Text>
             {property.parking && (
               <>
                 <Text className="text-gray-400 text-sm"> | </Text>
                 <Text className="text-gray-700 text-sm font-medium">
-                  {property.parking} parking
+                  {property.parking}{" "}
+                  {property.parking === 1 ? "Véhicule" : "Véhicules"}
                 </Text>
               </>
             )}
@@ -93,4 +111,18 @@ export default function PropertyCard({
       </View>
     </View>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={onPress}
+        className={isHorizontal ? "mr-4" : "mb-4"}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 }
