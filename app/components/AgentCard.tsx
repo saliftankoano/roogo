@@ -1,22 +1,12 @@
-import { Image, Linking, Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import type { PropertyAgent } from "../constants/properties";
 
 type AgentCardProps = {
   agent: PropertyAgent;
+  onContactPress?: () => void;
 };
 
-export default function AgentCard({ agent }: AgentCardProps) {
-  const handleContact = () => {
-    if (agent.phone) {
-      Linking.openURL(`tel:${agent.phone}`);
-      return;
-    }
-
-    if (agent.email) {
-      Linking.openURL(`mailto:${agent.email}`);
-    }
-  };
-
+export default function AgentCard({ agent, onContactPress }: AgentCardProps) {
   return (
     <View className="flex-row items-center bg-white rounded-full p-4 border border-gray-100">
       <Image
@@ -33,9 +23,11 @@ export default function AgentCard({ agent }: AgentCardProps) {
       </View>
 
       <TouchableOpacity
-        onPress={handleContact}
+        onPress={onContactPress}
         className="bg-gray-900 rounded-full px-5 py-3"
         activeOpacity={0.8}
+        accessibilityLabel="Contacter l'agent"
+        accessibilityRole="button"
       >
         <Text className="text-white font-semibold text-sm">Contacter</Text>
       </TouchableOpacity>
