@@ -16,7 +16,7 @@ import {
   Waves,
   Wifi,
 } from "lucide-react-native";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -27,6 +27,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AgentCard from "../../components/AgentCard";
+import ContactSheet from "../../components/ContactSheet";
 import type { Property } from "../../constants/properties";
 import { properties } from "../../constants/properties";
 
@@ -36,6 +37,7 @@ const formatPrice = (price: string) =>
 export default function PropertyDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const [isContactSheetVisible, setIsContactSheetVisible] = useState(false);
 
   const property: Property | undefined = useMemo(() => {
     if (!id) return undefined;
@@ -224,16 +226,30 @@ export default function PropertyDetailsScreen() {
       <View className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-2">
         {property.agent ? (
           <View className="shadow-lg shadow-black/10">
-            <AgentCard agent={property.agent} />
+            <AgentCard
+              agent={property.agent}
+              onContactPress={() => setIsContactSheetVisible(true)}
+            />
           </View>
         ) : (
-          <TouchableOpacity className="bg-blue-500 py-4 rounded-2xl items-center">
+          <TouchableOpacity
+            className="bg-blue-500 py-4 rounded-2xl items-center"
+            onPress={() => setIsContactSheetVisible(true)}
+            accessibilityLabel="Contacter l'agent"
+            accessibilityRole="button"
+          >
             <Text className="text-white text-lg font-semibold">
               Contactez l&apos;agent
             </Text>
           </TouchableOpacity>
         )}
       </View>
+
+      <ContactSheet
+        visible={isContactSheetVisible}
+        onClose={() => setIsContactSheetVisible(false)}
+        property={property}
+      />
     </SafeAreaView>
   );
 }
