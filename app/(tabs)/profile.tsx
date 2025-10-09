@@ -67,7 +67,6 @@ export default function ProfileScreen() {
   ];
 
   const agentMenuItems = [
-    { label: "Mes annonces", icon: Home, color: "#3B82F6" },
     { label: "Mes leads", icon: Users, color: "#10B981" },
     { label: "Notifications", icon: Bell, color: "#F59E0B" },
     { label: "Paramètres", icon: Settings, color: "#6B7280" },
