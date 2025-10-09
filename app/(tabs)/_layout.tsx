@@ -1,7 +1,8 @@
 import { Tabs, usePathname } from "expo-router";
-import { Heart, Home, MessageCircle, User } from "lucide-react-native";
+import { Building2, Heart, Home, Plus, User } from "lucide-react-native";
 import type { ComponentType } from "react";
 import { View } from "react-native";
+import { useUserType } from "../hooks/useUserType";
 
 type IconRendererProps = {
   focused: boolean;
@@ -23,9 +24,9 @@ const createIcon = (
           borderRadius: 18,
           borderWidth: focused ? 0 : 0,
           borderColor: "#E5E7EB",
-          height: 44,
+          height: 40,
           justifyContent: "center",
-          width: 48,
+          width: 40,
           transform: [{ scale: focused ? 1.05 : 1 }],
           opacity: focused ? 1 : 0.8,
         }}
@@ -42,78 +43,64 @@ const createIcon = (
 
 const HomeIcon = createIcon(Home, "HomeTabIcon");
 const HeartIcon = createIcon(Heart, "HeartTabIcon");
-const MessageIcon = createIcon(MessageCircle, "MessageTabIcon");
 const UserIcon = createIcon(User, "UserTabIcon");
+const PlusIcon = createIcon(Plus, "PlusTabIcon");
+const BuildingIcon = createIcon(Building2, "BuildingTabIcon");
 
 export default function TabLayout() {
   const pathname = usePathname();
   const isDetailsPage = pathname.includes("/details");
+  const { isAgent } = useUserType();
+
+  const commonTabBarStyle = {
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 0,
+    elevation: 0,
+    height: 75,
+    alignSelf: "center" as const,
+    width: "75%" as const,
+    bottom: 20,
+    paddingTop: 10,
+    paddingBottom: 5,
+    position: "absolute" as const,
+    borderRadius: 999,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 24,
+    marginHorizontal: 50,
+  };
+
+  const commonScreenOptions = {
+    tabBarActiveTintColor: "#111827",
+    tabBarInactiveTintColor: "#000000",
+    animation: "shift" as const,
+    tabBarStyle: isDetailsPage
+      ? { display: "none" as const }
+      : commonTabBarStyle,
+    tabBarLabelStyle: {
+      fontSize: 11,
+      fontWeight: "600" as const,
+      marginTop: 6,
+    },
+    tabBarIconStyle: {
+      marginBottom: 0,
+    },
+    tabBarItemStyle: {
+      marginHorizontal: 2,
+      paddingVertical: 0,
+      paddingHorizontal: 2,
+    },
+  };
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: "#111827",
-        tabBarInactiveTintColor: "#000000",
-        animation: "shift",
-        tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopWidth: 0,
-          elevation: 0,
-          height: 75,
-          alignSelf: "center",
-          width: "75%",
-          bottom: 20,
-          paddingTop: 10,
-          paddingBottom: 5,
-          position: "absolute",
-          borderRadius: 999,
-          shadowColor: "#0F172A",
-          shadowOpacity: 0.12,
-          shadowOffset: { width: 0, height: 12 },
-          shadowRadius: 24,
-          marginHorizontal: 50,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "600",
-          marginTop: 6,
-        },
-        tabBarIconStyle: {
-          marginBottom: 0,
-        },
-        tabBarItemStyle: {
-          marginHorizontal: 2,
-          paddingVertical: 0,
-          paddingHorizontal: 2,
-        },
-      }}
-    >
+    <Tabs screenOptions={commonScreenOptions}>
       <Tabs.Screen
         name="(home)"
         options={{
           title: "Accueil",
           tabBarIcon: ({ focused, size }) => HomeIcon({ focused, size }),
           headerShown: false,
-          tabBarStyle: isDetailsPage
-            ? { display: "none" }
-            : {
-                backgroundColor: "#FFFFFF",
-                borderTopWidth: 0,
-                elevation: 0,
-                height: 75,
-                alignSelf: "center",
-                width: "75%",
-                bottom: 20,
-                paddingTop: 10,
-                paddingBottom: 5,
-                position: "absolute",
-                borderRadius: 999,
-                shadowColor: "#0F172A",
-                shadowOpacity: 0.12,
-                shadowOffset: { width: 0, height: 12 },
-                shadowRadius: 24,
-                marginHorizontal: 50,
-              },
         }}
       />
       <Tabs.Screen
@@ -125,13 +112,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="messages"
+        name="add-property"
         options={{
-          title: "Messages",
-          tabBarIcon: ({ focused, size }) => MessageIcon({ focused, size }),
+          title: "Ajouter",
+          tabBarIcon: ({ focused, size }) => PlusIcon({ focused, size }),
           headerShown: false,
+          tabBarButton: isAgent ? undefined : () => null,
         }}
       />
+      <Tabs.Screen
+        name="my-properties"
+        options={{
+          title: "Biens",
+          tabBarIcon: ({ focused, size }) => BuildingIcon({ focused, size }),
+          headerShown: false,
+          tabBarButton: isAgent ? undefined : () => null,
+        }}
+      />
+
       <Tabs.Screen
         name="profile"
         options={{
