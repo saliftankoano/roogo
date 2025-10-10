@@ -4,11 +4,17 @@ import {
   Eye,
   Heart,
   MapPin,
-  MoreVertical,
-  Plus,
   Trash2,
 } from "lucide-react-native";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import {
+  Animated,
+  Image,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserType } from "../hooks/useUserType";
 
@@ -63,11 +69,21 @@ const mockProperties = [
 
 export default function MyPropertiesScreen() {
   const { isAgent } = useUserType();
+  const [refreshing, setRefreshing] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Simulate refresh
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
 
   // Redirect non-agents to home
   if (!isAgent) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
         <View className="flex-1 justify-center items-center">
           <Text className="text-lg text-gray-600">
             Accès réservé aux agents
@@ -103,161 +119,126 @@ export default function MyPropertiesScreen() {
     }
   };
 
+  // Header opacity animation
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [1, 0.9],
+    extrapolate: "clamp",
+  });
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View className="px-4 py-6">
-          <View className="flex-row items-center justify-between mb-6">
-            <View>
-              <Text className="text-2xl font-bold text-gray-900">
-                Mes Propriétés
-              </Text>
-              <Text className="text-gray-600 mt-1">
-                Gérez vos annonces immobilières
-              </Text>
-            </View>
-            <TouchableOpacity className="bg-blue-600 rounded-full p-3">
-              <Plus size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+      {/* Animated Header */}
+      <Animated.View
+        style={{
+          opacity: headerOpacity,
+          backgroundColor: "#FFFFFF",
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: "rgba(229, 231, 235, 0.5)",
+        }}
+      >
+        <Text className="text-2xl font-bold text-gray-900">Mes Propriétés</Text>
+        <Text className="text-gray-600 mt-1">
+          Gérez vos annonces immobilières
+        </Text>
+      </Animated.View>
 
-          {/* Stats Overview */}
-          <View className="bg-gray-50 rounded-2xl p-4 mb-6">
-            <View className="flex-row justify-around">
-              <View className="items-center">
-                <Text className="text-2xl font-bold text-gray-900">
-                  {mockProperties.length}
-                </Text>
-                <Text className="text-sm text-gray-600">Total</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-2xl font-bold text-green-600">
-                  {mockProperties.filter((p) => p.status === "active").length}
-                </Text>
-                <Text className="text-sm text-gray-600">Actives</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-2xl font-bold text-blue-600">
-                  {mockProperties.reduce((sum, p) => sum + p.views, 0)}
-                </Text>
-                <Text className="text-sm text-gray-600">Vues</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-2xl font-bold text-red-600">
-                  {mockProperties.reduce((sum, p) => sum + p.favorites, 0)}
-                </Text>
-                <Text className="text-sm text-gray-600">Favoris</Text>
-              </View>
-            </View>
-          </View>
-
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+      >
+        <View className="p-4">
           {/* Properties List */}
           <View className="space-y-4">
             {mockProperties.map((property) => (
-              <View
+              <TouchableOpacity
                 key={property.id}
-                className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
+                className="bg-white rounded-2xl shadow-sm overflow-hidden"
+                activeOpacity={0.7}
               >
-                <View className="flex-row">
-                  {/* Property Image */}
+                {/* Property Image with Status Badge */}
+                <View className="relative">
                   <Image
                     source={property.image}
-                    className="w-32 h-32"
+                    className="w-full h-48"
                     resizeMode="cover"
                   />
+                  <View
+                    className={`absolute top-2 left-2 px-3 py-1 rounded-full ${getStatusColor(
+                      property.status
+                    )}`}
+                  >
+                    <Text className="text-xs font-medium">
+                      {getStatusText(property.status)}
+                    </Text>
+                  </View>
+                  <View className="absolute top-2 right-2 flex-row space-x-2">
+                    <TouchableOpacity className="p-2 bg-white rounded-full">
+                      <Edit size={16} color="#3B82F6" />
+                    </TouchableOpacity>
+                    <TouchableOpacity className="p-2 bg-white rounded-full">
+                      <Trash2 size={16} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
 
-                  {/* Property Details */}
-                  <View className="flex-1 p-4">
-                    <View className="flex-row items-start justify-between mb-2">
-                      <View className="flex-1">
-                        <Text className="text-lg font-semibold text-gray-900 mb-1">
-                          {property.title}
-                        </Text>
-                        <View className="flex-row items-center mb-1">
-                          <MapPin size={14} color="#6B7280" />
-                          <Text className="ml-1 text-sm text-gray-600">
-                            {property.location}
-                          </Text>
-                        </View>
-                        <Text className="text-xl font-bold text-blue-600">
-                          {property.price}
-                        </Text>
-                      </View>
-                      <TouchableOpacity className="p-2">
-                        <MoreVertical size={20} color="#6B7280" />
-                      </TouchableOpacity>
+                {/* Property Details */}
+                <View className="p-4">
+                  <View className="flex-row items-center justify-between mb-2">
+                    <Text className="text-xl font-bold text-gray-900">
+                      {property.title}
+                    </Text>
+                    <Text className="text-lg font-bold text-blue-600">
+                      {property.price}
+                    </Text>
+                  </View>
+
+                  <View className="flex-row items-center mb-3">
+                    <MapPin size={16} color="#6B7280" />
+                    <Text className="ml-1 text-gray-600">
+                      {property.location}
+                    </Text>
+                  </View>
+
+                  {/* Property Features */}
+                  <View className="flex-row items-center justify-between py-3 border-t border-gray-100">
+                    <View className="flex-row items-center">
+                      <Building2 size={16} color="#6B7280" />
+                      <Text className="ml-1 text-gray-600">
+                        {property.bedrooms} ch. • {property.bathrooms} sdb. •{" "}
+                        {property.area}
+                      </Text>
                     </View>
-
-                    {/* Property Info */}
-                    <View className="flex-row items-center space-x-4 mb-3">
+                    <View className="flex-row items-center space-x-4">
                       <View className="flex-row items-center">
-                        <Building2 size={14} color="#6B7280" />
-                        <Text className="ml-1 text-sm text-gray-600">
-                          {property.bedrooms} ch.
+                        <Eye size={16} color="#6B7280" />
+                        <Text className="ml-1 text-gray-600">
+                          {property.views}
                         </Text>
                       </View>
                       <View className="flex-row items-center">
-                        <Text className="text-sm text-gray-600">
-                          {property.bathrooms} sdb.
+                        <Heart size={16} color="#EF4444" />
+                        <Text className="ml-1 text-gray-600">
+                          {property.favorites}
                         </Text>
-                      </View>
-                      <View className="flex-row items-center">
-                        <Text className="text-sm text-gray-600">
-                          {property.area}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Status and Actions */}
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-row items-center space-x-3">
-                        <View
-                          className={`px-3 py-1 rounded-full ${getStatusColor(
-                            property.status
-                          )}`}
-                        >
-                          <Text className="text-xs font-medium">
-                            {getStatusText(property.status)}
-                          </Text>
-                        </View>
-                        <View className="flex-row items-center">
-                          <Eye size={14} color="#6B7280" />
-                          <Text className="ml-1 text-sm text-gray-600">
-                            {property.views}
-                          </Text>
-                        </View>
-                        <View className="flex-row items-center">
-                          <Heart size={14} color="#EF4444" />
-                          <Text className="ml-1 text-sm text-gray-600">
-                            {property.favorites}
-                          </Text>
-                        </View>
-                      </View>
-                      <View className="flex-row items-center space-x-2">
-                        <TouchableOpacity className="p-2 bg-blue-50 rounded-lg">
-                          <Edit size={16} color="#3B82F6" />
-                        </TouchableOpacity>
-                        <TouchableOpacity className="p-2 bg-red-50 rounded-lg">
-                          <Trash2 size={16} color="#EF4444" />
-                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
-
-          {/* Add Property Button */}
-          <TouchableOpacity className="flex-row items-center justify-center py-4 mt-6 bg-blue-600 rounded-xl">
-            <Plus size={20} color="#FFFFFF" />
-            <Text className="ml-2 text-lg font-medium text-white">
-              Ajouter une propriété
-            </Text>
-          </TouchableOpacity>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }
