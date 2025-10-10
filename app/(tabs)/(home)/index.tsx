@@ -113,10 +113,10 @@ export default function HomeScreen() {
   }, [filteredProperties]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Category Selection */}
-        <View className="px-4 pb-10">
+        <View className="px-4 pb-2">
           <View className="flex-row items-center justify-between">
             {categories.map((category) => (
               <TouchableOpacity
