@@ -4,13 +4,10 @@ import {
   ChevronRight,
   Heart,
   HelpCircle,
-  Home,
   LogOut,
   MapPin,
-  MessageCircle,
   Settings,
   Star,
-  TrendingUp,
   Users,
 } from "lucide-react-native";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -24,7 +21,7 @@ export default function ProfileScreen() {
   // Show loading state while user data is being fetched
   if (!isLoaded) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
         <View className="flex-1 justify-center items-center">
           <Text className="text-lg text-gray-600">Chargement...</Text>
         </View>
@@ -35,7 +32,7 @@ export default function ProfileScreen() {
   // Show error state if no user data
   if (!user) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
         <View className="flex-1 justify-center items-center">
           <Text className="text-lg text-gray-600">
             Erreur de chargement du profil
@@ -44,20 +41,6 @@ export default function ProfileScreen() {
       </SafeAreaView>
     );
   }
-
-  const regularUserStats = [
-    { label: "Propriétés vues", value: "24", icon: Home },
-    { label: "Favoris", value: "8", icon: Heart },
-    { label: "Messages", value: "12", icon: MessageCircle },
-  ];
-
-  const agentStats = [
-    { label: "Propriétés vendues", value: "15", icon: TrendingUp },
-    { label: "Leads actifs", value: "8", icon: Users },
-    { label: "Messages", value: "12", icon: MessageCircle },
-  ];
-
-  const profileStats = isAgent ? agentStats : regularUserStats;
 
   const regularUserMenuItems = [
     { label: "Mes favoris", icon: Heart, color: "#EF4444" },
@@ -103,23 +86,6 @@ export default function ProfileScreen() {
                   user?.unsafeMetadata?.location || "Ouagadougou, Burkina Faso"
                 )}
               </Text>
-            </View>
-          </View>
-
-          {/* Stats */}
-          <View className="bg-gray-50 rounded-2xl p-4 mb-6">
-            <View className="flex-row justify-around">
-              {profileStats.map((stat, index) => (
-                <View key={index} className="items-center">
-                  <stat.icon size={24} color="#3B82F6" />
-                  <Text className="text-2xl font-bold text-gray-900 mt-2">
-                    {stat.value}
-                  </Text>
-                  <Text className="text-sm text-gray-600 mt-1">
-                    {stat.label}
-                  </Text>
-                </View>
-              ))}
             </View>
           </View>
 
