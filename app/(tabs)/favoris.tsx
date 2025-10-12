@@ -1,6 +1,6 @@
-import { Heart, MapPin } from "lucide-react-native";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import PropertyCard from "../components/PropertyCard";
 
 export default function FavorisScreen() {
   const favoriteProperties = [
@@ -13,7 +13,7 @@ export default function FavorisScreen() {
       bathrooms: 2,
       area: "120",
       parking: 1,
-      category: "Louer",
+      category: "Louer" as const,
       period: "mois",
       image: require("../../assets/images/white_villa.jpg"),
     },
@@ -26,7 +26,7 @@ export default function FavorisScreen() {
       bathrooms: 3,
       area: "180",
       parking: 2,
-      category: "Acheter",
+      category: "Acheter" as const,
       image: require("../../assets/images/white_villa_bg.jpg"),
     },
     {
@@ -38,7 +38,7 @@ export default function FavorisScreen() {
       bathrooms: 4,
       area: "250",
       parking: 3,
-      category: "Acheter",
+      category: "Acheter" as const,
       image: require("../../assets/images/logo_160.png"),
     },
   ];
@@ -52,92 +52,20 @@ export default function FavorisScreen() {
 
         <ScrollView showsVerticalScrollIndicator={false}>
           {favoriteProperties.map((property) => (
-            <View key={property.id} className="mb-4">
-              <View className="bg-white rounded-2xl overflow-hidden border border-gray-200 pb-2">
-                {/* Image Section */}
-                <View className="relative">
-                  <Image
-                    source={property.image}
-                    className="w-full h-[200px]"
-                    resizeMode="cover"
-                  />
-                  {/* Property Category Tag */}
-                  <View
-                    className={`absolute top-3 left-3 ${property.category === "Louer" ? "bg-blue-500" : "bg-green-500"} px-3 py-1 rounded-full`}
-                  >
-                    <Text className="text-white text-xs font-semibold">
-                      {property.category === "Louer" ? "À Louer" : "À Vendre"}
-                    </Text>
-                  </View>
-                  {/* Heart Icon */}
-                  <TouchableOpacity className="absolute top-3 right-3 bg-gray-900/50 p-2.5 rounded-full">
-                    <Heart
-                      size={24}
-                      color="#FF4B4B"
-                      strokeWidth={2.5}
-                      fill="#FF4B4B"
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Content Section */}
-                <View className="p-4 bg-white">
-                  {/* Location and Price Row */}
-                  <View className="flex-row items-center justify-between mb-2">
-                    <View className="flex-row items-center">
-                      <MapPin size={16} color="#6B7280" />
-                      <Text className="ml-1 text-gray-600 text-sm">
-                        {property.location}
-                      </Text>
-                    </View>
-                    <Text className="text-green-600 text-lg font-bold">
-                      {property.price} CFA
-                      {property.period ? `/${property.period}` : ""}
-                    </Text>
-                  </View>
-
-                  {/* Property Details Row */}
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center space-x-3">
-                      <Text className="text-gray-700 text-sm font-medium">
-                        {property.bedrooms} chambres
-                      </Text>
-                      <Text className="text-gray-400 text-sm"> | </Text>
-                      <Text className="text-gray-700 text-sm font-medium">
-                        {property.bathrooms} salles de bain(s)
-                      </Text>
-                      <Text className="text-gray-400 text-sm"> | </Text>
-                      <Text className="text-gray-700 text-sm font-medium">
-                        {property.area} m²
-                      </Text>
-                      {property.parking && (
-                        <>
-                          <Text className="text-gray-400 text-sm"> | </Text>
-                          <Text className="text-gray-700 text-sm font-medium">
-                            {property.parking}{" "}
-                            {property.parking === 1 ? "Véhicule" : "Véhicules"}
-                          </Text>
-                        </>
-                      )}
-                    </View>
-                  </View>
-
-                  {/* Action Buttons */}
-                  <View className="flex-row mt-4">
-                    <TouchableOpacity className="flex-1 bg-blue-600 py-3 px-4 rounded-lg mr-2">
-                      <Text className="text-white font-semibold text-center">
-                        Voir les détails
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity className="bg-gray-200 py-3 px-4 rounded-lg">
-                      <Text className="text-gray-700 font-semibold text-center">
-                        Supprimer
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </View>
+            <PropertyCard
+              key={property.id}
+              property={{
+                ...property,
+                title: property.title,
+                price: property.price,
+                views: undefined,
+                favorites: undefined,
+              }}
+              onPress={() => {
+                // Handle view details
+                console.log("View details:", property.id);
+              }}
+            />
           ))}
         </ScrollView>
       </View>
