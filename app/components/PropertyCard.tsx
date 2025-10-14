@@ -42,6 +42,8 @@ interface PropertyCardProps {
   showActions?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 // Format price with dots for thousands separator
@@ -57,8 +59,13 @@ export default function PropertyCard({
   showActions = false,
   onEdit,
   onDelete,
+  isFavorite: propIsFavorite,
+  onToggleFavorite,
 }: PropertyCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [localIsFavorite, setLocalIsFavorite] = useState(
+    propIsFavorite ?? false
+  );
+  const isFavorite = propIsFavorite ?? localIsFavorite;
   const dividerAnimation = useRef(new Animated.Value(0)).current;
 
   // Animate divider on mount
@@ -94,7 +101,13 @@ export default function PropertyCard({
         {/* Heart Icon */}
         <TouchableOpacity
           className="absolute top-3 right-3 bg-gray-900/50 p-2.5 rounded-full"
-          onPress={() => setIsFavorite(!isFavorite)}
+          onPress={() => {
+            if (onToggleFavorite) {
+              onToggleFavorite();
+            } else {
+              setLocalIsFavorite(!localIsFavorite);
+            }
+          }}
         >
           <Heart
             size={24}
@@ -127,27 +140,27 @@ export default function PropertyCard({
         </Text>
 
         {/* Property Details Pills */}
-        <View className="flex-row flex-wrap justify-center gap-2">
-          <View className="flex-row items-center bg-gray-100 px-4 py-2 rounded-full">
+        <View className="flex-row flex-wrap gap-2">
+          <View className="flex-1 min-w-[80px] flex-row items-center justify-center bg-gray-100 px-3 py-2 rounded-full">
             <BedDouble size={18} color="#4B5563" />
             <Text className="ml-2 text-gray-700 font-medium">
               {property.bedrooms}
             </Text>
           </View>
-          <View className="flex-row items-center bg-gray-100 px-4 py-2 rounded-full">
+          <View className="flex-1 min-w-[80px] flex-row items-center justify-center bg-gray-100 px-3 py-2 rounded-full">
             <Bath size={18} color="#4B5563" />
             <Text className="ml-2 text-gray-700 font-medium">
               {property.bathrooms}
             </Text>
           </View>
-          <View className="flex-row items-center bg-gray-100 px-4 py-2 rounded-full">
+          <View className="flex-1 min-w-[80px] flex-row items-center justify-center bg-gray-100 px-3 py-2 rounded-full">
             <Ruler size={18} color="#4B5563" />
             <Text className="ml-2 text-gray-700 font-medium">
-              {property.area}m²
+              {property.area} m²
             </Text>
           </View>
           {property.parking > 0 && (
-            <View className="flex-row items-center bg-gray-100 px-4 py-2 rounded-full">
+            <View className="flex-1 min-w-[80px] flex-row items-center justify-center bg-gray-100 px-3 py-2 rounded-full">
               <Car size={18} color="#4B5563" />
               <Text className="ml-2 text-gray-700 font-medium">
                 {property.parking}
@@ -186,7 +199,13 @@ export default function PropertyCard({
                   </TouchableOpacity>
                   <TouchableOpacity
                     className="flex-row items-center bg-red-50 px-3 py-1.5 rounded-lg"
-                    onPress={() => setIsFavorite(!isFavorite)}
+                    onPress={() => {
+                      if (onToggleFavorite) {
+                        onToggleFavorite();
+                      } else {
+                        setLocalIsFavorite(!localIsFavorite);
+                      }
+                    }}
                   >
                     <Heart
                       size={16}
