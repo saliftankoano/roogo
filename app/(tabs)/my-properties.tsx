@@ -29,7 +29,7 @@ const mockProperties = [
     type: "Vente",
     bedrooms: 4,
     bathrooms: 3,
-    area: "250 m²",
+    area: "250",
   },
   {
     id: 2,
@@ -44,7 +44,7 @@ const mockProperties = [
     type: "Location",
     bedrooms: 3,
     bathrooms: 2,
-    area: "120 m²",
+    area: "120",
   },
   {
     id: 3,
@@ -59,7 +59,7 @@ const mockProperties = [
     type: "Vente",
     bedrooms: 5,
     bathrooms: 4,
-    area: "300 m²",
+    area: "300",
   },
 ];
 
