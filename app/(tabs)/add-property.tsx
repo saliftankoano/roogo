@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker";
 import {
   Camera,
   Car,
@@ -21,7 +22,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-// import * as ImagePicker from 'expo-image-picker';
 import AgentOnly from "../components/AgentOnly";
 
 export default function AddPropertyScreen() {
@@ -92,20 +92,71 @@ export default function AddPropertyScreen() {
 
   const handleAddPhoto = async () => {
     try {
-      // For now, simulate photo addition
-      Alert.alert(
-        "Ajouter une photo",
-        "Fonctionnalité d'ajout de photo à implémenter avec expo-image-picker"
-      );
+      // Request permissions
+      const { status: mediaStatus } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status: cameraStatus } =
+        await ImagePicker.requestCameraPermissionsAsync();
 
-      // Simulate adding a photo
-      const mockPhoto = `photo_${Date.now()}.jpg`;
-      setFormData((prev) => ({
-        ...prev,
-        photos: [...prev.photos, mockPhoto],
-      }));
-    } catch {
+      if (mediaStatus !== "granted" && cameraStatus !== "granted") {
+        Alert.alert(
+          "Permissions requises",
+          "Nous avons besoin d'accéder à votre galerie ou appareil photo pour ajouter des images."
+        );
+        return;
+      }
+
+      // Show action sheet
+      Alert.alert("Ajouter une photo", "Choisissez la source de la photo", [
+        {
+          text: "Appareil photo",
+          onPress: async () => {
+            const result = await ImagePicker.launchCameraAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 0.8,
+            });
+
+            if (!result.canceled && result.assets[0]) {
+              setFormData((prev) => ({
+                ...prev,
+                photos: [...prev.photos, result.assets[0].uri],
+              }));
+            }
+          },
+        },
+        {
+          text: "Galerie",
+          onPress: async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 0.8,
+              allowsMultipleSelection: true,
+              selectionLimit: 5,
+            });
+
+            if (!result.canceled && result.assets.length > 0) {
+              setFormData((prev) => ({
+                ...prev,
+                photos: [
+                  ...prev.photos,
+                  ...result.assets.map((asset) => asset.uri),
+                ],
+              }));
+            }
+          },
+        },
+        {
+          text: "Annuler",
+          style: "cancel",
+        },
+      ]);
+    } catch (error) {
       Alert.alert("Erreur", "Impossible d'ajouter la photo");
+      console.error(error);
     }
   };
 
