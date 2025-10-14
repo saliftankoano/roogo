@@ -1,9 +1,11 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PropertyCard from "../components/PropertyCard";
 
 export default function FavorisScreen() {
+  const router = useRouter();
   const [favoriteProperties, setFavoriteProperties] = useState([
     {
       id: 1,
@@ -66,10 +68,9 @@ export default function FavorisScreen() {
               }}
               isFavorite={true}
               onToggleFavorite={() => handleRemoveFavorite(property.id)}
-              onPress={() => {
-                // Handle view details
-                console.log("View details:", property.id);
-              }}
+              onPress={() =>
+                router.push(`/(tabs)/(home)/details?id=${property.id}`)
+              }
             />
           ))}
         </ScrollView>
