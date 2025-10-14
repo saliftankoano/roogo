@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PropertyCard from "../components/PropertyCard";
 
 export default function FavorisScreen() {
-  const favoriteProperties = [
+  const [favoriteProperties, setFavoriteProperties] = useState([
     {
       id: 1,
       title: "Appartements Modernes",
@@ -41,7 +42,11 @@ export default function FavorisScreen() {
       category: "Acheter" as const,
       image: require("../../assets/images/logo_160.png"),
     },
-  ];
+  ]);
+
+  const handleRemoveFavorite = (propertyId: number) => {
+    setFavoriteProperties((prev) => prev.filter((p) => p.id !== propertyId));
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -56,11 +61,11 @@ export default function FavorisScreen() {
               key={property.id}
               property={{
                 ...property,
-                title: property.title,
-                price: property.price,
                 views: undefined,
                 favorites: undefined,
               }}
+              isFavorite={true}
+              onToggleFavorite={() => handleRemoveFavorite(property.id)}
               onPress={() => {
                 // Handle view details
                 console.log("View details:", property.id);
