@@ -1,14 +1,16 @@
 import { useUser } from "@clerk/clerk-expo";
 import {
-  Bell,
+  Building,
   ChevronRight,
+  Clock,
+  Eye,
   Heart,
   HelpCircle,
+  KeyRound,
   LogOut,
   MapPin,
   Settings,
   Star,
-  Users,
 } from "lucide-react-native";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -42,28 +44,23 @@ export default function ProfileScreen() {
     );
   }
 
-  const regularUserMenuItems = [
-    { label: "Mes favoris", icon: Heart, color: "#EF4444" },
-    { label: "Notifications", icon: Bell, color: "#F59E0B" },
+  const menuItems = [
+    isAgent
+      ? { label: "Gérer mes propriétés", icon: MapPin, color: "#3B82F6" }
+      : { label: "Mes favoris", icon: Heart, color: "#EF4444" },
     { label: "Paramètres", icon: Settings, color: "#6B7280" },
     { label: "Aide & Support", icon: HelpCircle, color: "#10B981" },
   ];
-
-  const agentMenuItems = [
-    { label: "Mes leads", icon: Users, color: "#10B981" },
-    { label: "Notifications", icon: Bell, color: "#F59E0B" },
-    { label: "Paramètres", icon: Settings, color: "#6B7280" },
-    { label: "Aide & Support", icon: HelpCircle, color: "#10B981" },
-  ];
-
-  const menuItems = isAgent ? agentMenuItems : regularUserMenuItems;
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
         {/* Profile Header */}
-        <View className="px-4 py-6">
-          <View className="items-center mb-6">
+        <View className="px-4 pt-6">
+          <View className="items-center mb-4">
             <Image
               source={
                 user?.imageUrl
@@ -89,49 +86,96 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Rating for regular users, Leads for agents */}
-          {!isAgent ? (
-            <View className="bg-yellow-50 rounded-2xl p-4 mb-6">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                  <Star size={20} color="#F59E0B" fill="#F59E0B" />
-                  <Text className="ml-2 text-lg font-semibold text-gray-900">
-                    Évaluation
-                  </Text>
-                </View>
-                <View className="flex-row items-center">
-                  <Text className="text-2xl font-bold text-gray-900 mr-2">
-                    4.8
-                  </Text>
-                  <ChevronRight size={20} color="#6B7280" />
-                </View>
-              </View>
-              <Text className="text-gray-600 mt-2">
-                Basé sur 15 avis clients
-              </Text>
+          {/* Stats Grid */}
+          <View className="mb-4">
+            <Text className="text-xl font-semibold text-gray-900 mb-4">
+              {isAgent ? "Aperçu de mes propriétés" : "Mon activité"}
+            </Text>
+            <View className="flex-row flex-wrap gap-3">
+              {isAgent ? (
+                <>
+                  {/* Agent Stats */}
+                  <View className="flex-1 min-w-[48%] bg-blue-50 rounded-2xl p-4">
+                    <View className="flex-row items-center mb-2">
+                      <KeyRound size={20} color="#3B82F6" />
+                      <Text className="ml-2 text-base font-semibold text-gray-900">
+                        À Vendre
+                      </Text>
+                    </View>
+                    <Text className="text-2xl font-bold text-gray-900">4</Text>
+                    <Text className="text-sm text-gray-600">Propriétés</Text>
+                  </View>
+
+                  <View className="flex-1 min-w-[48%] bg-green-50 rounded-2xl p-4">
+                    <View className="flex-row items-center mb-2">
+                      <Building size={20} color="#10B981" />
+                      <Text className="ml-2 text-base font-semibold text-gray-900">
+                        À Louer
+                      </Text>
+                    </View>
+                    <Text className="text-2xl font-bold text-gray-900">3</Text>
+                    <Text className="text-sm text-gray-600">Propriétés</Text>
+                  </View>
+
+                  <View className="flex-1 min-w-[48%] bg-purple-50 rounded-2xl p-4">
+                    <View className="flex-row items-center mb-2">
+                      <Clock size={20} color="#8B5CF6" />
+                      <Text className="ml-2 text-base font-semibold text-gray-900">
+                        En attente
+                      </Text>
+                    </View>
+                    <Text className="text-2xl font-bold text-gray-900">2</Text>
+                    <Text className="text-sm text-gray-600">À valider</Text>
+                  </View>
+
+                  <View className="flex-1 min-w-[48%] bg-orange-50 rounded-2xl p-4">
+                    <View className="flex-row items-center mb-2">
+                      <Eye size={20} color="#F59E0B" />
+                      <Text className="ml-2 text-base font-semibold text-gray-900">
+                        Vues
+                      </Text>
+                    </View>
+                    <Text className="text-2xl font-bold text-gray-900">
+                      128
+                    </Text>
+                    <Text className="text-sm text-gray-600">Ce mois</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  {/* Regular User Stats */}
+                  <View className="flex-1 min-w-[48%] bg-red-50 rounded-2xl p-4">
+                    <View className="flex-row items-center mb-2">
+                      <Heart size={20} color="#EF4444" />
+                      <Text className="ml-2 text-base font-semibold text-gray-900">
+                        Favoris
+                      </Text>
+                    </View>
+                    <Text className="text-2xl font-bold text-gray-900">6</Text>
+                    <Text className="text-sm text-gray-600">
+                      Propriétés sauvegardées
+                    </Text>
+                  </View>
+
+                  <View className="flex-1 min-w-[48%] bg-yellow-50 rounded-2xl p-4">
+                    <View className="flex-row items-center mb-2">
+                      <Star size={20} color="#F59E0B" fill="#F59E0B" />
+                      <Text className="ml-2 text-base font-semibold text-gray-900">
+                        Avis
+                      </Text>
+                    </View>
+                    <Text className="text-2xl font-bold text-gray-900">
+                      4.8
+                    </Text>
+                    <Text className="text-sm text-gray-600">Note moyenne</Text>
+                  </View>
+                </>
+              )}
             </View>
-          ) : (
-            <View className="bg-blue-50 rounded-2xl p-4 mb-6">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                  <Users size={20} color="#3B82F6" />
-                  <Text className="ml-2 text-lg font-semibold text-gray-900">
-                    Mes Leads
-                  </Text>
-                </View>
-                <View className="flex-row items-center">
-                  <Text className="text-2xl font-bold text-gray-900 mr-2">
-                    8
-                  </Text>
-                  <ChevronRight size={20} color="#6B7280" />
-                </View>
-              </View>
-              <Text className="text-gray-600 mt-2">Leads actifs en cours</Text>
-            </View>
-          )}
+          </View>
 
           {/* Menu Items */}
-          <View className="space-y-2">
+          <View className="space-y-3">
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={index}
@@ -154,7 +198,7 @@ export default function ProfileScreen() {
           </View>
 
           {/* Logout Button */}
-          <TouchableOpacity className="flex-row items-center justify-center py-4 mt-6 bg-red-50 rounded-xl border border-red-100">
+          <TouchableOpacity className="flex-row items-center justify-center py-4 mt-4 bg-red-50 rounded-xl border border-red-100">
             <LogOut size={20} color="#EF4444" />
             <Text className="ml-2 text-lg font-medium text-red-600">
               Se déconnecter
