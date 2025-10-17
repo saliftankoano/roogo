@@ -87,7 +87,20 @@ export default function AddPropertyScreen() {
   ];
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      // If vehicles field is updated and value > 0, auto-select parking amenity
+      if (field === "vehicles" && parseInt(value) > 0) {
+        const parkingAmenity = amenities.find((a) => a.id === "parking");
+        if (parkingAmenity && !prev.amenities.includes("parking")) {
+          return {
+            ...prev,
+            [field]: value,
+            amenities: [...prev.amenities, "parking"],
+          };
+        }
+      }
+      return { ...prev, [field]: value };
+    });
   };
 
   const handleAddPhoto = async () => {
