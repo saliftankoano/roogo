@@ -1,6 +1,6 @@
 import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { Tabs, usePathname } from "expo-router";
-import { Heart, Plus, User } from "lucide-react-native";
+import { Camera, Plus, User } from "lucide-react-native";
 import { useEffect, useRef } from "react";
 import { Animated, Platform, TouchableOpacity, View } from "react-native";
 import { Path, Svg } from "react-native-svg";
@@ -66,9 +66,9 @@ const HomeIcon = ({ focused, size }: IconRendererProps) => (
   </IconWrapper>
 );
 
-const HeartIcon = ({ focused, size }: IconRendererProps) => (
+const CameraIcon = ({ focused, size }: IconRendererProps) => (
   <IconWrapper focused={focused}>
-    <Heart size={size} color={focused ? ACTIVE_COLOR : INACTIVE_COLOR} />
+    <Camera size={size} color={focused ? ACTIVE_COLOR : INACTIVE_COLOR} />
   </IconWrapper>
 );
 
@@ -179,14 +179,17 @@ export default function TabLayout() {
             headerShown: false,
           }}
         />
-        <Tabs.Screen
-          name="favoris"
-          options={{
-            title: "Favoris",
-            tabBarIcon: ({ focused, size }) => HeartIcon({ focused, size: 24 }),
-            headerShown: false,
-          }}
-        />
+        {isAgent && (
+          <Tabs.Screen
+            name="photography"
+            options={{
+              title: "Photos",
+              tabBarIcon: ({ focused, size }) =>
+                CameraIcon({ focused, size: 24 }),
+              headerShown: false,
+            }}
+          />
+        )}
         {isAgent && (
           <Tabs.Screen
             name="add-property"
@@ -222,6 +225,13 @@ export default function TabLayout() {
             }}
           />
         )}
+        <Tabs.Screen
+          name="favoris"
+          options={{
+            href: null, // Hide from tab bar
+            headerShown: false,
+          }}
+        />
         <Tabs.Screen
           name="profile"
           options={{
