@@ -38,3 +38,23 @@ Progress Log:
 Sunday 09/28/2025:
 
 ### Added clerk private type additions on clerk by creating a new repo deployed on Next.js
+
+Monday October 13th 2025
+
+### Update profil page UI check [x]
+
+Tuesday October 14th 2025
+
+- Fix deprecated image mediaOptions + add details on favoris click [x]
+- Create a lisiting schema
+
+Wednesday October 15th 2-25
+
+- Hookup database
+
+# Idea Bank
+
+1- Add a photo service section:
+
+- Showcase 3 packages for real estate photography
+- Form submission for photos
