@@ -1,4 +1,5 @@
 import { useUser } from "@clerk/clerk-expo";
+import { useRouter } from "expo-router";
 import {
   Building,
   ChevronRight,
@@ -17,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserType } from "../hooks/useUserType";
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { isAgent } = useUserType();
   const { user, isLoaded } = useUser();
 
@@ -46,8 +48,18 @@ export default function ProfileScreen() {
 
   const menuItems = [
     isAgent
-      ? { label: "Gérer mes propriétés", icon: MapPin, color: "#3B82F6" }
-      : { label: "Mes favoris", icon: Heart, color: "#EF4444" },
+      ? {
+          label: "Gérer mes propriétés",
+          icon: MapPin,
+          color: "#3B82F6",
+          onPress: () => router.push("/(tabs)/my-properties"),
+        }
+      : {
+          label: "Mes favoris",
+          icon: Heart,
+          color: "#EF4444",
+          onPress: () => router.push("/(tabs)/favoris"),
+        },
     { label: "Paramètres", icon: Settings, color: "#6B7280" },
     { label: "Aide & Support", icon: HelpCircle, color: "#10B981" },
   ];
@@ -179,7 +191,8 @@ export default function ProfileScreen() {
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={index}
-                className="flex-row items-center justify-between py-4 px-4 bg-white rounded-xl border border-gray-100"
+                className="flex-row mb-2 items-center justify-between py-4 px-4 bg-white rounded-xl border border-gray-100"
+                onPress={item.onPress}
               >
                 <View className="flex-row items-center">
                   <View
