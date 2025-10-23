@@ -1,0 +1,69 @@
+erDiagram
+    users ||--o{ properties : "lists"
+    users ||--o{ favorites : "saves"
+    properties ||--o{ property_images : "has"
+    properties ||--o{ property_amenities : "has"
+    amenities ||--o{ property_amenities : "belongs_to"
+    properties ||--o{ favorites : "saved_in"
+
+    users {
+        uuid id PK
+        string clerk_id UK
+        string email UK
+        string full_name
+        string avatar_url
+        string phone
+        string location
+        string user_type
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    properties {
+        uuid id PK
+        uuid agent_id FK
+        string title
+        string description
+        decimal price
+        enum listing_type
+        enum property_type
+        enum status
+        integer bedrooms
+        integer bathrooms
+        decimal area
+        integer parking_spaces
+        string address
+        string city
+        string quartier
+        decimal latitude
+        decimal longitude
+        string period
+        integer views_count
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    amenities {
+        uuid id PK
+        string name UK
+        string icon
+    }
+
+    property_amenities {
+        uuid property_id PK,FK
+        uuid amenity_id PK,FK
+    }
+
+    property_images {
+        uuid id PK
+        uuid property_id FK
+        string url
+        boolean is_primary
+        timestamp created_at
+    }
+
+    favorites {
+        uuid user_id PK,FK
+        uuid property_id PK,FK
+        timestamp created_at
+    }
