@@ -1,8 +1,11 @@
-import { useRouter } from "expo-router";
-import { Camera, Check } from "lucide-react-native";
-import React, { useState } from "react";
+import { Camera, Check, Crown } from "lucide-react-native";
+import React, { useRef, useState } from "react";
 import {
   Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -12,18 +15,29 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AgentOnly from "../components/AgentOnly";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_WIDTH = SCREEN_WIDTH * 0.85;
+const CARD_SPACING = 20;
+const GOLDEN_RATIO = 1.618;
+const CARD_HEIGHT = Math.round(CARD_WIDTH * GOLDEN_RATIO * 0.7);
+const ICON_SIZE = Math.round(CARD_WIDTH * 0.14);
+
 type Package = {
   id: string;
   name: string;
   photos: number;
   price: string;
   features: string[];
+  color: string;
+  bgColor: string;
 };
 
 export default function PhotographyScreen() {
-  const router = useRouter();
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
   const [formData, setFormData] = useState({
     propertyAddress: "",
     quartier: "",
@@ -40,6 +54,8 @@ export default function PhotographyScreen() {
       name: "Basique",
       photos: 10,
       price: "25.000",
+      color: "#3B82F6",
+      bgColor: "bg-blue-500",
       features: [
         "10 photos professionnelles",
         "Retouche basique",
@@ -52,6 +68,8 @@ export default function PhotographyScreen() {
       name: "Standard",
       photos: 20,
       price: "45.000",
+      color: "#8B5CF6",
+      bgColor: "bg-purple-500",
       features: [
         "20 photos professionnelles",
         "Retouche avancée",
@@ -66,6 +84,8 @@ export default function PhotographyScreen() {
       name: "Premium",
       photos: 35,
       price: "75.000",
+      color: "#84CC16",
+      bgColor: "bg-lime-500",
       features: [
         "35 photos professionnelles",
         "Retouche premium",
@@ -144,128 +164,288 @@ export default function PhotographyScreen() {
 
   return (
     <AgentOnly>
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 80 }}
         >
           {/* Header */}
-          <View className="px-6 py-6 border-b border-gray-200">
-            <View className="flex-row items-center mb-2">
-              <Camera size={28} color="#FF6B35" />
-              <Text className="text-2xl font-bold text-gray-900 ml-3 font-urbanist">
+          <View className="px-6 pt-4 pb-2">
+            <View className="items-center">
+              <View className="bg-figma-primary/10 rounded-full p-4 mb-4">
+                <Camera size={32} color="#FF6B35" />
+              </View>
+              <Text className="text-3xl font-bold text-gray-900 text-center font-urbanist">
                 Services Photo Pro
               </Text>
+              <Text className="text-gray-600 text-center mt-3 px-4 font-urbanist text-base leading-6">
+                Swipez pour découvrir nos offres professionnelles
+              </Text>
             </View>
-            <Text className="text-gray-600 text-sm mt-2 font-urbanist">
-              Des photos professionnelles pour valoriser vos propriétés et
-              attirer plus de clients
-            </Text>
           </View>
 
           {!showForm ? (
             <>
-              {/* Packages */}
-              <View className="px-6 py-6">
-                <Text className="text-xl font-semibold text-gray-900 mb-4 font-urbanist">
-                  Nos Forfaits
-                </Text>
+              {/* Swipeable Cards */}
+              <View className="mb-10 mt-3">
+                <Animated.FlatList
+                  ref={flatListRef}
+                  data={packages}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  snapToInterval={CARD_WIDTH + CARD_SPACING}
+                  decelerationRate="fast"
+                  scrollEventThrottle={16}
+                  contentContainerStyle={{
+                    paddingLeft: (SCREEN_WIDTH - CARD_WIDTH) / 2,
+                    paddingRight:
+                      (SCREEN_WIDTH - CARD_WIDTH) / 2 + CARD_SPACING,
+                  }}
+                  onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                    { useNativeDriver: true }
+                  )}
+                  onMomentumScrollEnd={(event) => {
+                    const index = Math.round(
+                      event.nativeEvent.contentOffset.x /
+                        (CARD_WIDTH + CARD_SPACING)
+                    );
+                    setCurrentCardIndex(index);
+                  }}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item: pkg, index }) => {
+                    const inputRange = [
+                      (index - 1) * (CARD_WIDTH + CARD_SPACING),
+                      index * (CARD_WIDTH + CARD_SPACING),
+                      (index + 1) * (CARD_WIDTH + CARD_SPACING),
+                    ];
+                    const scale = scrollX.interpolate({
+                      inputRange,
+                      outputRange: [0.9, 1, 0.9],
+                      extrapolate: "clamp",
+                    });
+                    return (
+                      <TouchableOpacity
+                        onPress={() => handlePackageSelect(pkg.id)}
+                        activeOpacity={0.9}
+                        style={{
+                          width: CARD_WIDTH,
+                          marginRight: CARD_SPACING,
+                        }}
+                      >
+                        <Animated.View
+                          className={`${pkg.bgColor} rounded-3xl p-6`}
+                          style={{
+                            transform: [{ scale }],
+                            minHeight: CARD_HEIGHT,
+                            borderRadius: 24,
+                            // Soft shadow without harsh rectangle
+                            shadowColor: "#000",
+                            shadowOpacity: 0.08,
+                            shadowRadius: 16,
+                            shadowOffset: { width: 0, height: 8 },
+                            elevation: Platform.OS === "android" ? 0 : 3,
+                          }}
+                        >
+                          {/* Crown Icon */}
+                          <View className="items-center mb-3">
+                            <View className="bg-white/30 rounded-full p-3">
+                              {pkg.id === "premium" ? (
+                                <Crown
+                                  size={ICON_SIZE}
+                                  color="white"
+                                  fill="white"
+                                />
+                              ) : (
+                                <Camera size={ICON_SIZE} color="white" />
+                              )}
+                            </View>
+                          </View>
 
-                <View className="space-y-4">
-                  {packages.map((pkg) => (
-                    <TouchableOpacity
-                      key={pkg.id}
-                      className={`border-2 rounded-2xl mb-10 p-5 ${
-                        selectedPackage === pkg.id
-                          ? "border-figma-primary bg-figma-primary/5"
-                          : "border-gray-200 bg-white"
-                      }`}
-                      onPress={() => handlePackageSelect(pkg.id)}
-                    >
-                      {/* Package Header */}
-                      <View className="flex-row justify-between items-start mb-3">
-                        <View>
-                          <Text className="text-xl font-bold text-gray-900 font-urbanist">
-                            {pkg.name}
-                          </Text>
-                          <Text className="text-gray-600 text-sm mt-1 font-urbanist">
-                            {pkg.photos} photos professionnelles
-                          </Text>
-                        </View>
-                        <View>
-                          <Text className="text-2xl font-bold text-figma-primary font-urbanist">
-                            {pkg.price}
-                          </Text>
-                          <Text className="text-gray-600 text-sm text-right font-urbanist">
-                            FCFA
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Features */}
-                      <View className="space-y-2 mt-3">
-                        {pkg.features.map((feature, index) => (
-                          <View
-                            key={index}
-                            className="flex-row items-center space-x-2"
-                          >
-                            <Check size={16} color="#10B981" />
-                            <Text className="text-gray-700 text-sm flex-1 ml-2 font-urbanist">
-                              {feature}
+                          {/* Price */}
+                          <View className="items-center mb-5">
+                            <Text className="text-white text-4xl font-bold font-urbanist">
+                              ${pkg.price}
+                            </Text>
+                            <Text className="text-white/90 text-base font-urbanist mt-1">
+                              /service
                             </Text>
                           </View>
-                        ))}
-                      </View>
 
-                      {/* CTA */}
-                      <View className="mt-4 pt-4 border-t border-gray-200">
-                        <Text className="text-figma-primary font-semibold text-center font-urbanist">
-                          Sélectionner ce forfait
-                        </Text>
-                      </View>
+                          {/* Package Name */}
+                          <Text className="text-white text-center text-xl font-bold mb-5 font-urbanist">
+                            {pkg.name}
+                          </Text>
+
+                          {/* Features */}
+                          <View className="space-y-3.5 mb-6">
+                            {pkg.features.map(
+                              (feature: string, idx: number) => (
+                                <View
+                                  key={idx}
+                                  className="flex-row items-center"
+                                >
+                                  <View className="bg-white/25 rounded-full p-1.5 mr-3.5">
+                                    <Check size={14} color="white" />
+                                  </View>
+                                  <Text className="text-white flex-1 font-urbanist text-sm">
+                                    {feature}
+                                  </Text>
+                                </View>
+                              )
+                            )}
+                          </View>
+
+                          {/* CTA Button */}
+                          <View className="bg-white rounded-2xl py-4 mt-auto">
+                            <Text className="text-center font-bold text-lg font-urbanist">
+                              Sélectionner
+                            </Text>
+                          </View>
+                        </Animated.View>
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+
+                {/* Pagination Dots */}
+                <View className="flex-row justify-center mt-6 gap-2">
+                  {packages.map((_, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => {
+                        flatListRef.current?.scrollToIndex({
+                          index,
+                          animated: true,
+                        });
+                        setCurrentCardIndex(index);
+                      }}
+                    >
+                      <View
+                        className={`rounded-full ${
+                          index === currentCardIndex
+                            ? "w-8 h-3 bg-figma-primary"
+                            : "w-3 h-3 bg-gray-300"
+                        }`}
+                      />
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
 
               {/* Why Choose Us */}
-              <View className="px-6 py-6 bg-gray-50 mt-4">
-                <Text className="text-lg font-semibold text-gray-900 mb-4 font-urbanist">
+              <View className="px-6 py-8">
+                <Text className="text-2xl font-bold text-gray-900 mb-6 font-urbanist">
                   Pourquoi nous choisir?
                 </Text>
+                <View className="space-y-5">
+                  <View className="bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100">
+                    <View className="flex-row items-start">
+                      <View className="bg-blue-100 rounded-full p-3 mr-4">
+                        <Text className="text-2xl">📸</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="font-bold text-gray-900 text-lg font-urbanist mb-1">
+                          Photographes professionnels
+                        </Text>
+                        <Text className="text-gray-600 text-sm font-urbanist leading-5">
+                          Équipe expérimentée en photographie immobilière avec
+                          équipement de pointe
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View className="bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100">
+                    <View className="flex-row items-start">
+                      <View className="bg-purple-100 rounded-full p-3 mr-4">
+                        <Text className="text-2xl">⚡</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="font-bold text-gray-900 text-lg font-urbanist mb-1">
+                          Livraison rapide
+                        </Text>
+                        <Text className="text-gray-600 text-sm font-urbanist leading-5">
+                          Vos photos retouchées en 24-48h maximum pour une mise
+                          en ligne rapide
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+                    <View className="flex-row items-start">
+                      <View className="bg-lime-100 rounded-full p-3 mr-4">
+                        <Text className="text-2xl">✨</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="font-bold text-gray-900 text-lg font-urbanist mb-1">
+                          Qualité garantie
+                        </Text>
+                        <Text className="text-gray-600 text-sm font-urbanist leading-5">
+                          Retouches professionnelles et révisions illimitées
+                          jusqu&apos;à satisfaction
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* FAQ Section */}
+              <View className="px-6 py-8 bg-gray-50">
+                <Text className="text-2xl font-bold text-gray-900 mb-6 font-urbanist">
+                  Questions fréquentes
+                </Text>
+
                 <View className="space-y-3">
-                  <View className="flex-row items-start">
-                    <Text className="text-figma-primary text-xl mr-3">📸</Text>
-                    <View className="flex-1">
-                      <Text className="font-semibold text-gray-900 font-urbanist">
-                        Photographes professionnels
+                  <View className="bg-white rounded-2xl p-5 border border-gray-100">
+                    <View className="flex-row justify-between items-start">
+                      <Text className="flex-1 text-gray-900 font-semibold font-urbanist text-base">
+                        Combien de temps dure une séance photo?
                       </Text>
-                      <Text className="text-gray-600 text-sm font-urbanist">
-                        Équipe expérimentée en photographie immobilière
-                      </Text>
+                      <View className="bg-gray-100 rounded-full w-6 h-6 items-center justify-center ml-3">
+                        <Text className="text-gray-600 font-bold">+</Text>
+                      </View>
                     </View>
                   </View>
-                  <View className="flex-row items-start">
-                    <Text className="text-figma-primary text-xl mr-3">⚡</Text>
-                    <View className="flex-1">
-                      <Text className="font-semibold text-gray-900 font-urbanist">
-                        Livraison rapide
+
+                  <View className="bg-white rounded-2xl p-5 border border-gray-100">
+                    <View className="flex-row justify-between items-start mb-3">
+                      <Text className="flex-1 text-gray-900 font-semibold font-urbanist text-base">
+                        Puis-je annuler ou reporter une séance?
                       </Text>
-                      <Text className="text-gray-600 text-sm font-urbanist">
-                        Vos photos retouchées en 24-48h maximum
+                      <View className="bg-gray-100 rounded-full w-6 h-6 items-center justify-center ml-3">
+                        <Text className="text-gray-600 font-bold">−</Text>
+                      </View>
+                    </View>
+                    <Text className="text-gray-600 text-sm font-urbanist leading-5">
+                      Oui! Vous pouvez annuler ou reporter votre séance
+                      jusqu&apos;à 24h avant sans frais supplémentaires.
+                    </Text>
+                  </View>
+
+                  <View className="bg-white rounded-2xl p-5 border border-gray-100">
+                    <View className="flex-row justify-between items-start">
+                      <Text className="flex-1 text-gray-900 font-semibold font-urbanist text-base">
+                        Les photos incluent-elles les retouches?
                       </Text>
+                      <View className="bg-gray-100 rounded-full w-6 h-6 items-center justify-center ml-3">
+                        <Text className="text-gray-600 font-bold">+</Text>
+                      </View>
                     </View>
                   </View>
-                  <View className="flex-row items-start">
-                    <Text className="text-figma-primary text-xl mr-3">✨</Text>
-                    <View className="flex-1">
-                      <Text className="font-semibold text-gray-900 font-urbanist">
-                        Qualité garantie
+
+                  <View className="bg-white rounded-2xl p-5 border border-gray-100">
+                    <View className="flex-row justify-between items-start">
+                      <Text className="flex-1 text-gray-900 font-semibold font-urbanist text-base">
+                        Couvrez-vous toutes les villes du Burkina?
                       </Text>
-                      <Text className="text-gray-600 text-sm font-urbanist">
-                        Retouches professionnelles incluses
-                      </Text>
+                      <View className="bg-gray-100 rounded-full w-6 h-6 items-center justify-center ml-3">
+                        <Text className="text-gray-600 font-bold">+</Text>
+                      </View>
                     </View>
                   </View>
                 </View>
