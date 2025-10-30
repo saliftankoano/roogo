@@ -1,18 +1,6 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
-import {
-  Building,
-  ChevronRight,
-  Clock,
-  Eye,
-  Heart,
-  HelpCircle,
-  KeyRound,
-  LogOut,
-  MapPin,
-  Settings,
-  Star,
-} from "lucide-react-native";
+import { ChevronRight, LogOut, MapPin } from "lucide-react-native";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserType } from "../hooks/useUserType";
@@ -25,9 +13,11 @@ export default function ProfileScreen() {
   // Show loading state while user data is being fetched
   if (!isLoaded) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <View className="flex-1 justify-center items-center">
-          <Text className="text-lg text-gray-600">Chargement...</Text>
+          <Text className="text-base text-gray-500 font-urbanist">
+            Chargement...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -36,9 +26,9 @@ export default function ProfileScreen() {
   // Show error state if no user data
   if (!user) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <View className="flex-1 justify-center items-center">
-          <Text className="text-lg text-gray-600">
+          <Text className="text-base text-gray-500 font-urbanist">
             Erreur de chargement du profil
           </Text>
         </View>
@@ -49,48 +39,59 @@ export default function ProfileScreen() {
   const menuItems = [
     isAgent
       ? {
-          label: "Gérer mes propriétés",
-          icon: MapPin,
-          color: "#3B82F6",
+          label: "Mes propriétés",
           onPress: () => router.push("/(tabs)/my-properties"),
         }
       : {
           label: "Mes favoris",
-          icon: Heart,
-          color: "#EF4444",
           onPress: () => router.push("/(tabs)/favoris"),
         },
-    { label: "Paramètres", icon: Settings, color: "#6B7280" },
-    { label: "Aide & Support", icon: HelpCircle, color: "#10B981" },
+    { label: "Paramètres", onPress: () => {} },
+    { label: "Aide & Support", onPress: () => {} },
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 80 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Profile Header */}
-        <View className="px-4 pt-6">
-          <View className="items-center mb-4">
-            <Image
-              source={
-                user?.imageUrl
-                  ? { uri: user.imageUrl }
-                  : require("../../assets/images/icon.png")
-              }
-              className="w-20 h-20 rounded-full mb-4"
-            />
-            <Text className="text-2xl font-bold text-gray-900 mb-1">
+        <View className="bg-white pb-8">
+          <View className="items-center pt-8 pb-6">
+            <View
+              className="w-28 h-28 rounded-full mb-5 items-center justify-center"
+              style={{
+                borderWidth: 3,
+                borderColor: "#E48C26",
+                backgroundColor: "#FFF5EB",
+              }}
+            >
+              <Image
+                source={
+                  user?.imageUrl
+                    ? { uri: user.imageUrl }
+                    : require("../../assets/images/icon.png")
+                }
+                className="w-24 h-24 rounded-full"
+              />
+            </View>
+            <Text className="text-2xl font-bold text-figma-grey-900 mb-1.5 font-urbanist">
               {user?.fullName || user?.firstName || "Utilisateur"}
             </Text>
-            <Text className="text-gray-600 mb-2">
+            <Text className="text-sm text-figma-grey-600 mb-4 font-urbanist">
               {user?.primaryEmailAddress?.emailAddress ||
                 "Email non disponible"}
             </Text>
-            <View className="flex-row items-center">
-              <MapPin size={16} color="#6B7280" />
-              <Text className="ml-1 text-gray-600">
+            <View
+              className="flex-row items-center px-4 py-2 rounded-full border"
+              style={{
+                backgroundColor: "#FFF5EB",
+                borderColor: "rgba(228, 140, 38, 0.2)",
+              }}
+            >
+              <MapPin size={14} color="#E48C26" />
+              <Text className="ml-1.5 text-sm text-figma-grey-700 font-urbanist">
                 {String(
                   user?.unsafeMetadata?.location || "Ouagadougou, Burkina Faso"
                 )}
@@ -98,122 +99,121 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Stats Grid */}
-          <View className="mb-4">
-            <Text className="text-xl font-semibold text-gray-900 mb-4">
-              {isAgent ? "Aperçu de mes propriétés" : "Mon activité"}
-            </Text>
-            <View className="flex-row flex-wrap gap-3">
+          {/* Stats Section */}
+          <View className="px-4">
+            <View
+              className="rounded-2xl p-5 border"
+              style={{
+                backgroundColor: "#FFF5EB",
+                borderColor: "rgba(228, 140, 38, 0.1)",
+              }}
+            >
               {isAgent ? (
-                <>
-                  {/* Agent Stats */}
-                  <View className="flex-1 min-w-[48%] bg-blue-50 rounded-2xl p-4">
-                    <View className="flex-row items-center mb-2">
-                      <KeyRound size={20} color="#3B82F6" />
-                      <Text className="ml-2 text-base font-semibold text-gray-900">
-                        À Vendre
-                      </Text>
-                    </View>
-                    <Text className="text-2xl font-bold text-gray-900">4</Text>
-                    <Text className="text-sm text-gray-600">Propriétés</Text>
+                <View className="flex-row justify-between">
+                  <View className="flex-1">
+                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
+                      7
+                    </Text>
+                    <Text className="text-xs text-figma-grey-600 font-urbanist">
+                      Propriétés actives
+                    </Text>
                   </View>
-
-                  <View className="flex-1 min-w-[48%] bg-green-50 rounded-2xl p-4">
-                    <View className="flex-row items-center mb-2">
-                      <Building size={20} color="#10B981" />
-                      <Text className="ml-2 text-base font-semibold text-gray-900">
-                        À Louer
-                      </Text>
-                    </View>
-                    <Text className="text-2xl font-bold text-gray-900">3</Text>
-                    <Text className="text-sm text-gray-600">Propriétés</Text>
-                  </View>
-
-                  <View className="flex-1 min-w-[48%] bg-purple-50 rounded-2xl p-4">
-                    <View className="flex-row items-center mb-2">
-                      <Clock size={20} color="#8B5CF6" />
-                      <Text className="ml-2 text-base font-semibold text-gray-900">
-                        En attente
-                      </Text>
-                    </View>
-                    <Text className="text-2xl font-bold text-gray-900">2</Text>
-                    <Text className="text-sm text-gray-600">À valider</Text>
-                  </View>
-
-                  <View className="flex-1 min-w-[48%] bg-orange-50 rounded-2xl p-4">
-                    <View className="flex-row items-center mb-2">
-                      <Eye size={20} color="#F59E0B" />
-                      <Text className="ml-2 text-base font-semibold text-gray-900">
-                        Vues
-                      </Text>
-                    </View>
-                    <Text className="text-2xl font-bold text-gray-900">
+                  <View
+                    className="w-px mx-4"
+                    style={{ backgroundColor: "rgba(228, 140, 38, 0.2)" }}
+                  />
+                  <View className="flex-1">
+                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
                       128
                     </Text>
-                    <Text className="text-sm text-gray-600">Ce mois</Text>
-                  </View>
-                </>
-              ) : (
-                <>
-                  {/* Regular User Stats */}
-                  <View className="flex-1 min-w-[48%] bg-red-50 rounded-2xl p-4">
-                    <View className="flex-row items-center mb-2">
-                      <Heart size={20} color="#EF4444" />
-                      <Text className="ml-2 text-base font-semibold text-gray-900">
-                        Favoris
-                      </Text>
-                    </View>
-                    <Text className="text-2xl font-bold text-gray-900">6</Text>
-                    <Text className="text-sm text-gray-600">
-                      Propriétés sauvegardées
+                    <Text className="text-xs text-figma-grey-600 font-urbanist">
+                      Vues ce mois
                     </Text>
                   </View>
-
-                  <View className="flex-1 min-w-[48%] bg-yellow-50 rounded-2xl p-4">
-                    <View className="flex-row items-center mb-2">
-                      <Star size={20} color="#F59E0B" fill="#F59E0B" />
-                      <Text className="ml-2 text-base font-semibold text-gray-900">
-                        Avis
-                      </Text>
-                    </View>
-                    <Text className="text-2xl font-bold text-gray-900">
+                  <View
+                    className="w-px mx-4"
+                    style={{ backgroundColor: "rgba(228, 140, 38, 0.2)" }}
+                  />
+                  <View className="flex-1">
+                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
+                      2
+                    </Text>
+                    <Text className="text-xs text-figma-grey-600 font-urbanist">
+                      En attente
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <View className="flex-row justify-between">
+                  <View className="flex-1">
+                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
+                      6
+                    </Text>
+                    <Text className="text-xs text-figma-grey-600 font-urbanist">
+                      Favoris sauvegardés
+                    </Text>
+                  </View>
+                  <View
+                    className="w-px mx-4"
+                    style={{ backgroundColor: "rgba(228, 140, 38, 0.2)" }}
+                  />
+                  <View className="flex-1">
+                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
                       4.8
                     </Text>
-                    <Text className="text-sm text-gray-600">Note moyenne</Text>
+                    <Text className="text-xs text-figma-grey-600 font-urbanist">
+                      Note moyenne
+                    </Text>
                   </View>
-                </>
+                </View>
               )}
             </View>
           </View>
+        </View>
 
-          {/* Menu Items */}
-          <View className="space-y-3">
+        {/* Menu Items */}
+        <View className="px-4 pt-6">
+          <View className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={index}
-                className="flex-row mb-2 items-center justify-between py-4 px-4 bg-white rounded-xl border border-gray-100"
+                className={`flex-row items-center justify-between py-4 px-5 ${
+                  index !== menuItems.length - 1
+                    ? "border-b border-figma-border"
+                    : ""
+                }`}
+                style={
+                  index === 0
+                    ? { backgroundColor: "rgba(255, 245, 235, 0.3)" }
+                    : undefined
+                }
                 onPress={item.onPress}
+                activeOpacity={0.7}
               >
-                <View className="flex-row items-center">
-                  <View
-                    className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                    style={{ backgroundColor: `${item.color}20` }}
-                  >
-                    <item.icon size={20} color={item.color} />
-                  </View>
-                  <Text className="text-lg font-medium text-gray-900">
-                    {item.label}
-                  </Text>
-                </View>
-                <ChevronRight size={20} color="#6B7280" />
+                <Text
+                  className={`text-base font-urbanist ${
+                    index === 0
+                      ? "text-figma-primary font-semibold"
+                      : "text-figma-grey-900"
+                  }`}
+                >
+                  {item.label}
+                </Text>
+                <ChevronRight
+                  size={18}
+                  color={index === 0 ? "#E48C26" : "#9E9E9E"}
+                />
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Logout Button */}
-          <TouchableOpacity className="flex-row items-center justify-center py-4 mt-4 bg-red-50 rounded-xl border border-red-100">
-            <LogOut size={20} color="#EF4444" />
-            <Text className="ml-2 text-lg font-medium text-red-600">
+          <TouchableOpacity
+            className="flex-row items-center justify-center py-4 mt-4 bg-white rounded-2xl border border-red-100"
+            activeOpacity={0.7}
+          >
+            <LogOut size={18} color="#DC2626" />
+            <Text className="ml-2 text-base font-medium text-red-600 font-urbanist">
               Se déconnecter
             </Text>
           </TouchableOpacity>
