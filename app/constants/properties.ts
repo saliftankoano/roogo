@@ -1,5 +1,11 @@
 import type { ImageSourcePropType } from "react-native";
 
+// Image imports - React Native requires require() for images
+// @ts-ignore - React Native images must use require(), not ES6 imports
+const whiteVilla = require("../../assets/images/white_villa.jpg");
+// @ts-ignore - React Native images must use require(), not ES6 imports
+const whiteVillaBg = require("../../assets/images/white_villa_bg.jpg");
+
 export type PropertyAgent = {
   name: string;
   agency: string;
@@ -20,13 +26,16 @@ export type Property = {
   parking: number;
   period?: string;
   image: any;
-  category: "Louer" | "Acheter";
+  images?: any[];
+  category: "Residential" | "Business";
   isSponsored: boolean;
   status: string;
   propertyType: string;
   description: string;
   amenities: string[];
   agent?: PropertyAgent;
+  deposit?: number; // Number of months of rent required as deposit
+  prohibitions?: string[]; // List of prohibitions (e.g., "Pas d'animaux", "Pas de fumeurs")
 };
 
 export const properties: Property[] = [
@@ -41,18 +50,21 @@ export const properties: Property[] = [
     area: "1493",
     parking: 2,
     period: "Mois",
-    image: require("../../assets/images/white_villa.jpg"),
-    category: "Louer",
+    image: whiteVilla,
+    images: [whiteVilla, whiteVillaBg, whiteVilla, whiteVilla, whiteVillaBg],
+    category: "Residential",
     isSponsored: true,
     status: "Disponible à la location",
     propertyType: "Résidence",
     description:
       "Maison moderne avec de grands espaces de vie, idéale pour les familles recherchant le confort et la proximité des commodités.",
     amenities: ["Piscine privée", "Sécurité 24/7", "Climatisation", "Jardin"],
+    deposit: 2,
+    prohibitions: ["Pas d'animaux", "Pas de fumeurs"],
     agent: {
       name: "Mohamed Soro",
       agency: "Soro Realty Group",
-      avatar: require("../../assets/images/white_villa.jpg"),
+      avatar: whiteVilla,
       phone: "+226 70 12 34 56",
       email: "mohamedsoro@gmail.com",
     },
@@ -68,8 +80,9 @@ export const properties: Property[] = [
     area: "800",
     parking: 1,
     period: "Mois",
-    image: require("../../assets/images/white_villa_bg.jpg"),
-    category: "Louer",
+    image: whiteVillaBg,
+    images: [whiteVillaBg, whiteVilla, whiteVilla, whiteVillaBg],
+    category: "Residential",
     isSponsored: true,
     status: "Disponible à la location",
     propertyType: "Villa",
@@ -81,10 +94,12 @@ export const properties: Property[] = [
       "Buanderie équipée",
       "Terrasse panoramique",
     ],
+    deposit: 1,
+    prohibitions: ["Pas d'animaux"],
     agent: {
       name: "Mohamed Soro",
       agency: "Soro Realty Group",
-      avatar: require("../../assets/images/white_villa.jpg"),
+      avatar: whiteVilla,
       phone: "+226 70 12 34 56",
       email: "mohamedsoro@gmail.com",
     },
@@ -100,18 +115,21 @@ export const properties: Property[] = [
     area: "650",
     parking: 1,
     period: "Mois",
-    image: require("../../assets/images/white_villa.jpg"),
-    category: "Louer",
+    image: whiteVilla,
+    images: [whiteVilla, whiteVilla, whiteVillaBg],
+    category: "Residential",
     isSponsored: false,
     status: "Disponible à la location",
     propertyType: "Appartement",
     description:
       "Appartement lumineux au cœur de la ville, parfait pour les jeunes actifs ou les couples.",
     amenities: ["Ascenseur", "Cuisine équipée", "Bail flexible"],
+    deposit: 1,
+    prohibitions: ["Pas de fête", "Pas de bruit après 22h"],
     agent: {
       name: "Silvia Guigma",
       agency: "Guigma Group",
-      avatar: require("../../assets/images/white_villa.jpg"),
+      avatar: whiteVilla,
       phone: "+226 70 12 34 56",
       email: "silvia@gmail.com",
     },
@@ -127,8 +145,9 @@ export const properties: Property[] = [
     area: "900",
     parking: 2,
     period: "Mois",
-    image: require("../../assets/images/white_villa.jpg"),
-    category: "Louer",
+    image: whiteVilla,
+    images: [whiteVilla, whiteVilla, whiteVillaBg],
+    category: "Residential",
     isSponsored: false,
     status: "Disponible à la location",
     propertyType: "Maison",
@@ -138,7 +157,7 @@ export const properties: Property[] = [
     agent: {
       name: "Maria Guigma",
       agency: "Maria Group",
-      avatar: require("../../assets/images/white_villa.jpg"),
+      avatar: whiteVilla,
       phone: "+226 70 12 34 56",
       email: "maria@gmail.com",
     },
@@ -153,10 +172,12 @@ export const properties: Property[] = [
     bathrooms: 3,
     area: "2000",
     parking: 3,
-    image: require("../../assets/images/white_villa.jpg"),
-    category: "Acheter",
+    period: "Mois",
+    image: whiteVilla,
+    images: [whiteVilla, whiteVillaBg, whiteVilla, whiteVilla, whiteVillaBg],
+    category: "Residential",
     isSponsored: true,
-    status: "En vente",
+    status: "Disponible à la location",
     propertyType: "Villa",
     description:
       "Villa d'exception offrant une architecture contemporaine et des finitions haut de gamme.",
@@ -169,7 +190,7 @@ export const properties: Property[] = [
     agent: {
       name: "Maria Guigma",
       agency: "Maria Group",
-      avatar: require("../../assets/images/white_villa.jpg"),
+      avatar: whiteVilla,
       phone: "+226 70 12 34 56",
       email: "maria@gmail.com",
     },
@@ -184,10 +205,12 @@ export const properties: Property[] = [
     bathrooms: 3,
     area: "1600",
     parking: 2,
-    image: require("../../assets/images/white_villa_bg.jpg"),
-    category: "Acheter",
+    period: "Mois",
+    image: whiteVillaBg,
+    images: [whiteVillaBg, whiteVilla, whiteVilla, whiteVillaBg],
+    category: "Residential",
     isSponsored: false,
-    status: "En vente",
+    status: "Disponible à la location",
     propertyType: "Résidence",
     description:
       "Résidence haut standing construite avec des matériaux durables et une excellente isolation thermique.",
@@ -200,7 +223,7 @@ export const properties: Property[] = [
     agent: {
       name: "Lookman Thombiano",
       agency: "Thombiano Group",
-      avatar: require("../../assets/images/white_villa.jpg"),
+      avatar: whiteVilla,
       phone: "+226 70 12 34 56",
       email: "lookman@gmail.com",
     },
@@ -216,8 +239,9 @@ export const properties: Property[] = [
     area: "1100",
     parking: 2,
     period: "Mois",
-    image: require("../../assets/images/white_villa_bg.jpg"),
-    category: "Louer",
+    image: whiteVillaBg,
+    images: [whiteVillaBg, whiteVilla, whiteVilla],
+    category: "Business",
     isSponsored: false,
     status: "Disponible à la location",
     propertyType: "Duplex",
@@ -231,7 +255,7 @@ export const properties: Property[] = [
     agent: {
       name: "Lookman Thombiano",
       agency: "Thombiano Group",
-      avatar: require("../../assets/images/white_villa.jpg"),
+      avatar: whiteVilla,
       phone: "+226 70 12 34 56",
       email: "lookman@gmail.com",
     },
@@ -246,10 +270,12 @@ export const properties: Property[] = [
     bathrooms: 3,
     area: "2500",
     parking: 4,
-    image: require("../../assets/images/white_villa.jpg"),
-    category: "Acheter",
+    period: "Mois",
+    image: whiteVilla,
+    images: [whiteVilla, whiteVilla, whiteVillaBg],
+    category: "Business",
     isSponsored: true,
-    status: "En vente",
+    status: "Disponible à la location",
     propertyType: "Parcelle",
     description:
       "Parcelle premium avec villa déjà construite, rentable pour un projet d'investissement locatif.",
