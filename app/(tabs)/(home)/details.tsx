@@ -1,9 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
+  Ban,
   Bath,
   BedDouble,
+  Camera,
   Car,
+  DollarSign,
   Heart,
   MapPin,
   Ruler,
@@ -28,6 +31,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AgentCard from "../../components/AgentCard";
 import ContactSheet from "../../components/ContactSheet";
+import PhotoGallery from "../../components/PhotoGallery";
 import type { Property } from "../../constants/properties";
 import { properties } from "../../constants/properties";
 
@@ -38,6 +42,8 @@ export default function PropertyDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [isContactSheetVisible, setIsContactSheetVisible] = useState(false);
+  const [isGalleryVisible, setIsGalleryVisible] = useState(false);
+  const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
 
   const property: Property | undefined = useMemo(() => {
     if (!id) return undefined;
@@ -73,7 +79,60 @@ export default function PropertyDetailsScreen() {
         className="bg-transparent"
       >
         <View className="relative">
-          <Image source={property.image} className="w-full h-[360px]" />
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => {
+              const images = property.images || [property.image];
+              if (images.length > 0) {
+                setGalleryInitialIndex(0);
+                setIsGalleryVisible(true);
+              }
+            }}
+          >
+            <Image source={property.image} className="w-full h-[360px]" />
+
+            {/* Photo Counter Badge */}
+            {((property.images && property.images.length > 1) ||
+              (!property.images && property.image)) && (
+              <View className="absolute bottom-4 right-4 bg-black/70 px-3 py-2 rounded-full flex-row items-center">
+                <Camera size={16} color="white" />
+                <Text className="ml-2 text-white text-sm font-semibold font-urbanist">
+                  {property.images ? property.images.length : 1} photo
+                  {property.images && property.images.length > 1 ? "s" : ""}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Photo Thumbnails */}
+          {property.images && property.images.length > 1 && (
+            <View className="absolute bottom-4 left-4 flex-row gap-2">
+              {property.images.slice(0, 3).map((img, index) => (
+                <TouchableOpacity
+                  key={index}
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    setGalleryInitialIndex(index);
+                    setIsGalleryVisible(true);
+                  }}
+                  className="w-20 h-20 rounded-xl overflow-hidden border-2 border-white"
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                    elevation: 5,
+                  }}
+                >
+                  <Image
+                    source={img}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           <View className="absolute top-6 left-4 right-4 flex-row justify-between items-center">
             <TouchableOpacity
@@ -176,6 +235,65 @@ export default function PropertyDetailsScreen() {
           </View>
         </View>
 
+        {/* Rental Requirements */}
+        {(property.deposit ||
+          (property.prohibitions && property.prohibitions.length > 0)) && (
+          <View className="px-6 py-6 bg-white mt-4 rounded-3xl mx-4">
+            <Text className="text-lg font-semibold text-gray-900 mb-4">
+              Conditions de location
+            </Text>
+
+            {/* Deposit */}
+            {property.deposit && (
+              <View className="mb-4 pb-4 border-b border-gray-100">
+                <View className="flex-row items-center mb-2">
+                  <View className="bg-orange-50 p-2 rounded-full mr-3">
+                    <DollarSign size={20} color="#E48C26" />
+                  </View>
+                  <Text className="text-base font-semibold text-gray-900">
+                    Caution
+                  </Text>
+                </View>
+                <Text className="text-sm text-gray-600 ml-12">
+                  {property.deposit} {property.deposit === 1 ? "mois" : "mois"}{" "}
+                  de loyer
+                </Text>
+                <Text className="text-xs text-gray-500 ml-12 mt-1">
+                  ({formatPrice(property.price)} × {property.deposit} ={" "}
+                  {formatPrice(
+                    String(Number(property.price) * property.deposit)
+                  )}{" "}
+                  CFA)
+                </Text>
+              </View>
+            )}
+
+            {/* Prohibitions */}
+            {property.prohibitions && property.prohibitions.length > 0 && (
+              <View>
+                <View className="flex-row items-center mb-3">
+                  <View className="bg-red-50 p-2 rounded-full mr-3">
+                    <Ban size={20} color="#EF4444" />
+                  </View>
+                  <Text className="text-base font-semibold text-gray-900">
+                    Interdictions
+                  </Text>
+                </View>
+                <View className="ml-12">
+                  {property.prohibitions.map((prohibition, index) => (
+                    <View key={index} className="flex-row items-center mb-2">
+                      <View className="w-1.5 h-1.5 rounded-full bg-red-500 mr-3" />
+                      <Text className="text-sm text-gray-700">
+                        {prohibition}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+
         <View className="px-6 py-6 bg-white mt-4 rounded-3xl mx-4">
           <Text className="text-lg font-semibold text-gray-900 mb-3">
             Équipements
@@ -249,6 +367,13 @@ export default function PropertyDetailsScreen() {
         visible={isContactSheetVisible}
         onClose={() => setIsContactSheetVisible(false)}
         property={property}
+      />
+
+      <PhotoGallery
+        visible={isGalleryVisible}
+        images={property.images || [property.image]}
+        initialIndex={galleryInitialIndex}
+        onClose={() => setIsGalleryVisible(false)}
       />
     </SafeAreaView>
   );
