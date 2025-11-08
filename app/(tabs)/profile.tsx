@@ -1,12 +1,11 @@
 import { useUser } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import { ChevronRight, LogOut, MapPin } from "lucide-react-native";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserType } from "../hooks/useUserType";
 
 export default function ProfileScreen() {
-  const router = useRouter();
   const { isAgent } = useUserType();
   const { user, isLoaded } = useUser();
 
