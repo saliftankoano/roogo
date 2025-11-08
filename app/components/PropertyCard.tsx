@@ -32,7 +32,7 @@ interface PropertyCardProps {
     parking: number;
     period?: string;
     image: any;
-    category: "Louer" | "Acheter";
+    category: "Residential" | "Business";
     views?: number;
     favorites?: number;
   };
@@ -92,10 +92,14 @@ export default function PropertyCard({
         />
         {/* Property Category Tag */}
         <View
-          className={`absolute top-3 left-3 ${property.category === "Louer" ? "bg-blue-500" : "bg-green-500"} px-3 py-1 rounded-full`}
+          className={`absolute top-3 left-3 ${
+            property.category === "Residential"
+              ? "bg-[#E48C26]"
+              : "bg-[#2563EB]"
+          } px-3 py-1 rounded-full`}
         >
-          <Text className="text-white text-xs font-semibold">
-            {property.category === "Louer" ? "À Louer" : "À Vendre"}
+          <Text className="text-white text-xs font-semibold font-urbanist">
+            {property.category === "Residential" ? "Résidentiel" : "Business"}
           </Text>
         </View>
         {/* Heart Icon */}
@@ -139,33 +143,161 @@ export default function PropertyCard({
           {property.period ? `/${property.period}` : ""}
         </Text>
 
-        {/* Property Details Pills */}
-        <View className="flex-row flex-wrap gap-2">
-          <View className="flex-1 min-w-[80px] flex-row items-center justify-center bg-gray-100 px-3 py-2 rounded-full">
-            <BedDouble size={18} color="#4B5563" />
-            <Text className="ml-2 text-gray-700 font-medium">
+        {/* Property Details */}
+        <View
+          className="flex-row items-center py-4 rounded-2xl"
+          style={{
+            backgroundColor: "white",
+            borderWidth: 1,
+            borderColor: "#E8E8E8",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.04,
+            shadowRadius: 8,
+            elevation: 2,
+            paddingHorizontal: isHorizontal ? 8 : 12,
+          }}
+        >
+          <View className="flex-1 items-center">
+            <View
+              className="rounded-full items-center justify-center mb-2"
+              style={{
+                backgroundColor: "#F8F8F8",
+                width: isHorizontal ? 36 : 40,
+                height: isHorizontal ? 36 : 40,
+              }}
+            >
+              <BedDouble
+                size={isHorizontal ? 18 : 20}
+                color="#374151"
+                strokeWidth={2}
+              />
+            </View>
+            <Text
+              className="font-bold text-figma-grey-900 font-urbanist"
+              style={{ fontSize: isHorizontal ? 20 : 24 }}
+            >
               {property.bedrooms}
             </Text>
+            <Text
+              className="text-figma-grey-700 mt-1 font-urbanist"
+              style={{
+                letterSpacing: 0.5,
+                fontSize: isHorizontal ? 10 : 12,
+              }}
+            >
+              Chambres
+            </Text>
           </View>
-          <View className="flex-1 min-w-[80px] flex-row items-center justify-center bg-gray-100 px-3 py-2 rounded-full">
-            <Bath size={18} color="#4B5563" />
-            <Text className="ml-2 text-gray-700 font-medium">
+
+          <View
+            style={{
+              width: 1,
+              height: 50,
+              backgroundColor: "#F0F0F0",
+            }}
+          />
+
+          <View className="flex-1 items-center">
+            <View
+              className="rounded-full items-center justify-center mb-2"
+              style={{
+                backgroundColor: "#F8F8F8",
+                width: isHorizontal ? 36 : 40,
+                height: isHorizontal ? 36 : 40,
+              }}
+            >
+              <Bath
+                size={isHorizontal ? 18 : 20}
+                color="#374151"
+                strokeWidth={2}
+              />
+            </View>
+            <Text
+              className="font-bold text-figma-grey-900 font-urbanist"
+              style={{ fontSize: isHorizontal ? 20 : 24 }}
+            >
               {property.bathrooms}
             </Text>
-          </View>
-          <View className="flex-1 min-w-[80px] flex-row items-center justify-center bg-gray-100 px-3 py-2 rounded-full">
-            <Ruler size={18} color="#4B5563" />
-            <Text className="ml-2 text-gray-700 font-medium">
-              {property.area} m²
+            <Text
+              className="text-figma-grey-700 mt-1 font-urbanist"
+              style={{
+                letterSpacing: 0.5,
+                fontSize: isHorizontal ? 10 : 12,
+              }}
+            >
+              Douches
             </Text>
           </View>
-          {property.parking > 0 && (
-            <View className="flex-1 min-w-[80px] flex-row items-center justify-center bg-gray-100 px-3 py-2 rounded-full">
-              <Car size={18} color="#4B5563" />
-              <Text className="ml-2 text-gray-700 font-medium">
-                {property.parking}
-              </Text>
+
+          <View
+            style={{
+              width: 1,
+              height: 50,
+              backgroundColor: "#F0F0F0",
+            }}
+          />
+
+          <View className="flex-1 items-center">
+            <View
+              className="rounded-full items-center justify-center mb-2"
+              style={{
+                backgroundColor: "#F8F8F8",
+                width: isHorizontal ? 36 : 40,
+                height: isHorizontal ? 36 : 40,
+              }}
+            >
+              <Ruler
+                size={isHorizontal ? 18 : 20}
+                color="#374151"
+                strokeWidth={2}
+              />
             </View>
+            <Text
+              className="font-bold text-figma-grey-900 font-urbanist"
+              style={{ fontSize: isHorizontal ? 20 : 24 }}
+            >
+              {property.area}
+            </Text>
+            <Text
+              className="text-figma-grey-700 mt-1 font-urbanist"
+              style={{
+                letterSpacing: 0.5,
+                fontSize: isHorizontal ? 10 : 12,
+              }}
+            >
+              m²
+            </Text>
+          </View>
+
+          {property.parking > 0 && !isHorizontal && (
+            <>
+              <View
+                style={{
+                  width: 1,
+                  height: 50,
+                  backgroundColor: "#F0F0F0",
+                }}
+              />
+
+              <View className="flex-1 items-center">
+                <View
+                  className="w-10 h-10 rounded-full items-center justify-center mb-2"
+                  style={{ backgroundColor: "#F8F8F8" }}
+                >
+                  <Car size={20} color="#374151" strokeWidth={2} />
+                </View>
+                <Text className="text-2xl font-bold text-figma-grey-900 font-urbanist">
+                  {property.parking}
+                </Text>
+                <Text
+                  className="text-xs text-figma-grey-700 mt-1 font-urbanist"
+                  style={{ letterSpacing: 0.5 }}
+                >
+                  Parking
+                </Text>
+              </View>
+            </>
           )}
         </View>
 
