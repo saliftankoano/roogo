@@ -23,21 +23,23 @@ const getNumericValue = (value: string) => {
   return Number.isNaN(numeric) ? 0 : numeric;
 };
 
-type PropertyWithCategory = Property & { category: "Louer" | "Acheter" };
+type PropertyWithCategory = Property & { category: "Residential" | "Business" };
 
 export default function HomeScreen() {
-  const [selectedCategory, setSelectedCategory] = useState("Louer");
+  const [selectedCategory, setSelectedCategory] = useState<
+    "Residential" | "Business"
+  >("Residential");
   const [filters, setFilters] = useState<FiltersState>(INITIAL_FILTERS);
 
   const categories = [
     {
-      id: "Louer",
-      label: "Louer",
+      id: "Residential" as const,
+      label: "Résidentiel",
       image: require("../../../assets/images/louer.png"),
     },
     {
-      id: "Acheter",
-      label: "Àcheter",
+      id: "Business" as const,
+      label: "Business",
       image: require("../../../assets/images/acheter.png"),
     },
   ];
@@ -123,6 +125,7 @@ export default function HomeScreen() {
                 key={category.id}
                 onPress={() => setSelectedCategory(category.id)}
                 className="flex-1 items-center"
+                activeOpacity={0.7}
               >
                 <View className="items-center">
                   <Image
@@ -136,10 +139,10 @@ export default function HomeScreen() {
                   />
                 </View>
                 <Text
-                  className={`text-xl font-bold ${
+                  className={`text-xl font-bold font-urbanist ${
                     selectedCategory === category.id
-                      ? "text-gray-900"
-                      : "text-gray-500"
+                      ? "text-figma-grey-900"
+                      : "text-figma-grey-500"
                   }`}
                 >
                   {category.label}
@@ -161,11 +164,13 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Sponsored Homes Section */}
+        {/* Sponsored Properties Section */}
         <View className="px-4 mb-6">
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-xl font-bold text-gray-900">
-              Maisons Sponsorisées
+            <Text className="text-xl font-bold text-figma-grey-900 font-urbanist">
+              {selectedCategory === "Residential"
+                ? "Propriétés Résidentielles Sponsorisées"
+                : "Locaux Commerciaux Sponsorisés"}
             </Text>
             <ChevronRight size={20} color="#6B7280" />
           </View>
@@ -200,8 +205,10 @@ export default function HomeScreen() {
         {/* All Properties Section */}
         <View className="px-4 mb-6">
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-xl font-bold text-gray-900">
-              Toutes les propriétés
+            <Text className="text-xl font-bold text-figma-grey-900 font-urbanist">
+              {selectedCategory === "Residential"
+                ? "Toutes les propriétés résidentielles"
+                : "Tous les locaux commerciaux"}
             </Text>
             <ChevronRight size={20} color="#6B7280" />
           </View>
