@@ -51,7 +51,7 @@ export default function PhotographyScreen() {
   const packages: Package[] = [
     {
       id: "basic",
-      name: "Basique",
+      name: "À nous aller",
       photos: 10,
       price: "25.000",
       color: "#3B82F6",
@@ -65,7 +65,7 @@ export default function PhotographyScreen() {
     },
     {
       id: "standard",
-      name: "Standard",
+      name: "Patron oubien?",
       photos: 20,
       price: "45.000",
       color: "#8B5CF6",
@@ -81,7 +81,7 @@ export default function PhotographyScreen() {
     },
     {
       id: "premium",
-      name: "Premium",
+      name: "Grand Boss",
       photos: 35,
       price: "75.000",
       color: "#84CC16",
@@ -94,7 +94,6 @@ export default function PhotographyScreen() {
         "Vue drone complète",
         "Photos crépusculaires",
         "Visite virtuelle 360°",
-        "Vidéo promotionnelle",
       ],
     },
   ];
@@ -269,9 +268,6 @@ export default function PhotographyScreen() {
                             <Text className="text-white text-4xl font-bold font-urbanist">
                               ${pkg.price}
                             </Text>
-                            <Text className="text-white/90 text-base font-urbanist mt-1">
-                              /service
-                            </Text>
                           </View>
 
                           {/* Package Name */}
@@ -285,7 +281,7 @@ export default function PhotographyScreen() {
                               (feature: string, idx: number) => (
                                 <View
                                   key={idx}
-                                  className="flex-row items-center"
+                                  className="flex-row items-center mb-2"
                                 >
                                   <View className="bg-white/25 rounded-full p-1.5 mr-3.5">
                                     <Check size={14} color="white" />
