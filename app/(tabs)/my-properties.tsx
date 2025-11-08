@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { Filter, Plus, Search } from "lucide-react-native";
 import { useCallback, useRef, useState } from "react";
@@ -19,7 +20,7 @@ const mockProperties = [
   {
     id: 1,
     title: "Villa moderne à Ouagadougou",
-    price: "45,000,000 FCFA",
+    price: "45,000,000",
     location: "Ouagadougou, Secteur 15",
     image: require("../../assets/images/white_villa.jpg"),
     status: "active",
@@ -34,7 +35,7 @@ const mockProperties = [
   {
     id: 2,
     title: "Appartement 3 pièces",
-    price: "150,000 FCFA/mois",
+    price: "150,000",
     location: "Ouagadougou, Secteur 12",
     image: require("../../assets/images/white_villa_bg.jpg"),
     status: "active",
@@ -49,7 +50,7 @@ const mockProperties = [
   {
     id: 3,
     title: "Maison familiale spacieuse",
-    price: "35,000,000 FCFA",
+    price: "35,000,000",
     location: "Ouagadougou, Secteur 8",
     image: require("../../assets/images/white_villa.jpg"),
     status: "pending",
@@ -64,6 +65,7 @@ const mockProperties = [
 ];
 
 export default function MyPropertiesScreen() {
+  const { isLoaded } = useUser();
   const { isAgent } = useUserType();
   const [refreshing, setRefreshing] = useState(false);
   const [properties, setProperties] = useState(mockProperties);
@@ -135,12 +137,25 @@ export default function MyPropertiesScreen() {
     }, 2000);
   }, []);
 
+  // Show loading state while user data is being fetched
+  if (!isLoaded) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+        <View className="flex-1 justify-center items-center">
+          <Text className="text-base text-figma-grey-600 font-urbanist">
+            Chargement...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   // Redirect non-agents to home
   if (!isAgent) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <View className="flex-1 justify-center items-center">
-          <Text className="text-lg text-gray-600">
+          <Text className="text-base text-figma-grey-600 font-urbanist">
             Accès réservé aux agents
           </Text>
         </View>
@@ -189,77 +204,133 @@ export default function MyPropertiesScreen() {
           opacity: headerOpacity,
           backgroundColor: "#FFFFFF",
           paddingHorizontal: 16,
-          paddingVertical: 12,
+          paddingVertical: 16,
           borderBottomWidth: 1,
           borderBottomColor: "rgba(229, 231, 235, 0.5)",
         }}
       >
         {/* Header Title */}
-        <View className="flex-row justify-between items-center">
-          <View>
-            <Text className="text-2xl font-bold text-gray-900">
+        <View className="flex-row justify-between items-center mb-6">
+          <View className="flex-1">
+            <Text className="text-2xl font-bold text-figma-grey-900 font-urbanist">
               Mes Propriétés
             </Text>
-            <Text className="text-gray-600 mt-1">
+            <Text className="text-sm text-figma-grey-600 mt-1 font-urbanist">
               Gérez vos annonces immobilières
             </Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push("/(tabs)/add-property")}
-            className="bg-blue-500 p-3 rounded-full"
+            className="ml-4"
+            style={{
+              backgroundColor: "#E48C26",
+              padding: 12,
+              borderRadius: 28,
+              shadowColor: "#E48C26",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+            activeOpacity={0.8}
           >
-            <Plus size={24} color="white" />
+            <Plus size={22} color="white" />
           </TouchableOpacity>
         </View>
 
         {/* Stats Overview */}
-        <View className="flex-row justify-between mt-6 mb-2">
-          <View className="bg-green-50 px-4 py-3 rounded-xl flex-1 mr-2">
-            <Text className="text-green-700 text-xs font-medium">Actives</Text>
-            <Text className="text-green-800 text-xl font-bold">
+        <View className="flex-row justify-between mb-4">
+          <View
+            className="px-4 py-3.5 rounded-2xl flex-1 mr-2"
+            style={{
+              backgroundColor: "#ECFDF5",
+              borderWidth: 1,
+              borderColor: "rgba(16, 185, 129, 0.15)",
+            }}
+          >
+            <Text className="text-xs font-medium text-[#065F46] mb-1 font-urbanist">
+              Actives
+            </Text>
+            <Text className="text-2xl font-bold text-[#047857] font-urbanist">
               {properties.filter((p) => p.status === "active").length}
             </Text>
           </View>
-          <View className="bg-yellow-50 px-4 py-3 rounded-xl flex-1 mx-2">
-            <Text className="text-yellow-700 text-xs font-medium">
+          <View
+            className="px-4 py-3.5 rounded-2xl flex-1 mx-2"
+            style={{
+              backgroundColor: "#FFFBEB",
+              borderWidth: 1,
+              borderColor: "rgba(245, 158, 11, 0.15)",
+            }}
+          >
+            <Text className="text-xs font-medium text-[#78350F] mb-1 font-urbanist">
               En attente
             </Text>
-            <Text className="text-yellow-800 text-xl font-bold">
+            <Text className="text-2xl font-bold text-[#B45309] font-urbanist">
               {properties.filter((p) => p.status === "pending").length}
             </Text>
           </View>
-          <View className="bg-blue-50 px-4 py-3 rounded-xl flex-1 ml-2">
-            <Text className="text-blue-700 text-xs font-medium">Vendues</Text>
-            <Text className="text-blue-800 text-xl font-bold">
+          <View
+            className="px-4 py-3.5 rounded-2xl flex-1 ml-2"
+            style={{
+              backgroundColor: "#EFF6FF",
+              borderWidth: 1,
+              borderColor: "rgba(59, 130, 246, 0.15)",
+            }}
+          >
+            <Text className="text-xs font-medium text-[#1E3A8A] mb-1 font-urbanist">
+              Vendues
+            </Text>
+            <Text className="text-2xl font-bold text-[#1E40AF] font-urbanist">
               {properties.filter((p) => p.status === "sold").length}
             </Text>
           </View>
         </View>
 
         {/* Search and Filter Bar */}
-        <View className="flex-row mt-4">
-          <View className="flex-1 flex-row items-center bg-gray-100 rounded-xl px-4 py-2 mr-2">
-            <Search size={20} color="#6B7280" />
+        <View className="flex-row mt-2">
+          <View
+            className="flex-1 flex-row items-center rounded-xl px-4 py-3 mr-2"
+            style={{
+              backgroundColor: "#F9FAFB",
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+            }}
+          >
+            <Search size={18} color="#9E9E9E" />
             <TextInput
               placeholder="Rechercher une propriété..."
-              placeholderTextColor="#6B7280"
-              className="flex-1 ml-2 text-gray-700"
+              placeholderTextColor="#9E9E9E"
+              className="flex-1 ml-2 text-figma-grey-900 font-urbanist"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
           </View>
           <TouchableOpacity
-            className={`p-2 rounded-xl ${showFilters ? "bg-blue-500" : "bg-gray-100"}`}
+            className="p-3 rounded-xl"
+            style={{
+              backgroundColor: showFilters ? "#E48C26" : "#F9FAFB",
+              borderWidth: 1,
+              borderColor: showFilters ? "#E48C26" : "#E5E7EB",
+            }}
             onPress={() => setShowFilters(!showFilters)}
+            activeOpacity={0.7}
           >
-            <Filter size={24} color={showFilters ? "white" : "#6B7280"} />
+            <Filter size={20} color={showFilters ? "white" : "#9E9E9E"} />
           </TouchableOpacity>
         </View>
 
         {/* Filter Options */}
         {showFilters && (
-          <View className="mt-4 p-4 bg-gray-50 rounded-xl">
-            <Text className="text-gray-700 font-medium mb-3">
+          <View
+            className="mt-4 p-4 rounded-xl"
+            style={{
+              backgroundColor: "#F9FAFB",
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+            }}
+          >
+            <Text className="text-sm font-semibold text-figma-grey-900 mb-3 font-urbanist">
               Filtrer par statut
             </Text>
             <View className="flex-row flex-wrap -m-1">
@@ -269,14 +340,18 @@ export default function MyPropertiesScreen() {
                   onPress={() =>
                     setSelectedStatus(selectedStatus === status ? null : status)
                   }
-                  className={`m-1 px-4 py-2 rounded-full ${
-                    selectedStatus === status ? "bg-blue-500" : "bg-gray-200"
-                  }`}
+                  className="m-1 px-4 py-2 rounded-full"
+                  style={{
+                    backgroundColor:
+                      selectedStatus === status ? "#E48C26" : "#E5E7EB",
+                  }}
+                  activeOpacity={0.7}
                 >
                   <Text
-                    className={
-                      selectedStatus === status ? "text-white" : "text-gray-700"
-                    }
+                    className="text-sm font-urbanist"
+                    style={{
+                      color: selectedStatus === status ? "white" : "#374151",
+                    }}
                   >
                     {getStatusText(status)}
                   </Text>
@@ -284,7 +359,7 @@ export default function MyPropertiesScreen() {
               ))}
             </View>
 
-            <Text className="text-gray-700 font-medium mt-4 mb-3">
+            <Text className="text-sm font-semibold text-figma-grey-900 mt-5 mb-3 font-urbanist">
               Trier par
             </Text>
             <View className="flex-row flex-wrap -m-1">
@@ -298,14 +373,18 @@ export default function MyPropertiesScreen() {
                   onPress={() =>
                     setSortBy(option.id as "date" | "price" | "views")
                   }
-                  className={`m-1 px-4 py-2 rounded-full ${
-                    sortBy === option.id ? "bg-blue-500" : "bg-gray-200"
-                  }`}
+                  className="m-1 px-4 py-2 rounded-full"
+                  style={{
+                    backgroundColor:
+                      sortBy === option.id ? "#E48C26" : "#E5E7EB",
+                  }}
+                  activeOpacity={0.7}
                 >
                   <Text
-                    className={
-                      sortBy === option.id ? "text-white" : "text-gray-700"
-                    }
+                    className="text-sm font-urbanist"
+                    style={{
+                      color: sortBy === option.id ? "white" : "#374151",
+                    }}
                   >
                     {option.label}
                   </Text>
