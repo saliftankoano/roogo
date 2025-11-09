@@ -135,7 +135,7 @@ export default function SignUpScreen() {
 
       // Close the modal and proceed to main app
       setShowUserTypeSelection(false);
-      router.replace("/");
+      router.replace("/(tabs)/(home)");
     } catch (error) {
       console.error("Error updating user type:", error);
       // Re-throw to let the component handle the error
@@ -530,29 +530,29 @@ export default function SignUpScreen() {
 
                   <TouchableOpacity
                     className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center mb-3"
-                    onPress={() => selectUserType("agent")}
+                    onPress={() => selectUserType("owner")}
                   >
                     <View className="mr-3">
                       <MaterialIcons
-                        name="business"
+                        name="home-work"
                         size={24}
                         color="#9E9E9E"
                       />
                     </View>
                     <Text className="text-black text-lg font-semibold tracking-[0.2px] font-urbanist">
-                      Agent immobilier
+                      Propriétaire
                     </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     className="bg-figma-grey-50 h-[60px] rounded-2xl px-5 flex-row items-center"
-                    onPress={() => selectUserType("regular")}
+                    onPress={() => selectUserType("renter")}
                   >
                     <View className="mr-3">
-                      <MaterialIcons name="home" size={24} color="#9E9E9E" />
+                      <MaterialIcons name="search" size={24} color="#9E9E9E" />
                     </View>
                     <Text className="text-black text-lg font-semibold tracking-[0.2px] font-urbanist">
-                      Acheteur/Locataire
+                      Locataire
                     </Text>
                   </TouchableOpacity>
                 </View>
