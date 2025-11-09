@@ -1,8 +1,12 @@
-import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
-import { Tabs, usePathname } from "expo-router";
-import { Camera, Plus, User } from "lucide-react-native";
+import type {
+  BottomTabBarProps,
+  BottomTabNavigationOptions,
+} from "@react-navigation/bottom-tabs";
+import { BottomTabBar } from "@react-navigation/bottom-tabs";
+import { router, Tabs, usePathname } from "expo-router";
+import { Camera, Heart, Plus, User } from "lucide-react-native";
 import { useEffect, useRef } from "react";
-import { Animated, Platform, TouchableOpacity, View } from "react-native";
+import { Animated, Platform, Text, TouchableOpacity, View } from "react-native";
 import { Path, Svg } from "react-native-svg";
 import { useUserType } from "../hooks/useUserType";
 
@@ -43,8 +47,9 @@ const IconWrapper = ({
       style={{
         transform: [{ scale: scaleAnim }],
         backgroundColor: focused ? `${ACTIVE_COLOR}15` : "transparent",
-        padding: 8,
-        borderRadius: 12,
+        padding: 6,
+        borderRadius: 10,
+        marginTop: 0,
       }}
     >
       {children}
@@ -92,6 +97,33 @@ const UserIcon = ({ focused, size }: IconRendererProps) => (
   </IconWrapper>
 );
 
+const HeartIcon = ({ focused, size }: IconRendererProps) => (
+  <IconWrapper focused={focused}>
+    <Heart size={size} color={focused ? ACTIVE_COLOR : INACTIVE_COLOR} />
+  </IconWrapper>
+);
+
+const LoginIcon = ({ focused, size }: IconRendererProps) => (
+  <IconWrapper focused={focused}>
+    <View style={{ position: "relative" }}>
+      <User size={size} color={focused ? ACTIVE_COLOR : "#FFFFFF"} />
+      <View
+        style={{
+          position: "absolute",
+          top: -2,
+          right: -2,
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: focused ? ACTIVE_COLOR : "#FFFFFF",
+          borderWidth: 2,
+          borderColor: "#FFFFFF",
+        }}
+      />
+    </View>
+  </IconWrapper>
+);
+
 const AddPropertyButton = ({ onPress }: { onPress?: () => void }) => (
   <TouchableOpacity
     onPress={() => onPress?.()}
@@ -117,12 +149,12 @@ const AddPropertyButton = ({ onPress }: { onPress?: () => void }) => (
 export default function TabLayout() {
   const pathname = usePathname();
   const isDetailsPage = pathname.includes("/details");
-  const { isAgent } = useUserType();
+  const { isOwner, isRenter, isGuest, isLoaded } = useUserType();
 
   const commonTabBarStyle = {
     backgroundColor: "#FFFFFF",
     height: 80,
-    paddingHorizontal: 16,
+    paddingHorizontal: isGuest ? 0 : 16,
     paddingBottom: Platform.OS === "ios" ? 24 : 20,
     paddingTop: 10,
     shadowColor: "#000",
@@ -137,6 +169,148 @@ export default function TabLayout() {
     borderTopWidth: 1,
   };
 
+  // Custom tab bar for guests to center tabs
+  const CustomTabBar = (props: BottomTabBarProps) => {
+    if (isGuest) {
+      return (
+        <View
+          style={{
+            backgroundColor: "#FFFFFF",
+            height: 80,
+            paddingTop: 16,
+            paddingBottom: Platform.OS === "ios" ? 20 : 16,
+            paddingHorizontal: 16,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: -2,
+            },
+            shadowOpacity: 0.08,
+            shadowRadius: 3,
+            elevation: 8,
+            borderTopColor: "rgba(229, 231, 235, 0.5)",
+            borderTopWidth: 1,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {props.state.routes.map((route, index) => {
+            const { options } = props.descriptors[route.key];
+            const isFocused = props.state.index === index;
+
+            const onPress = () => {
+              const event = props.navigation.emit({
+                type: "tabPress",
+                target: route.key,
+                canPreventDefault: true,
+              });
+
+              if (!isFocused && !event.defaultPrevented) {
+                props.navigation.navigate(route.name);
+              }
+            };
+
+            if (route.name === "profile" && isGuest) {
+              return (
+                <View
+                  key={route.key}
+                  style={{
+                    flex: 0,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 12,
+                    marginTop: 0,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => {
+                      router.push("/(auth)/sign-in");
+                    }}
+                    style={{
+                      backgroundColor: ACTIVE_COLOR,
+                      paddingHorizontal: 24,
+                      paddingVertical: 10,
+                      borderRadius: 24,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      shadowColor: ACTIVE_COLOR,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 4,
+                      elevation: 4,
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <User size={20} color="#FFFFFF" />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "700",
+                        marginLeft: 6,
+                        color: "#FFFFFF",
+                      }}
+                    >
+                      Rejoindre
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            }
+
+            if (route.name === "(home)") {
+              return (
+                <TouchableOpacity
+                  key={route.key}
+                  accessibilityRole="button"
+                  accessibilityState={isFocused ? { selected: true } : {}}
+                  accessibilityLabel={options.tabBarAccessibilityLabel}
+                  onPress={onPress}
+                  style={{
+                    flex: 0,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 12,
+                    marginTop: 18,
+                  }}
+                >
+                  {options.tabBarIcon &&
+                    options.tabBarIcon({
+                      focused: isFocused,
+                      color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
+                      size: 20,
+                    })}
+                  {(options.title ||
+                    (options.tabBarLabel &&
+                      typeof options.tabBarLabel === "string")) && (
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "600",
+                        marginTop: 4,
+                        color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
+                      }}
+                    >
+                      {options.title ||
+                        (typeof options.tabBarLabel === "string"
+                          ? options.tabBarLabel
+                          : "")}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            }
+
+            return null;
+          })}
+        </View>
+      );
+    }
+
+    return <BottomTabBar {...props} />;
+  };
+
   const commonScreenOptions: BottomTabNavigationOptions = {
     tabBarActiveTintColor: ACTIVE_COLOR,
     tabBarInactiveTintColor: INACTIVE_COLOR,
@@ -147,18 +321,27 @@ export default function TabLayout() {
       fontSize: 12,
       fontWeight: "600" as const,
       marginTop: 4,
+      flexShrink: 0, // Prevent text from shrinking
+      flexWrap: "nowrap", // Prevent wrapping
     },
     tabBarIconStyle: {
       marginBottom: 0,
     },
     tabBarItemStyle: {
       paddingVertical: 0,
-      paddingHorizontal: 0,
+      paddingHorizontal: isGuest ? 12 : 0, // Add spacing between guest tabs
+      flex: isGuest ? 0 : 1, // Don't flex for guests, let content determine width
+      minWidth: isGuest ? undefined : 0, // Allow natural width for guests
     },
     // Add smooth transitions
     tabBarHideOnKeyboard: true,
     headerShown: false,
   };
+
+  // Don't render tabs until auth state is loaded
+  if (!isLoaded) {
+    return null;
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -170,74 +353,144 @@ export default function TabLayout() {
           headerShown: false,
           animation: "shift",
         }}
+        tabBar={(props) => <CustomTabBar {...props} />}
       >
+        {/* Home - Always visible */}
         <Tabs.Screen
           name="(home)"
           options={{
             title: "Accueil",
             tabBarIcon: ({ focused, size }) => HomeIcon({ focused, size: 24 }),
             headerShown: false,
+            ...(isGuest && {
+              tabBarItemStyle: {
+                paddingVertical: 0,
+                paddingHorizontal: 0,
+                flex: 0,
+              },
+            }),
           }}
         />
-        {isAgent && (
-          <Tabs.Screen
-            name="photography"
-            options={{
-              title: "Photos",
-              tabBarIcon: ({ focused, size }) =>
-                CameraIcon({ focused, size: 24 }),
-              headerShown: false,
-            }}
-          />
-        )}
-        {isAgent && (
-          <Tabs.Screen
-            name="add-property"
-            options={{
-              title: "",
-              tabBarButton: (props) => (
-                <View style={{ alignItems: "center" }}>
-                  <AddPropertyButton
-                    onPress={() => {
-                      if (props.onPress) {
-                        // Pass a synthetic event to match the expected signature
-                        props.onPress({
-                          type: "press",
-                          nativeEvent: {},
-                        } as any);
-                      }
-                    }}
-                  />
-                </View>
-              ),
-              headerShown: false,
-            }}
-          />
-        )}
-        {isAgent && (
-          <Tabs.Screen
-            name="my-properties"
-            options={{
-              title: "Biens",
-              tabBarIcon: ({ focused, size }) =>
-                ModernHomeIcon({ focused, size: 24 }),
-              headerShown: false,
-            }}
-          />
-        )}
+
+        {/* Favoris - Show for renters, hide for others */}
         <Tabs.Screen
           name="favoris"
           options={{
-            href: null, // Hide from tab bar
+            title: "Favoris",
+            tabBarIcon: ({ focused, size }) => HeartIcon({ focused, size: 24 }),
+            headerShown: false,
+            href: isRenter ? undefined : null,
+          }}
+        />
+
+        {/* Photography - Show for owners, hide for others */}
+        <Tabs.Screen
+          name="photography"
+          options={{
+            title: "Photos",
+            tabBarIcon: ({ focused, size }) =>
+              CameraIcon({ focused, size: 24 }),
+            headerShown: false,
+            href: isOwner ? undefined : null,
+          }}
+        />
+
+        {/* Add Property - Show for owners, hide for others */}
+        <Tabs.Screen
+          name="add-property"
+          options={{
+            title: "",
+            tabBarIcon: ({ focused, size }) => null,
+            tabBarButton: isOwner
+              ? (props) => (
+                  <View style={{ alignItems: "center" }}>
+                    <AddPropertyButton
+                      onPress={() => {
+                        if (props.onPress) {
+                          props.onPress({
+                            type: "press",
+                            nativeEvent: {},
+                          } as any);
+                        }
+                      }}
+                    />
+                  </View>
+                )
+              : () => null,
             headerShown: false,
           }}
         />
+
+        {/* My Properties - Show for owners, hide for others */}
+        <Tabs.Screen
+          name="my-properties"
+          options={{
+            title: "Biens",
+            tabBarIcon: ({ focused, size }) =>
+              ModernHomeIcon({ focused, size: 24 }),
+            headerShown: false,
+            href: isOwner ? undefined : null,
+          }}
+        />
+
+        {/* Profile - Show different based on user type */}
         <Tabs.Screen
           name="profile"
           options={{
-            title: "Profil",
-            tabBarIcon: ({ focused, size }) => UserIcon({ focused, size: 24 }),
+            title: isGuest ? "Rejoindre" : "Profil",
+            tabBarIcon: ({ focused, size }) =>
+              isGuest
+                ? LoginIcon({ focused, size: 24 })
+                : UserIcon({ focused, size: 24 }),
             headerShown: false,
+            ...(isGuest
+              ? {
+                  tabBarButton: (props) => (
+                    <View
+                      style={{
+                        flex: 0,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingHorizontal: 16,
+                        paddingVertical: 8,
+                      }}
+                    >
+                      <TouchableOpacity
+                        onPress={() => {
+                          router.push("/(auth)/sign-in");
+                        }}
+                        style={{
+                          backgroundColor: ACTIVE_COLOR,
+                          paddingHorizontal: 24,
+                          paddingVertical: 10,
+                          borderRadius: 24,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          shadowColor: ACTIVE_COLOR,
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.2,
+                          shadowRadius: 4,
+                          elevation: 4,
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <User size={20} color="#FFFFFF" />
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: "700",
+                            marginLeft: 6,
+                            color: "#FFFFFF",
+                          }}
+                        >
+                          Rejoindre
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ),
+                }
+              : {}),
           }}
         />
       </Tabs>
