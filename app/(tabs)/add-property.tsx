@@ -6,7 +6,6 @@ import {
   Sofa,
   Sun,
   Trees,
-  Tv,
   Waves,
   Wifi,
   X,
@@ -29,7 +28,6 @@ export default function AddPropertyScreen() {
     title: "",
     description: "",
     price: "",
-    listingType: "", // "sell" or "rent"
     quartier: "",
     city: "",
     propertyType: "",
@@ -39,15 +37,13 @@ export default function AddPropertyScreen() {
     vehicles: "",
     photos: [] as string[],
     amenities: [] as string[],
+    deposit: "", // Number of months of rent required as deposit
+    prohibitions: [] as string[], // List of prohibitions
   });
 
   const [selectedPropertyType, setSelectedPropertyType] = useState<
     string | null
   >(null);
-
-  const [selectedListingType, setSelectedListingType] = useState<string | null>(
-    null
-  );
 
   const propertyTypes = [
     { id: "villa", label: "Villa (luxe)", icon: "🏰" },
@@ -57,18 +53,12 @@ export default function AddPropertyScreen() {
     { id: "commercial", label: "Commercial", icon: "🏪" },
   ];
 
-  const listingTypes = [
-    { id: "sell", label: "Vente", icon: "💰" },
-    { id: "rent", label: "Location", icon: "🏠" },
-  ];
-
   const amenities = [
     { id: "wifi", label: "WiFi", icon: Wifi, color: "#3B82F6" },
     { id: "parking", label: "Parking", icon: Car, color: "#000000" },
     { id: "security", label: "Sécurité", icon: Shield, color: "#EF4444" },
     { id: "garden", label: "Jardin", icon: Trees, color: "#22C55E" },
     { id: "solar", label: "Panneaux solaires", icon: Sun, color: "#F59E0B" },
-    { id: "tv", label: "Salle TV", icon: Tv, color: "#8B5CF6" },
     { id: "pool", label: "Piscine", icon: Waves, color: "#06B6D4" },
     { id: "furnished", label: "Meublé", icon: Sofa, color: "#F97316" },
   ];
@@ -185,6 +175,22 @@ export default function AddPropertyScreen() {
     }));
   };
 
+  const handleProhibitionToggle = (prohibition: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      prohibitions: prev.prohibitions.includes(prohibition)
+        ? prev.prohibitions.filter((p) => p !== prohibition)
+        : [...prev.prohibitions, prohibition],
+    }));
+  };
+
+  const prohibitionOptions = [
+    "Pas d'animaux",
+    "Pas de fumeurs",
+    "Pas d'étudiants",
+    "Pas de colocation",
+  ];
+
   const handleSubmit = () => {
     // Validate required fields
     if (
@@ -192,8 +198,7 @@ export default function AddPropertyScreen() {
       !formData.price ||
       !formData.quartier ||
       !formData.city ||
-      !selectedPropertyType ||
-      !selectedListingType
+      !selectedPropertyType
     ) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs obligatoires");
       return;
@@ -205,7 +210,6 @@ export default function AddPropertyScreen() {
       title: "",
       description: "",
       price: "",
-      listingType: "",
       quartier: "",
       city: "",
       propertyType: "",
@@ -215,9 +219,10 @@ export default function AddPropertyScreen() {
       vehicles: "",
       photos: [],
       amenities: [],
+      deposit: "",
+      prohibitions: [],
     });
     setSelectedPropertyType(null);
-    setSelectedListingType(null);
   };
 
   return (
@@ -247,40 +252,6 @@ export default function AddPropertyScreen() {
                 value={formData.title}
                 onChangeText={(value) => handleInputChange("title", value)}
               />
-            </View>
-
-            {/* Listing Type */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-2 font-urbanist">
-                Type d&apos;annonce *
-              </Text>
-              <View className="flex-row gap-3">
-                {listingTypes.map((type) => (
-                  <TouchableOpacity
-                    key={type.id}
-                    className={`flex-1 border-2 rounded-xl px-4 py-3 flex-row items-center justify-center ${
-                      selectedListingType === type.id
-                        ? "border-figma-primary bg-figma-primary/10"
-                        : "border-figma-border bg-white"
-                    }`}
-                    onPress={() => {
-                      setSelectedListingType(type.id);
-                      handleInputChange("listingType", type.id);
-                    }}
-                  >
-                    <Text className="text-lg mr-2">{type.icon}</Text>
-                    <Text
-                      className={`font-medium font-urbanist ${
-                        selectedListingType === type.id
-                          ? "text-figma-primary"
-                          : "text-figma-grey-700"
-                      }`}
-                    >
-                      {type.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
             </View>
 
             {/* Property Type */}
@@ -320,14 +291,11 @@ export default function AddPropertyScreen() {
             {/* Price */}
             <View className="mt-4">
               <Text className="text-base font-semibold text-figma-grey-900 mb-2 font-urbanist">
-                Prix (FCFA) *{selectedListingType === "rent" && " / Mois"}
-                {selectedListingType === "sell" && " (Prix d'achat)"}
+                Prix de location (FCFA) * / Mois
               </Text>
               <TextInput
                 className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
-                placeholder={
-                  selectedListingType === "rent" ? "Ex: 150000" : "Ex: 45000000"
-                }
+                placeholder="Ex: 150000"
                 value={formData.price}
                 onChangeText={(value) => handleInputChange("price", value)}
                 keyboardType="numeric"
@@ -538,6 +506,65 @@ export default function AddPropertyScreen() {
                     </TouchableOpacity>
                   );
                 })}
+              </View>
+            </View>
+
+            {/* Rental Conditions */}
+            <View className="mt-4">
+              <Text className="text-base font-semibold text-figma-grey-900 mb-3 font-urbanist">
+                Conditions de location
+              </Text>
+
+              {/* Deposit */}
+              <View className="mb-4">
+                <Text className="text-sm text-figma-grey-600 mb-2 font-urbanist">
+                  Caution (en mois de loyer)
+                </Text>
+                <TextInput
+                  className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
+                  placeholder="Ex: 2"
+                  value={formData.deposit}
+                  onChangeText={(value) => {
+                    // Only allow numeric input
+                    const numericValue = value.replace(/[^0-9]/g, "");
+                    handleInputChange("deposit", numericValue);
+                  }}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              {/* Prohibitions */}
+              <View>
+                <Text className="text-sm text-figma-grey-600 mb-2 font-urbanist">
+                  Interdictions
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {prohibitionOptions.map((prohibition) => {
+                    const isSelected =
+                      formData.prohibitions.includes(prohibition);
+                    return (
+                      <TouchableOpacity
+                        key={prohibition}
+                        className={`border rounded-lg px-3 py-2 ${
+                          isSelected
+                            ? "border-figma-primary bg-figma-primary/10"
+                            : "border-figma-border bg-white"
+                        }`}
+                        onPress={() => handleProhibitionToggle(prohibition)}
+                      >
+                        <Text
+                          className={`text-sm font-urbanist ${
+                            isSelected
+                              ? "text-figma-primary"
+                              : "text-figma-grey-700"
+                          }`}
+                        >
+                          {prohibition}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
             </View>
 
