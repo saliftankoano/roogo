@@ -1,4 +1,4 @@
-import { useSignIn, useSSO } from "@clerk/clerk-expo";
+import { useSignIn, useSSO, useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import * as AuthSession from "expo-auth-session";
 import { Image } from "expo-image";
@@ -12,17 +12,19 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import UserTypeSelection from "../components/UserTypeSelection";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { startSSOFlow } = useSSO();
+  const { user } = useUser();
   const router = useRouter();
+  const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -31,6 +33,16 @@ export default function SignInScreen() {
       void WebBrowser.coolDownAsync();
     };
   }, []);
+
+  // Watch for user object availability after sign-in
+  useEffect(() => {
+    if (user && isLoaded) {
+      // If user doesn't have a userType, show selection modal
+      if (!user.unsafeMetadata?.userType) {
+        setShowUserTypeSelection(true);
+      }
+    }
+  }, [user, isLoaded]);
 
   // Handle the submission of the sign-in form
   const onSignInPress = async () => {
@@ -44,13 +56,39 @@ export default function SignInScreen() {
 
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
-        console.log("Sign in successful, redirecting to home...");
-        router.replace("/(tabs)/(home)");
+        console.log("Sign in successful");
+        // User type check will be handled by useEffect
+        // If user has a type, navigate to home; otherwise, modal will show
+        if (user?.unsafeMetadata?.userType) {
+          router.replace("/(tabs)/(home)");
+        }
       } else {
         console.error(JSON.stringify(signInAttempt, null, 2));
       }
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
+    }
+  };
+
+  const handlePostSignInUserTypeSelection = async (
+    selectedUserType: string
+  ) => {
+    try {
+      if (user) {
+        await user.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            userType: selectedUserType,
+          },
+        });
+        // Reload user to get updated metadata
+        await user.reload();
+      }
+      setShowUserTypeSelection(false);
+      router.replace("/(tabs)/(home)");
+    } catch (error) {
+      console.error("Error updating user type:", error);
+      throw error;
     }
   };
 
@@ -65,8 +103,12 @@ export default function SignInScreen() {
       });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
-        console.log("OAuth sign in successful, redirecting to home...");
-        router.replace("/(tabs)/(home)");
+        console.log("OAuth sign in successful");
+        // User type check will be handled by useEffect
+        // If user has a type, navigate to home; otherwise, modal will show
+        if (user?.unsafeMetadata?.userType) {
+          router.replace("/(tabs)/(home)");
+        }
       }
     } catch (e) {
       console.error(e);
@@ -227,6 +269,12 @@ export default function SignInScreen() {
           </Link>
         </View>
       </View>
+
+      {/* User Type Selection Modal */}
+      <UserTypeSelection
+        visible={showUserTypeSelection}
+        onSelectUserType={handlePostSignInUserTypeSelection}
+      />
     </View>
   );
 }
