@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
@@ -30,6 +31,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AgentCard from "../../components/AgentCard";
+import AuthPromptModal from "../../components/AuthPromptModal";
 import ContactSheet from "../../components/ContactSheet";
 import PhotoGallery from "../../components/PhotoGallery";
 import type { Property } from "../../constants/properties";
@@ -44,6 +46,9 @@ export default function PropertyDetailsScreen() {
   const [isContactSheetVisible, setIsContactSheetVisible] = useState(false);
   const [isGalleryVisible, setIsGalleryVisible] = useState(false);
   const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
+  const [authPromptVisible, setAuthPromptVisible] = useState(false);
+  const { user } = useUser();
+  const isAuthenticated = !!user;
 
   const property: Property | undefined = useMemo(() => {
     if (!id) return undefined;
@@ -148,7 +153,17 @@ export default function PropertyDetailsScreen() {
               <TouchableOpacity className="bg-white/90 w-12 h-12 rounded-full items-center justify-center">
                 <Share2 size={20} color="#111827" />
               </TouchableOpacity>
-              <TouchableOpacity className="bg-white/90 w-12 h-12 rounded-full items-center justify-center">
+              <TouchableOpacity
+                className="bg-white/90 w-12 h-12 rounded-full items-center justify-center"
+                onPress={() => {
+                  if (!isAuthenticated) {
+                    setAuthPromptVisible(true);
+                  } else {
+                    // Handle favorite toggle
+                    // TODO: Implement favorite logic
+                  }
+                }}
+              >
                 <Heart size={20} color="#111827" />
               </TouchableOpacity>
             </View>
@@ -161,6 +176,14 @@ export default function PropertyDetailsScreen() {
             <Text className="text-2xl font-bold text-gray-900">
               {formatPrice(property.price)} CFA
               {property.period ? `/${property.period}` : ""}
+            </Text>
+          </View>
+
+          {/* Address */}
+          <View className="flex-row items-center mt-3 mb-4">
+            <MapPin size={18} color="#2563EB" />
+            <Text className="ml-2 text-sm text-gray-600 flex-1">
+              {property.address}
             </Text>
           </View>
 
@@ -221,18 +244,6 @@ export default function PropertyDetailsScreen() {
           <Text className="text-sm leading-6 text-gray-600">
             {property.description}
           </Text>
-        </View>
-
-        <View className="px-6 py-6 bg-white mt-4 rounded-3xl mx-4">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">
-            Adresse
-          </Text>
-          <View className="flex-row items-center">
-            <MapPin size={18} color="#2563EB" />
-            <Text className="ml-2 text-sm text-gray-600 flex-1">
-              {property.address}
-            </Text>
-          </View>
         </View>
 
         {/* Rental Requirements */}
@@ -374,6 +385,13 @@ export default function PropertyDetailsScreen() {
         images={property.images || [property.image]}
         initialIndex={galleryInitialIndex}
         onClose={() => setIsGalleryVisible(false)}
+      />
+
+      <AuthPromptModal
+        visible={authPromptVisible}
+        onClose={() => setAuthPromptVisible(false)}
+        title="Enregistrez vos favoris"
+        description="Connectez-vous pour sauvegarder vos propriétés favorites"
       />
     </SafeAreaView>
   );
