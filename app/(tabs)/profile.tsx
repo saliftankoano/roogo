@@ -1,13 +1,52 @@
-import { useUser } from "@clerk/clerk-expo";
+import { useClerk, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { ChevronRight, LogOut, MapPin } from "lucide-react-native";
+import { useEffect, useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import UserTypeSelection from "../components/UserTypeSelection";
 import { useUserType } from "../hooks/useUserType";
 
 export default function ProfileScreen() {
-  const { isAgent } = useUserType();
+  const { isOwner, hasUserType, userType } = useUserType();
   const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
+  const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
+
+  useEffect(() => {
+    // Show user type selection if user is authenticated but doesn't have a type
+    if (isLoaded && user && (!hasUserType || !userType)) {
+      setShowUserTypeSelection(true);
+    }
+  }, [isLoaded, user, hasUserType, userType]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.replace("/(auth)/sign-in");
+    } catch (err) {
+      console.error("Error signing out:", err);
+    }
+  };
+
+  const handlePostUserTypeSelection = async (selectedUserType: string) => {
+    try {
+      if (user) {
+        await user.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            userType: selectedUserType,
+          },
+        });
+        // Reload user to get updated metadata
+        await user.reload();
+      }
+      setShowUserTypeSelection(false);
+    } catch (error) {
+      console.error("Error updating user type:", error);
+      throw error;
+    }
+  };
 
   // Show loading state while user data is being fetched
   if (!isLoaded) {
@@ -24,11 +63,13 @@ export default function ProfileScreen() {
 
   // Show error state if no user data
   if (!user) {
+    // Redirect to sign-in if not authenticated
+    router.replace("/(auth)/sign-in");
     return (
       <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <View className="flex-1 justify-center items-center">
           <Text className="text-base text-gray-500 font-urbanist">
-            Erreur de chargement du profil
+            Redirection...
           </Text>
         </View>
       </SafeAreaView>
@@ -36,7 +77,7 @@ export default function ProfileScreen() {
   }
 
   const menuItems = [
-    isAgent
+    isOwner
       ? {
           label: "Mes propriétés",
           onPress: () => router.push("/(tabs)/my-properties"),
@@ -47,6 +88,15 @@ export default function ProfileScreen() {
         },
     { label: "Paramètres", onPress: () => {} },
     { label: "Aide & Support", onPress: () => {} },
+    // Add option to change user type if user doesn't have one or wants to change
+    ...(!hasUserType || !userType
+      ? [
+          {
+            label: "Choisir mon profil",
+            onPress: () => setShowUserTypeSelection(true),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -107,7 +157,7 @@ export default function ProfileScreen() {
                 borderColor: "rgba(228, 140, 38, 0.1)",
               }}
             >
-              {isAgent ? (
+              {isOwner ? (
                 <View className="flex-row justify-between">
                   <View className="flex-1">
                     <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
@@ -210,6 +260,7 @@ export default function ProfileScreen() {
           <TouchableOpacity
             className="flex-row items-center justify-center py-4 mt-4 bg-white rounded-2xl border border-red-100"
             activeOpacity={0.7}
+            onPress={handleSignOut}
           >
             <LogOut size={18} color="#DC2626" />
             <Text className="ml-2 text-base font-medium text-red-600 font-urbanist">
@@ -218,6 +269,12 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* User Type Selection Modal */}
+      <UserTypeSelection
+        visible={showUserTypeSelection}
+        onSelectUserType={handlePostUserTypeSelection}
+      />
     </SafeAreaView>
   );
 }
