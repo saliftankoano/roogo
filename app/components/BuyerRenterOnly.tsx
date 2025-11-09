@@ -11,14 +11,14 @@ export default function BuyerRenterOnly({
   children,
   fallback,
 }: BuyerRenterOnlyProps) {
-  const { isBuyerRenter } = useUserType();
+  const { isRenter } = useUserType();
 
-  if (!isBuyerRenter) {
+  if (!isRenter) {
     return (
       fallback || (
         <View className="flex-1 items-center justify-center p-6">
           <Text className="text-figma-grey-600 text-center font-urbanist">
-            Cette fonctionnalité est réservée aux acheteurs et locataires
+            Cette fonctionnalité est réservée aux locataires
           </Text>
         </View>
       )
