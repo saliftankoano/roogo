@@ -1,3 +1,4 @@
+import { useUser } from "@clerk/clerk-expo";
 import {
   Bath,
   BedDouble,
@@ -19,6 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AuthPromptModal from "./AuthPromptModal";
 
 interface PropertyCardProps {
   property: {
@@ -65,8 +67,23 @@ export default function PropertyCard({
   const [localIsFavorite, setLocalIsFavorite] = useState(
     propIsFavorite ?? false
   );
+  const [authPromptVisible, setAuthPromptVisible] = useState(false);
+  const { user } = useUser();
+  const isAuthenticated = !!user;
   const isFavorite = propIsFavorite ?? localIsFavorite;
   const dividerAnimation = useRef(new Animated.Value(0)).current;
+
+  const handleFavoritePress = () => {
+    if (!isAuthenticated) {
+      setAuthPromptVisible(true);
+      return;
+    }
+    if (onToggleFavorite) {
+      onToggleFavorite();
+    } else {
+      setLocalIsFavorite(!localIsFavorite);
+    }
+  };
 
   // Animate divider on mount
   React.useEffect(() => {
@@ -105,13 +122,7 @@ export default function PropertyCard({
         {/* Heart Icon */}
         <TouchableOpacity
           className="absolute top-3 right-3 bg-gray-900/50 p-2.5 rounded-full"
-          onPress={() => {
-            if (onToggleFavorite) {
-              onToggleFavorite();
-            } else {
-              setLocalIsFavorite(!localIsFavorite);
-            }
-          }}
+          onPress={handleFavoritePress}
         >
           <Heart
             size={24}
@@ -331,13 +342,7 @@ export default function PropertyCard({
                   </TouchableOpacity>
                   <TouchableOpacity
                     className="flex-row items-center bg-red-50 px-3 py-1.5 rounded-lg"
-                    onPress={() => {
-                      if (onToggleFavorite) {
-                        onToggleFavorite();
-                      } else {
-                        setLocalIsFavorite(!localIsFavorite);
-                      }
-                    }}
+                    onPress={handleFavoritePress}
                   >
                     <Heart
                       size={16}
@@ -427,15 +432,33 @@ export default function PropertyCard({
 
   if (onPress) {
     return (
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={onPress}
-        className={isHorizontal ? "mr-4" : "mb-4"}
-      >
-        {content}
-      </TouchableOpacity>
+      <>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={onPress}
+          className={isHorizontal ? "mr-4" : "mb-4"}
+        >
+          {content}
+        </TouchableOpacity>
+        <AuthPromptModal
+          visible={authPromptVisible}
+          onClose={() => setAuthPromptVisible(false)}
+          title="Enregistrez vos favoris"
+          description="Connectez-vous pour sauvegarder vos propriétés favorites"
+        />
+      </>
     );
   }
 
-  return content;
+  return (
+    <>
+      {content}
+      <AuthPromptModal
+        visible={authPromptVisible}
+        onClose={() => setAuthPromptVisible(false)}
+        title="Enregistrez vos favoris"
+        description="Connectez-vous pour sauvegarder vos propriétés favorites"
+      />
+    </>
+  );
 }
