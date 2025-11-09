@@ -66,7 +66,7 @@ const mockProperties = [
 
 export default function MyPropertiesScreen() {
   const { isLoaded } = useUser();
-  const { isAgent } = useUserType();
+  const { isOwner } = useUserType();
   const [refreshing, setRefreshing] = useState(false);
   const [properties, setProperties] = useState(mockProperties);
   const [searchQuery, setSearchQuery] = useState("");
@@ -150,13 +150,13 @@ export default function MyPropertiesScreen() {
     );
   }
 
-  // Redirect non-agents to home
-  if (!isAgent) {
+  // Redirect non-owners to home
+  if (!isOwner) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <View className="flex-1 justify-center items-center">
           <Text className="text-base text-figma-grey-600 font-urbanist">
-            Accès réservé aux agents
+            Accès réservé aux propriétaires
           </Text>
         </View>
       </SafeAreaView>
@@ -416,7 +416,9 @@ export default function MyPropertiesScreen() {
                     property={{
                       ...property,
                       category:
-                        property.type === "Location" ? "Louer" : "Acheter",
+                        property.type === "Location"
+                          ? "Residential"
+                          : "Business",
                       parking: 1, // Default value since it's required
                     }}
                     showStats={true}
