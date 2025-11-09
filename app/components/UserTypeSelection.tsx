@@ -36,32 +36,32 @@ export default function UserTypeSelection({
 
           {/* User Type Options */}
           <View className="space-y-6">
-            {/* Real Estate Agent Option */}
+            {/* Owner Option */}
             <TouchableOpacity
               className={`border-2 rounded-2xl p-5 mb-4 ${
-                selectedUserType === "agent"
+                selectedUserType === "owner"
                   ? "border-figma-primary bg-figma-primary/10"
                   : "border-figma-border bg-white"
               }`}
-              onPress={() => setSelectedUserType("agent")}
+              onPress={() => setSelectedUserType("owner")}
             >
               <View className="flex-row items-center">
                 <View className="mr-4">
                   <MaterialIcons
-                    name="business"
+                    name="home-work"
                     size={32}
-                    color={selectedUserType === "agent" ? "#FF6B35" : "#9E9E9E"}
+                    color={selectedUserType === "owner" ? "#FF6B35" : "#9E9E9E"}
                   />
                 </View>
                 <View className="flex-1">
                   <Text className="text-lg font-bold text-figma-grey-900 font-urbanist">
-                    Agent immobilier
+                    Propriétaire
                   </Text>
                   <Text className="text-sm text-figma-grey-600 font-urbanist mt-1">
-                    Je vends et loue des propriétés
+                    Je veux louer mon bien
                   </Text>
                 </View>
-                {selectedUserType === "Agent immobilier" && (
+                {selectedUserType === "owner" && (
                   <MaterialIcons
                     name="check-circle"
                     size={24}
@@ -71,34 +71,34 @@ export default function UserTypeSelection({
               </View>
             </TouchableOpacity>
 
-            {/* Buyer/Renter Option */}
+            {/* Renter Option */}
             <TouchableOpacity
               className={`border-2 rounded-2xl p-5 ${
-                selectedUserType === "Acheteur/Locataire"
+                selectedUserType === "renter"
                   ? "border-figma-primary bg-figma-primary/10"
                   : "border-figma-border bg-white"
               }`}
-              onPress={() => setSelectedUserType("regular")}
+              onPress={() => setSelectedUserType("renter")}
             >
               <View className="flex-row items-center">
                 <View className="mr-4">
                   <MaterialIcons
-                    name="home"
+                    name="search"
                     size={32}
                     color={
-                      selectedUserType === "regular" ? "#FF6B35" : "#9E9E9E"
+                      selectedUserType === "renter" ? "#FF6B35" : "#9E9E9E"
                     }
                   />
                 </View>
                 <View className="flex-1">
                   <Text className="text-lg font-bold text-figma-grey-900 font-urbanist">
-                    Acheteur/Locataire
+                    Locataire
                   </Text>
                   <Text className="text-sm text-figma-grey-600 font-urbanist mt-1">
-                    Je cherche à acheter ou louer
+                    Je cherche un logement
                   </Text>
                 </View>
-                {selectedUserType === "Acheteur/Locataire" && (
+                {selectedUserType === "renter" && (
                   <MaterialIcons
                     name="check-circle"
                     size={24}
