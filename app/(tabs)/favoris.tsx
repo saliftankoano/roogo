@@ -19,7 +19,7 @@ export default function FavorisScreen() {
       bathrooms: 2,
       area: "120",
       parking: 1,
-      category: "Louer" as const,
+      category: "Residential" as const,
       period: "mois",
       image: require("../../assets/images/white_villa.jpg"),
     },
@@ -32,7 +32,8 @@ export default function FavorisScreen() {
       bathrooms: 3,
       area: "180",
       parking: 2,
-      category: "Acheter" as const,
+      category: "Residential" as const,
+      period: "mois",
       image: require("../../assets/images/white_villa_bg.jpg"),
     },
     {
@@ -44,7 +45,8 @@ export default function FavorisScreen() {
       bathrooms: 4,
       area: "250",
       parking: 3,
-      category: "Acheter" as const,
+      category: "Residential" as const,
+      period: "mois",
       image: require("../../assets/images/logo_160.png"),
     },
   ]);
