@@ -23,6 +23,16 @@ export const theme = {
       "figma-white": "#FFFFFF",
       "figma-black": "#000000",
       "figma-border": "#EEEEEE",
+      // Roogo brand tokens
+      "primary-blue": "#3A8BFF",
+      "primary-pressed": "#2C74E6",
+      text: "#111111",
+      muted: "#6A6A6A",
+      border: "#E9ECEF",
+      surface: "#FFFFFF",
+      success: "#22C55E",
+      warning: "#F59E0B",
+      error: "#EF4444",
     },
   },
 };
