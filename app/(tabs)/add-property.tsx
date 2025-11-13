@@ -1,585 +1,187 @@
-import * as ImagePicker from "expo-image-picker";
-import {
-  Camera,
-  Car,
-  Shield,
-  Sofa,
-  Sun,
-  Trees,
-  Waves,
-  Wifi,
-  X,
-} from "lucide-react-native";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useForm } from "react-hook-form";
 import AgentOnly from "../components/AgentOnly";
+import { listingSchema, type ListingDraft } from "../forms/listingSchema";
+import { ListingStep1Screen } from "../screens/ListingStep1Screen";
+import { ListingStep2Screen } from "../screens/ListingStep2Screen";
+import { ListingStep3Screen } from "../screens/ListingStep3Screen";
 
 export default function AddPropertyScreen() {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    price: "",
-    quartier: "",
-    city: "",
-    propertyType: "",
-    bedrooms: "",
-    bathrooms: "",
-    area: "",
-    vehicles: "",
-    photos: [] as string[],
-    amenities: [] as string[],
-    deposit: "", // Number of months of rent required as deposit
-    prohibitions: [] as string[], // List of prohibitions
+  const navigation = useNavigation();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState<Partial<ListingDraft>>({
+    photos: [],
+    equipements: [],
+    interdictions: [],
   });
 
-  const [selectedPropertyType, setSelectedPropertyType] = useState<
-    string | null
-  >(null);
+  const {
+    formState: { errors: formErrors },
+    setError,
+    clearErrors,
+  } = useForm<ListingDraft>({
+    resolver: zodResolver(listingSchema),
+    mode: "onChange",
+    defaultValues: formData as ListingDraft,
+  });
 
-  const propertyTypes = [
-    { id: "villa", label: "Villa (luxe)", icon: "🏰" },
-    { id: "apartment", label: "Appartement", icon: "🏢" },
-    { id: "house", label: "Maison (standard)", icon: "🏡" },
-    { id: "land", label: "Terrain", icon: "🌍" },
-    { id: "commercial", label: "Commercial", icon: "🏪" },
-  ];
+  // Convert form errors to simple object
+  const errors = Object.keys(formErrors).reduce(
+    (acc, key) => {
+      const error = formErrors[key as keyof ListingDraft];
+      if (error) {
+        acc[key] = error.message || "Champ invalide";
+      }
+      return acc;
+    },
+    {} as Record<string, string>
+  );
 
-  const amenities = [
-    { id: "wifi", label: "WiFi", icon: Wifi, color: "#3B82F6" },
-    { id: "parking", label: "Parking", icon: Car, color: "#000000" },
-    { id: "security", label: "Sécurité", icon: Shield, color: "#EF4444" },
-    { id: "garden", label: "Jardin", icon: Trees, color: "#22C55E" },
-    { id: "solar", label: "Panneaux solaires", icon: Sun, color: "#F59E0B" },
-    { id: "pool", label: "Piscine", icon: Waves, color: "#06B6D4" },
-    { id: "furnished", label: "Meublé", icon: Sofa, color: "#F97316" },
-  ];
+  const handleFormChange = (data: Partial<ListingDraft>) => {
+    setFormData(data);
+    clearErrors();
+  };
 
-  const cities = [
-    "Ouagadougou",
-    "Bobo-Dioulasso",
-    "Koudougou",
-    "Ouahigouya",
-    "Banfora",
-    "Kaya",
-    "Tenkodogo",
-    "Fada N'Gourma",
-    "Dédougou",
-    "Koupéla",
-  ];
+  const validateStep1 = async () => {
+    const step1Fields: (keyof ListingDraft)[] = [
+      "titre",
+      "type",
+      "prixMensuel",
+      "quartier",
+      "ville",
+    ];
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => {
-      // If vehicles field is updated and value > 0, auto-select parking amenity
-      if (field === "vehicles" && parseInt(value) > 0) {
-        const parkingAmenity = amenities.find((a) => a.id === "parking");
-        if (parkingAmenity && !prev.amenities.includes("parking")) {
-          return {
-            ...prev,
-            [field]: value,
-            amenities: [...prev.amenities, "parking"],
-          };
+    try {
+      // Validate step 1 fields
+      const result = listingSchema.safeParse(formData);
+      if (!result.success) {
+        const step1Errors = result.error.issues.filter((issue) =>
+          step1Fields.includes(issue.path[0] as keyof ListingDraft)
+        );
+        if (step1Errors.length > 0) {
+          step1Errors.forEach((err) => {
+            setError(err.path[0] as keyof ListingDraft, {
+              message: err.message,
+            });
+          });
+          return false;
         }
       }
-      return { ...prev, [field]: value };
-    });
-  };
 
-  const handleAddPhoto = async () => {
-    try {
-      // Request permissions
-      const { status: mediaStatus } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      const { status: cameraStatus } =
-        await ImagePicker.requestCameraPermissionsAsync();
-
-      if (mediaStatus !== "granted" && cameraStatus !== "granted") {
-        Alert.alert(
-          "Permissions requises",
-          "Nous avons besoin d'accéder à votre galerie ou appareil photo pour ajouter des images."
-        );
-        return;
+      // Check required fields manually
+      if (
+        !formData.titre ||
+        formData.titre.length < 4 ||
+        !formData.type ||
+        !formData.prixMensuel ||
+        formData.prixMensuel < 1000 ||
+        !formData.quartier ||
+        formData.quartier.length < 2 ||
+        !formData.ville
+      ) {
+        return false;
       }
 
-      // Show action sheet
-      Alert.alert("Ajouter une photo", "Choisissez la source de la photo", [
-        {
-          text: "Appareil photo",
-          onPress: async () => {
-            const result = await ImagePicker.launchCameraAsync({
-              allowsEditing: true,
-              aspect: [4, 3],
-              quality: 0.8,
-            });
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
-            if (!result.canceled && result.assets[0]) {
-              setFormData((prev) => ({
-                ...prev,
-                photos: [...prev.photos, result.assets[0].uri],
-              }));
-            }
-          },
-        },
-        {
-          text: "Galerie",
-          onPress: async () => {
-            const result = await ImagePicker.launchImageLibraryAsync({
-              quality: 0.8,
-              allowsMultipleSelection: true,
-              selectionLimit: 5,
-            });
+  const validateStep2 = async () => {
+    // Check photos
+    if (!formData.photos || formData.photos.length < 3) {
+      setError("photos", { message: "Veuillez ajouter au moins 3 photos" });
+      return false;
+    }
 
-            if (!result.canceled && result.assets.length > 0) {
-              setFormData((prev) => ({
-                ...prev,
-                photos: [
-                  ...prev.photos,
-                  ...result.assets.map((asset) => asset.uri),
-                ],
-              }));
-            }
-          },
-        },
-        {
-          text: "Annuler",
-          style: "cancel",
-        },
-      ]);
+    // Validate description length if provided
+    if (formData.description && formData.description.length > 1200) {
+      setError("description", {
+        message: "La description ne doit pas dépasser 1200 caractères",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleNextStep1 = async () => {
+    const isValid = await validateStep1();
+    if (isValid) {
+      setCurrentStep(2);
+    }
+  };
+
+  const handleNextStep2 = async () => {
+    const isValid = await validateStep2();
+    if (isValid) {
+      setCurrentStep(3);
+    }
+  };
+
+  const handleBackStep2 = () => {
+    setCurrentStep(1);
+  };
+
+  const handleBackStep3 = () => {
+    setCurrentStep(2);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      // Validate entire form
+      const result = listingSchema.safeParse(formData);
+      if (!result.success) {
+        console.error("Validation errors:", result.error);
+        throw new Error("Validation failed");
+      }
+
+      // TODO: Submit to backend/Supabase
+      console.log("Submitting listing:", result.data);
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Success - will be handled by the Step3 screen
     } catch (error) {
-      Alert.alert("Erreur", "Impossible d'ajouter la photo");
-      console.error(error);
+      console.error("Submit error:", error);
+      throw error;
     }
-  };
-
-  const handleRemovePhoto = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      photos: prev.photos.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleAmenityToggle = (amenityId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenityId)
-        ? prev.amenities.filter((id) => id !== amenityId)
-        : [...prev.amenities, amenityId],
-    }));
-  };
-
-  const handleProhibitionToggle = (prohibition: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      prohibitions: prev.prohibitions.includes(prohibition)
-        ? prev.prohibitions.filter((p) => p !== prohibition)
-        : [...prev.prohibitions, prohibition],
-    }));
-  };
-
-  const prohibitionOptions = [
-    "Pas d'animaux",
-    "Pas de fumeurs",
-    "Pas d'étudiants",
-    "Pas de colocation",
-  ];
-
-  const handleSubmit = () => {
-    // Validate required fields
-    if (
-      !formData.title ||
-      !formData.price ||
-      !formData.quartier ||
-      !formData.city ||
-      !selectedPropertyType
-    ) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs obligatoires");
-      return;
-    }
-
-    Alert.alert("Succès", "Propriété ajoutée avec succès!");
-    // Reset form
-    setFormData({
-      title: "",
-      description: "",
-      price: "",
-      quartier: "",
-      city: "",
-      propertyType: "",
-      bedrooms: "",
-      bathrooms: "",
-      area: "",
-      vehicles: "",
-      photos: [],
-      amenities: [],
-      deposit: "",
-      prohibitions: [],
-    });
-    setSelectedPropertyType(null);
   };
 
   return (
     <AgentOnly>
-      <SafeAreaView className="flex-1 bg-white">
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View className="px-6 py-4 border-b border-figma-border">
-            <Text className="text-2xl font-bold text-figma-grey-900 font-urbanist">
-              Ajouter une propriété
-            </Text>
-            <Text className="text-figma-grey-600 text-sm mt-1 font-urbanist">
-              Remplissez les informations de votre propriété
-            </Text>
-          </View>
-
-          {/* Form */}
-          <View className="px-6 py-6 space-y-6">
-            {/* Title */}
-            <View>
-              <Text className="text-base font-semibold text-figma-grey-900 mb-2 font-urbanist">
-                Titre de l&apos;annonce *
-              </Text>
-              <TextInput
-                className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
-                placeholder="Ex: Belle villa moderne à Cocody"
-                value={formData.title}
-                onChangeText={(value) => handleInputChange("title", value)}
-              />
-            </View>
-
-            {/* Property Type */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-2 font-urbanist">
-                Type de propriété *
-              </Text>
-              <View className="flex-row flex-wrap gap-3">
-                {propertyTypes.map((type) => (
-                  <TouchableOpacity
-                    key={type.id}
-                    className={`border-2 rounded-xl px-4 py-3 flex-row items-center ${
-                      selectedPropertyType === type.id
-                        ? "border-figma-primary bg-figma-primary/10"
-                        : "border-figma-border bg-white"
-                    }`}
-                    onPress={() => {
-                      setSelectedPropertyType(type.id);
-                      handleInputChange("propertyType", type.id);
-                    }}
-                  >
-                    <Text className="text-lg mr-2">{type.icon}</Text>
-                    <Text
-                      className={`font-medium font-urbanist ${
-                        selectedPropertyType === type.id
-                          ? "text-figma-primary"
-                          : "text-figma-grey-700"
-                      }`}
-                    >
-                      {type.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Price */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-2 font-urbanist">
-                Prix de location (FCFA) * / Mois
-              </Text>
-              <TextInput
-                className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
-                placeholder="Ex: 150000"
-                value={formData.price}
-                onChangeText={(value) => handleInputChange("price", value)}
-                keyboardType="numeric"
-              />
-            </View>
-
-            {/* Location - Quartier */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-2 font-urbanist">
-                Quartier *
-              </Text>
-              <TextInput
-                className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
-                placeholder="Ex: Koulouba, Zone du bois"
-                value={formData.quartier}
-                onChangeText={(value) => handleInputChange("quartier", value)}
-              />
-            </View>
-
-            {/* Location - City */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-2 font-urbanist">
-                Ville *
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                {cities.map((city) => (
-                  <TouchableOpacity
-                    key={city}
-                    className={`border rounded-lg px-3 py-2 ${
-                      formData.city === city
-                        ? "border-figma-primary bg-figma-primary/10"
-                        : "border-figma-border bg-white"
-                    }`}
-                    onPress={() => handleInputChange("city", city)}
-                  >
-                    <Text
-                      className={`text-sm font-urbanist ${
-                        formData.city === city
-                          ? "text-figma-primary"
-                          : "text-figma-grey-700"
-                      }`}
-                    >
-                      {city}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Property Details */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-3 font-urbanist">
-                Détails de la propriété
-              </Text>
-              <View className="flex-row gap-[9%]">
-                <View className="flex-1 w-[30%]">
-                  <Text className="text-sm text-figma-grey-600 mb-1 font-urbanist">
-                    Chambres
-                  </Text>
-                  <TextInput
-                    className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
-                    placeholder="3"
-                    value={formData.bedrooms}
-                    onChangeText={(value) =>
-                      handleInputChange("bedrooms", value)
-                    }
-                    keyboardType="numeric"
-                  />
-                </View>
-                <View className="flex-1 w-[30%]">
-                  <Text className="text-sm text-figma-grey-600 mb-1 font-urbanist">
-                    Salles de bain
-                  </Text>
-                  <TextInput
-                    className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
-                    placeholder="2"
-                    value={formData.bathrooms}
-                    onChangeText={(value) =>
-                      handleInputChange("bathrooms", value)
-                    }
-                    keyboardType="numeric"
-                  />
-                </View>
-                <View className="flex-1 w-[30%]">
-                  <Text className="text-sm text-figma-grey-600 mb-1 font-urbanist">
-                    Superficie (m²)
-                  </Text>
-                  <TextInput
-                    className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
-                    placeholder="150"
-                    value={formData.area}
-                    onChangeText={(value) => handleInputChange("area", value)}
-                    keyboardType="numeric"
-                  />
-                </View>
-              </View>
-
-              {/* Vehicles Field */}
-              <View className="mt-4">
-                <Text className="text-sm text-figma-grey-600 mb-1 font-urbanist">
-                  Nombre de véhicules
-                </Text>
-                <TextInput
-                  className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
-                  placeholder="2"
-                  value={formData.vehicles}
-                  onChangeText={(value) => handleInputChange("vehicles", value)}
-                  keyboardType="numeric"
-                />
-              </View>
-            </View>
-
-            {/* Description */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-2 font-urbanist">
-                Description
-              </Text>
-              <TextInput
-                className="border border-figma-border rounded-xl px-4 py-4 text-figma-grey-900 font-urbanist min-h-[120px]"
-                placeholder="Décrivez votre propriété en détail...\n\nEx: Maison moderne avec de grands espaces de vie, idéale pour les familles recherchant le confort et la proximité des commodités. Située dans un quartier calme et sécurisé..."
-                value={formData.description}
-                onChangeText={(value) =>
-                  handleInputChange("description", value)
-                }
-                multiline
-                numberOfLines={6}
-                textAlignVertical="top"
-              />
-            </View>
-
-            {/* Photos */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-2 font-urbanist">
-                Photos
-              </Text>
-              <TouchableOpacity
-                className="border-2 border-dashed border-figma-primary rounded-xl p-6 items-center"
-                onPress={handleAddPhoto}
-              >
-                <Camera size={32} color="#FF6B35" />
-                <Text className="text-figma-primary font-medium mt-2 font-urbanist">
-                  Ajouter des photos
-                </Text>
-                <Text className="text-figma-grey-600 text-sm mt-1 font-urbanist">
-                  Appuyez pour sélectionner des images
-                </Text>
-              </TouchableOpacity>
-
-              {/* Photo Preview */}
-              {formData.photos.length > 0 && (
-                <View className="mt-4">
-                  <Text className="text-sm text-figma-grey-600 mb-2 font-urbanist">
-                    Photos ajoutées ({formData.photos.length})
-                  </Text>
-                  <View className="flex-row flex-wrap gap-2">
-                    {formData.photos.map((photo, index) => (
-                      <View key={index} className="relative">
-                        <Image
-                          source={{ uri: photo }}
-                          className="w-20 h-20 rounded-lg"
-                          resizeMode="cover"
-                        />
-                        <TouchableOpacity
-                          className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
-                          onPress={() => handleRemovePhoto(index)}
-                        >
-                          <X size={12} color="white" />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-            </View>
-
-            {/* Amenities */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-3 font-urbanist">
-                Équipements et services
-              </Text>
-              <View className="flex-row flex-wrap gap-3">
-                {amenities.map((amenity) => {
-                  const IconComponent = amenity.icon;
-                  const isSelected = formData.amenities.includes(amenity.id);
-                  return (
-                    <TouchableOpacity
-                      key={amenity.id}
-                      className={`border-2 rounded-xl px-4 py-3 flex-row items-center ${
-                        isSelected
-                          ? "border-figma-primary bg-figma-primary/10"
-                          : "border-figma-border bg-white"
-                      }`}
-                      onPress={() => handleAmenityToggle(amenity.id)}
-                    >
-                      <IconComponent
-                        size={20}
-                        color={isSelected ? "#FF6B35" : amenity.color}
-                      />
-                      <Text
-                        className={`ml-2 font-medium font-urbanist ${
-                          isSelected
-                            ? "text-figma-primary"
-                            : "text-figma-grey-700"
-                        }`}
-                      >
-                        {amenity.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-
-            {/* Rental Conditions */}
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-figma-grey-900 mb-3 font-urbanist">
-                Conditions de location
-              </Text>
-
-              {/* Deposit */}
-              <View className="mb-4">
-                <Text className="text-sm text-figma-grey-600 mb-2 font-urbanist">
-                  Caution (en mois de loyer)
-                </Text>
-                <TextInput
-                  className="border border-figma-border rounded-xl px-4 py-3 text-figma-grey-900 font-urbanist"
-                  placeholder="Ex: 2"
-                  value={formData.deposit}
-                  onChangeText={(value) => {
-                    // Only allow numeric input
-                    const numericValue = value.replace(/[^0-9]/g, "");
-                    handleInputChange("deposit", numericValue);
-                  }}
-                  keyboardType="numeric"
-                />
-              </View>
-
-              {/* Prohibitions */}
-              <View>
-                <Text className="text-sm text-figma-grey-600 mb-2 font-urbanist">
-                  Interdictions
-                </Text>
-                <View className="flex-row flex-wrap gap-2">
-                  {prohibitionOptions.map((prohibition) => {
-                    const isSelected =
-                      formData.prohibitions.includes(prohibition);
-                    return (
-                      <TouchableOpacity
-                        key={prohibition}
-                        className={`border rounded-lg px-3 py-2 ${
-                          isSelected
-                            ? "border-figma-primary bg-figma-primary/10"
-                            : "border-figma-border bg-white"
-                        }`}
-                        onPress={() => handleProhibitionToggle(prohibition)}
-                      >
-                        <Text
-                          className={`text-sm font-urbanist ${
-                            isSelected
-                              ? "text-figma-primary"
-                              : "text-figma-grey-700"
-                          }`}
-                        >
-                          {prohibition}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            </View>
-
-            {/* Submit Button */}
-            <TouchableOpacity
-              className="bg-figma-primary rounded-xl py-4 items-center mt-6 mb-20"
-              onPress={handleSubmit}
-            >
-              <Text className="text-white font-semibold text-lg font-urbanist">
-                Publier la propriété
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+      {currentStep === 1 && (
+        <ListingStep1Screen
+          navigation={navigation}
+          formData={formData}
+          onFormChange={handleFormChange}
+          onNext={handleNextStep1}
+          errors={errors}
+        />
+      )}
+      {currentStep === 2 && (
+        <ListingStep2Screen
+          navigation={navigation}
+          formData={formData}
+          onFormChange={handleFormChange}
+          onNext={handleNextStep2}
+          onBack={handleBackStep2}
+          errors={errors}
+        />
+      )}
+      {currentStep === 3 && (
+        <ListingStep3Screen
+          navigation={navigation}
+          formData={formData}
+          onBack={handleBackStep3}
+          onSubmit={handleSubmit}
+          errors={errors}
+        />
+      )}
     </AgentOnly>
   );
 }
