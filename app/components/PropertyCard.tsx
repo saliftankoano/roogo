@@ -1,3 +1,4 @@
+import { formatPrice } from "../utils/formatting";
 import { useUser } from "@clerk/clerk-expo";
 import {
   Bath,
@@ -47,11 +48,6 @@ interface PropertyCardProps {
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
 }
-
-// Format price with dots for thousands separator
-const formatPrice = (price: string) => {
-  return price.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-};
 
 export default function PropertyCard({
   property,

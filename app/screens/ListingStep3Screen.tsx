@@ -42,30 +42,8 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
   onSubmit,
   errors,
 }) => {
-  const [loading, setLoading] = useState(false);
-
-  const handlePublish = async () => {
-    try {
-      setLoading(true);
-      await onSubmit();
-      Alert.alert("Succès", "Annonce publiée avec succès!", [
-        {
-          text: "OK",
-          onPress: () => {
-            // Navigate to home or listing details
-            navigation.navigate("(tabs)", { screen: "my-properties" });
-          },
-        },
-      ]);
-    } catch (error) {
-      Alert.alert(
-        "Erreur",
-        "Impossible de publier l'annonce. Veuillez réessayer."
-      );
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+  const handlePublish = () => {
+    onSubmit();
   };
 
   // Get labels for display
@@ -476,12 +454,7 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
           backgroundColor: "#FFFFFF",
         }}
       >
-        <PrimaryButton
-          title="Publier la propriété"
-          onPress={handlePublish}
-          loading={loading}
-          disabled={loading}
-        />
+        <PrimaryButton title="Publier la propriété" onPress={handlePublish} />
       </View>
     </SafeAreaView>
   );

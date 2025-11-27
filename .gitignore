@@ -44,5 +44,9 @@ app-example
 
 .env
 .env.local
-# local backend (not tracked)
-roogo-backend/
+
+# Cursor IDE
+.cursorignore
+
+# local web app (not tracked)
+roogo-web/

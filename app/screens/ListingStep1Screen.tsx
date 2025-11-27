@@ -1,3 +1,4 @@
+import { formatPrice } from "../utils/formatting";
 import { ChevronLeft } from "lucide-react-native";
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -113,8 +114,8 @@ export const ListingStep1Screen: React.FC<ListingStep1ScreenProps> = ({
           <OutlinedField
             label="Prix de location (FCFA) / Mois"
             required
-            placeholder="Ex: 150000"
-            value={formData.prixMensuel?.toString() || ""}
+            placeholder="Ex: 150 000"
+            value={formatPrice(formData.prixMensuel)}
             onChangeText={(value) => {
               const numericValue = value.replace(/[^0-9]/g, "");
               handleFieldChange(
@@ -124,9 +125,6 @@ export const ListingStep1Screen: React.FC<ListingStep1ScreenProps> = ({
             }}
             keyboardType="numeric"
             error={errors.prixMensuel}
-            onBlur={(e) => {
-              // Format on blur (visual feedback for users)
-            }}
           />
         </View>
 

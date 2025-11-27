@@ -33,28 +33,45 @@ When you're ready, run:
 npm run reset-project
 ```
 
-Progress Log:
+## Project Structure
 
-Sunday 09/28/2025:
+- **`app/`** - Expo Router pages and components
+- **`supabase/`** - Database schema and migration files
+- **`CLERK_WEBHOOK_SETUP.md`** - Instructions for setting up Clerk webhooks
 
-### Added clerk private type additions on clerk by creating a new repo deployed on Next.js
+## Setup
 
-Monday October 13th 2025
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-### Update profil page UI check [x]
+2. Set up environment variables (create `.env`):
+   ```env
+   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
+   ```
 
-Tuesday October 14th 2025
+3. Run the database migration in Supabase:
+   - See `supabase/migration_update_schema.sql`
 
-- Fix deprecated image mediaOptions + add details on favoris click [x]
-- Create a lisiting schema
+4. Set up storage bucket:
+   - See `supabase/STORAGE_SETUP.md`
 
-Wednesday October 15th 2-25
+5. Configure Clerk webhooks:
+   - See `CLERK_WEBHOOK_SETUP.md`
+   - Uses `roogo-backend` repository for webhook handling
 
-- Hookup database
+6. Start the app:
+   ```bash
+   npx expo start
+   ```
 
-# Idea Bank
+## Key Features
 
-1- Add a photo service section:
-
-- Showcase 3 packages for real estate photography
-- Form submission for photos
+- 🔐 Clerk authentication
+- 🏠 Property listings (create, view, favorite)
+- 📸 Image uploads to Supabase Storage
+- 👥 User types: Owners (agents) and Renters (buyers)
+- 🔄 Automatic user sync via webhooks

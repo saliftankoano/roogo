@@ -40,6 +40,8 @@ CREATE TABLE properties (
     latitude DECIMAL(10,8),
     longitude DECIMAL(11,8),
     period TEXT, -- 'month' for rentals
+    caution_mois INTEGER, -- deposit in months (0-12)
+    interdictions TEXT[], -- array of restrictions: no_animaux, no_fumeurs, no_etudiants, no_colocation
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     views_count INTEGER DEFAULT 0
@@ -64,6 +66,8 @@ CREATE TABLE property_images (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
     url TEXT NOT NULL,
+    width INTEGER NOT NULL,
+    height INTEGER NOT NULL,
     is_primary BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
@@ -76,16 +80,15 @@ CREATE TABLE favorites (
     PRIMARY KEY (user_id, property_id)
 );
 
--- Insert default amenities
+-- Insert default amenities (matching form schema)
 INSERT INTO amenities (name, icon) VALUES
     ('wifi', 'Wifi'),
     ('parking', 'Car'),
-    ('security', 'Shield'),
-    ('garden', 'Trees'),
-    ('solar_panels', 'Sun'),
-    ('tv_room', 'Tv'),
-    ('pool', 'Waves'),
-    ('furnished', 'Sofa');
+    ('securite', 'Shield'),
+    ('jardin', 'Trees'),
+    ('solaires', 'Sun'),
+    ('piscine', 'Waves'),
+    ('meuble', 'Sofa');
 
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

@@ -1,0 +1,424 @@
+{
+  "baseCommit": "f022b6a0b0d84b6cd99c83206ba5cc39de4bced4",
+  "generatedAt": "2025-11-27T23:06:20.920Z",
+  "hashAlgo": "sha256",
+  "saltId": "v1",
+  "segments": [
+    {
+      "start": 1,
+      "end": 1,
+      "commit": "0000000000000000000000000000000000000000",
+      "authorName": "Not Committed Yet",
+      "authorEmailHmac": "7003142bc06664159030c7b09b1f8843bafce073c211f194974e4ccb3e3fe438",
+      "authorTime": "2025-11-27T23:06:20.000Z"
+    },
+    {
+      "start": 2,
+      "end": 3,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 4,
+      "end": 4,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 5,
+      "end": 5,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 6,
+      "end": 6,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 7,
+      "end": 7,
+      "commit": "0000000000000000000000000000000000000000",
+      "authorName": "Not Committed Yet",
+      "authorEmailHmac": "7003142bc06664159030c7b09b1f8843bafce073c211f194974e4ccb3e3fe438",
+      "authorTime": "2025-11-27T23:06:20.000Z"
+    },
+    {
+      "start": 8,
+      "end": 8,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 9,
+      "end": 9,
+      "commit": "0000000000000000000000000000000000000000",
+      "authorName": "Not Committed Yet",
+      "authorEmailHmac": "7003142bc06664159030c7b09b1f8843bafce073c211f194974e4ccb3e3fe438",
+      "authorTime": "2025-11-27T23:06:20.000Z"
+    },
+    {
+      "start": 10,
+      "end": 12,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 13,
+      "end": 13,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 14,
+      "end": 14,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 15,
+      "end": 16,
+      "commit": "0000000000000000000000000000000000000000",
+      "authorName": "Not Committed Yet",
+      "authorEmailHmac": "7003142bc06664159030c7b09b1f8843bafce073c211f194974e4ccb3e3fe438",
+      "authorTime": "2025-11-27T23:06:20.000Z"
+    },
+    {
+      "start": 17,
+      "end": 17,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 18,
+      "end": 21,
+      "commit": "0000000000000000000000000000000000000000",
+      "authorName": "Not Committed Yet",
+      "authorEmailHmac": "7003142bc06664159030c7b09b1f8843bafce073c211f194974e4ccb3e3fe438",
+      "authorTime": "2025-11-27T23:06:20.000Z"
+    },
+    {
+      "start": 22,
+      "end": 25,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 26,
+      "end": 26,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 27,
+      "end": 57,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 58,
+      "end": 59,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 60,
+      "end": 64,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 65,
+      "end": 65,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 66,
+      "end": 69,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 70,
+      "end": 71,
+      "commit": "8d7b99dfdd1cc80b033b459eaf8dfa5b50983b61",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-14T02:02:00.000Z"
+    },
+    {
+      "start": 72,
+      "end": 72,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 73,
+      "end": 73,
+      "commit": "8d7b99dfdd1cc80b033b459eaf8dfa5b50983b61",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-14T02:02:00.000Z"
+    },
+    {
+      "start": 74,
+      "end": 74,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 75,
+      "end": 75,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 76,
+      "end": 76,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 77,
+      "end": 81,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 82,
+      "end": 82,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 83,
+      "end": 84,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 85,
+      "end": 85,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 86,
+      "end": 86,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 87,
+      "end": 87,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 88,
+      "end": 91,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 92,
+      "end": 92,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 93,
+      "end": 132,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 133,
+      "end": 133,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 134,
+      "end": 171,
+      "commit": "0000000000000000000000000000000000000000",
+      "authorName": "Not Committed Yet",
+      "authorEmailHmac": "7003142bc06664159030c7b09b1f8843bafce073c211f194974e4ccb3e3fe438",
+      "authorTime": "2025-11-27T23:06:20.000Z"
+    },
+    {
+      "start": 172,
+      "end": 174,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 175,
+      "end": 175,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 176,
+      "end": 178,
+      "commit": "0000000000000000000000000000000000000000",
+      "authorName": "Not Committed Yet",
+      "authorEmailHmac": "7003142bc06664159030c7b09b1f8843bafce073c211f194974e4ccb3e3fe438",
+      "authorTime": "2025-11-27T23:06:20.000Z"
+    },
+    {
+      "start": 179,
+      "end": 180,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 181,
+      "end": 182,
+      "commit": "0000000000000000000000000000000000000000",
+      "authorName": "Not Committed Yet",
+      "authorEmailHmac": "7003142bc06664159030c7b09b1f8843bafce073c211f194974e4ccb3e3fe438",
+      "authorTime": "2025-11-27T23:06:20.000Z"
+    },
+    {
+      "start": 183,
+      "end": 193,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 194,
+      "end": 195,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 196,
+      "end": 203,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 204,
+      "end": 204,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    },
+    {
+      "start": 205,
+      "end": 212,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 213,
+      "end": 213,
+      "commit": "48434e127bcd8d09498e94b3d3707e919610b7c7",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-09T11:14:38.000Z"
+    },
+    {
+      "start": 214,
+      "end": 214,
+      "commit": "bac59608730ea6cb53b31b80bb409f3279adbc56",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-11-13T04:20:32.000Z"
+    },
+    {
+      "start": 215,
+      "end": 220,
+      "commit": "0000000000000000000000000000000000000000",
+      "authorName": "Not Committed Yet",
+      "authorEmailHmac": "7003142bc06664159030c7b09b1f8843bafce073c211f194974e4ccb3e3fe438",
+      "authorTime": "2025-11-27T23:06:20.000Z"
+    },
+    {
+      "start": 221,
+      "end": 223,
+      "commit": "9f4b5c006202b56024bf2d787a7c05e21e6bd777",
+      "authorName": "salif",
+      "authorEmailHmac": "bcf18a069827a40af14d81210a6892602039faf07aec8591ce9048d30b83b604",
+      "authorTime": "2025-10-09T04:09:37.000Z"
+    }
+  ]
+}

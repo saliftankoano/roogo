@@ -40,9 +40,12 @@ export default function SignInScreen() {
       // If user doesn't have a userType, show selection modal
       if (!user.unsafeMetadata?.userType) {
         setShowUserTypeSelection(true);
+      } else {
+        // User has a type, redirect to home
+        router.replace("/(tabs)/(home)");
       }
     }
-  }, [user, isLoaded]);
+  }, [user, isLoaded, router]);
 
   // Handle the submission of the sign-in form
   const onSignInPress = async () => {
@@ -57,11 +60,7 @@ export default function SignInScreen() {
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
         console.log("Sign in successful");
-        // User type check will be handled by useEffect
-        // If user has a type, navigate to home; otherwise, modal will show
-        if (user?.unsafeMetadata?.userType) {
-          router.replace("/(tabs)/(home)");
-        }
+        // Navigation will be handled by useEffect when user object updates
       } else {
         console.error(JSON.stringify(signInAttempt, null, 2));
       }
@@ -104,11 +103,7 @@ export default function SignInScreen() {
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
         console.log("OAuth sign in successful");
-        // User type check will be handled by useEffect
-        // If user has a type, navigate to home; otherwise, modal will show
-        if (user?.unsafeMetadata?.userType) {
-          router.replace("/(tabs)/(home)");
-        }
+        // Navigation will be handled by useEffect when user object updates
       }
     } catch (e) {
       console.error(e);

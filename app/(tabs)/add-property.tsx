@@ -1,16 +1,27 @@
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import AgentOnly from "../components/AgentOnly";
+import { SubmissionOverlay } from "../components/SubmissionOverlay";
 import { listingSchema, type ListingDraft } from "../forms/listingSchema";
+import { submitProperty } from "../services/propertyService";
 import { ListingStep1Screen } from "../screens/ListingStep1Screen";
 import { ListingStep2Screen } from "../screens/ListingStep2Screen";
 import { ListingStep3Screen } from "../screens/ListingStep3Screen";
 
 export default function AddPropertyScreen() {
   const navigation = useNavigation();
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState("");
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+
   const [formData, setFormData] = useState<Partial<ListingDraft>>({
     photos: [],
     equipements: [],
@@ -139,16 +150,62 @@ export default function AddPropertyScreen() {
         throw new Error("Validation failed");
       }
 
-      // TODO: Submit to backend/Supabase
-      console.log("Submitting listing:", result.data);
+      // Check if user is authenticated
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Get Clerk session token
+      const token = await getToken();
+      if (!token) {
+        throw new Error("Failed to get authentication token");
+      }
 
-      // Success - will be handled by the Step3 screen
+      // Start submission process
+      setIsSubmitting(true);
+      setSubmissionSuccess(false);
+      setSubmissionStatus("Initialisation...");
+
+      // Submit to backend API (which will handle Supabase insertion)
+      const submissionResult = await submitProperty(
+        result.data,
+        token,
+        (status) => setSubmissionStatus(status)
+      );
+
+      if (!submissionResult.success) {
+        throw new Error(
+          submissionResult.error || "Failed to submit property listing"
+        );
+      }
+
+      // Success
+      setSubmissionSuccess(true);
+      setSubmissionStatus("Terminé !");
+
+      console.log(
+        "Property submitted successfully:",
+        submissionResult.propertyId
+      );
+
+      // Wait a moment to show success state before resetting/navigating
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setSubmissionSuccess(false);
+        setSubmissionStatus("");
+        setCurrentStep(1);
+        setFormData({
+          photos: [],
+          equipements: [],
+          interdictions: [],
+        });
+        // Navigate to "My Properties" tab
+        navigation.navigate("my-properties" as never);
+      }, 2000);
     } catch (error) {
       console.error("Submit error:", error);
-      throw error;
+      setIsSubmitting(false);
+      throw error; // Re-throw to let the calling component handle if needed
     }
   };
 
@@ -182,6 +239,13 @@ export default function AddPropertyScreen() {
           errors={errors}
         />
       )}
+
+      {/* Submission Progress Overlay */}
+      <SubmissionOverlay
+        visible={isSubmitting}
+        status={submissionStatus}
+        isSuccess={submissionSuccess}
+      />
     </AgentOnly>
   );
 }
