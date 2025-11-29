@@ -1,25 +1,46 @@
-import { Camera, Check, Crown } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import {
   Alert,
   Animated,
   Dimensions,
+  Easing,
   FlatList,
-  Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AgentOnly from "../components/AgentOnly";
+import {
+  Camera,
+  Check,
+  Crown,
+  Lightning,
+  SealCheck,
+  CaretDown,
+  ArrowLeft,
+} from "phosphor-react-native";
+import AgentOnly from "../../components/AgentOnly";
+import { tokens } from "../../theme/tokens";
+import { formatPrice } from "../../utils/formatting";
+import { OutlinedField } from "../../components/OutlinedField";
+import { PrimaryButton } from "../../components/PrimaryButton";
+import { ChipSelectable } from "../../components/ChipSelectable";
+
+if (Platform.OS === "android") {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH * 0.85;
 const CARD_SPACING = 20;
 const GOLDEN_RATIO = 1.618;
-const CARD_HEIGHT = Math.round(CARD_WIDTH * GOLDEN_RATIO * 0.7);
+const CARD_HEIGHT = Math.round(CARD_WIDTH * GOLDEN_RATIO * 0.75);
 const ICON_SIZE = Math.round(CARD_WIDTH * 0.14);
 
 type Package = {
@@ -30,6 +51,95 @@ type Package = {
   features: string[];
   color: string;
   bgColor: string;
+};
+
+const FAQItem = ({
+  question,
+  answer,
+}: {
+  question: string;
+  answer: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  const toggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsOpen(!isOpen);
+    Animated.timing(rotateAnim, {
+      toValue: isOpen ? 0 : 1,
+      duration: 300,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
+
+  return (
+    <TouchableOpacity
+      onPress={toggle}
+      activeOpacity={0.7}
+      style={{
+        backgroundColor: tokens.colors.roogo.neutral[100],
+        borderRadius: 16,
+        padding: 20,
+        overflow: "hidden",
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 15,
+            fontFamily: "Urbanist-SemiBold",
+            color: tokens.colors.roogo.neutral[900],
+            flex: 1,
+            marginRight: 16,
+          }}
+        >
+          {question}
+        </Text>
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 20,
+            padding: 8,
+          }}
+        >
+          <Animated.View style={{ transform: [{ rotate }] }}>
+            <CaretDown
+              size={16}
+              color={tokens.colors.roogo.neutral[500]}
+              weight="bold"
+            />
+          </Animated.View>
+        </View>
+      </View>
+      {isOpen && (
+        <View style={{ marginTop: 12 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontFamily: "Urbanist-Regular",
+              color: tokens.colors.roogo.neutral[900],
+              lineHeight: 22,
+            }}
+          >
+            {answer}
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
 };
 
 export default function PhotographyScreen() {
@@ -47,6 +157,7 @@ export default function PhotographyScreen() {
     preferredDate: "",
     additionalNotes: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const packages: Package[] = [
     {
@@ -54,8 +165,8 @@ export default function PhotographyScreen() {
       name: "À nous aller",
       photos: 10,
       price: "25.000",
-      color: "#3B82F6",
-      bgColor: "bg-blue-500",
+      color: tokens.colors.roogo.accent[500],
+      bgColor: "#3FA6D9",
       features: [
         "10 photos professionnelles",
         "Retouche basique",
@@ -68,8 +179,8 @@ export default function PhotographyScreen() {
       name: "Patron oubien?",
       photos: 20,
       price: "45.000",
-      color: "#8B5CF6",
-      bgColor: "bg-purple-500",
+      color: tokens.colors.roogo.primary[500],
+      bgColor: "#C96A2E",
       features: [
         "20 photos professionnelles",
         "Retouche avancée",
@@ -84,8 +195,8 @@ export default function PhotographyScreen() {
       name: "Grand Boss",
       photos: 35,
       price: "75.000",
-      color: "#84CC16",
-      bgColor: "bg-lime-500",
+      color: tokens.colors.roogo.primary[700],
+      bgColor: "#5A321A",
       features: [
         "35 photos professionnelles",
         "Retouche premium",
@@ -113,10 +224,6 @@ export default function PhotographyScreen() {
     "Ouahigouya",
     "Banfora",
     "Kaya",
-    "Tenkodogo",
-    "Fada N'Gourma",
-    "Dédougou",
-    "Koupéla",
   ];
 
   const handlePackageSelect = (packageId: string) => {
@@ -128,7 +235,7 @@ export default function PhotographyScreen() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate required fields
     if (
       !formData.propertyAddress ||
@@ -141,44 +248,102 @@ export default function PhotographyScreen() {
       return;
     }
 
-    const selectedPkg = packages.find((pkg) => pkg.id === selectedPackage);
-    Alert.alert(
-      "Demande envoyée!",
-      `Votre demande pour le forfait ${selectedPkg?.name} a été envoyée. Nous vous contacterons bientôt au ${formData.contactPhone}.`
-    );
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+      const selectedPkg = packages.find((pkg) => pkg.id === selectedPackage);
+      Alert.alert(
+        "Demande envoyée!",
+        `Votre demande pour le forfait ${selectedPkg?.name} a été envoyée. Nous vous contacterons bientôt au ${formData.contactPhone}.`
+      );
 
-    // Reset form
-    setFormData({
-      propertyAddress: "",
-      quartier: "",
-      city: "",
-      propertyType: "",
-      contactPhone: "",
-      preferredDate: "",
-      additionalNotes: "",
-    });
-    setSelectedPackage(null);
-    setShowForm(false);
+      // Reset form
+      setFormData({
+        propertyAddress: "",
+        quartier: "",
+        city: "",
+        propertyType: "",
+        contactPhone: "",
+        preferredDate: "",
+        additionalNotes: "",
+      });
+      setSelectedPackage(null);
+      setShowForm(false);
+    }, 1500);
   };
+
+  const faqs = [
+    {
+      q: "Combien de temps dure une séance photo?",
+      a: "Une séance photo dure généralement entre 45 minutes et 1h30, selon la taille de la propriété et le forfait choisi.",
+    },
+    {
+      q: "Puis-je annuler ou reporter une séance?",
+      a: "Oui, vous pouvez annuler ou reporter votre séance jusqu'à 24h avant l'heure prévue sans frais supplémentaires.",
+    },
+    {
+      q: "Les photos incluent-elles les retouches?",
+      a: "Oui, toutes nos photos incluent des retouches professionnelles pour garantir la meilleure qualité possible.",
+    },
+    {
+      q: "Couvrez-vous toutes les villes du Burkina?",
+      a: "Nous couvrons principalement Ouagadougou et Bobo-Dioulasso, mais nous pouvons nous déplacer dans d'autres villes sur demande (frais supplémentaires possibles).",
+    },
+  ];
 
   return (
     <AgentOnly>
-      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+        edges={["top"]}
+      >
         <ScrollView
-          className="flex-1"
+          style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 80 }}
+          contentContainerStyle={{ paddingBottom: 120 }}
         >
           {/* Header */}
-          <View className="px-6 pt-4 pb-2">
-            <View className="items-center">
-              <View className="bg-figma-primary/10 rounded-full p-4 mb-4">
-                <Camera size={32} color="#FF6B35" />
+          <View
+            style={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 16 }}
+          >
+            <View style={{ alignItems: "center" }}>
+              <View
+                style={{
+                  backgroundColor: "rgba(201, 106, 46, 0.1)",
+                  borderRadius: 100,
+                  padding: 16,
+                  marginBottom: 16,
+                }}
+              >
+                <Camera
+                  size={32}
+                  color={tokens.colors.roogo.primary[500]}
+                  weight="duotone"
+                />
               </View>
-              <Text className="text-3xl font-bold text-gray-900 text-center font-urbanist">
+              <Text
+                style={{
+                  fontSize: 28,
+                  fontWeight: "bold",
+                  fontFamily: "Urbanist-Bold",
+                  color: tokens.colors.roogo.neutral[900],
+                  textAlign: "center",
+                  marginBottom: 8,
+                }}
+              >
                 Services Photo Pro
               </Text>
-              <Text className="text-gray-600 text-center mt-3 px-4 font-urbanist text-base leading-6">
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontFamily: "Urbanist-Regular",
+                  color: tokens.colors.roogo.neutral[500],
+                  textAlign: "center",
+                  lineHeight: 24,
+                  paddingHorizontal: 16,
+                }}
+              >
                 Swipez pour découvrir nos offres professionnelles
               </Text>
             </View>
@@ -187,7 +352,7 @@ export default function PhotographyScreen() {
           {!showForm ? (
             <>
               {/* Swipeable Cards */}
-              <View className="mb-10 mt-3">
+              <View style={{ marginBottom: 24, marginTop: 12 }}>
                 <Animated.FlatList
                   ref={flatListRef}
                   data={packages}
@@ -222,7 +387,7 @@ export default function PhotographyScreen() {
                     ];
                     const scale = scrollX.interpolate({
                       inputRange,
-                      outputRange: [0.9, 1, 0.9],
+                      outputRange: [0.92, 1, 0.92],
                       extrapolate: "clamp",
                     });
                     return (
@@ -235,58 +400,106 @@ export default function PhotographyScreen() {
                         }}
                       >
                         <Animated.View
-                          className={`${pkg.bgColor} rounded-3xl p-6`}
                           style={{
+                            backgroundColor: pkg.bgColor,
+                            padding: 24,
                             transform: [{ scale }],
                             minHeight: CARD_HEIGHT,
                             borderRadius: 24,
-                            // Soft shadow without harsh rectangle
-                            shadowColor: "#000",
-                            shadowOpacity: 0.08,
+                            shadowColor: pkg.bgColor,
+                            shadowOffset: { width: 0, height: 12 },
+                            shadowOpacity: 0.25,
                             shadowRadius: 16,
-                            shadowOffset: { width: 0, height: 8 },
-                            elevation: Platform.OS === "android" ? 0 : 3,
+                            elevation: 8,
                           }}
                         >
-                          {/* Crown Icon */}
-                          <View className="items-center mb-3">
-                            <View className="bg-white/30 rounded-full p-3">
+                          {/* Icon */}
+                          <View
+                            style={{ alignItems: "center", marginBottom: 16 }}
+                          >
+                            <View
+                              style={{
+                                backgroundColor: "rgba(255,255,255,0.2)",
+                                borderRadius: 50,
+                                padding: 12,
+                              }}
+                            >
                               {pkg.id === "premium" ? (
                                 <Crown
                                   size={ICON_SIZE}
                                   color="white"
-                                  fill="white"
+                                  weight="fill"
                                 />
                               ) : (
-                                <Camera size={ICON_SIZE} color="white" />
+                                <Camera
+                                  size={ICON_SIZE}
+                                  color="white"
+                                  weight="fill"
+                                />
                               )}
                             </View>
                           </View>
 
                           {/* Price */}
-                          <View className="items-center mb-5">
-                            <Text className="text-white text-4xl font-bold font-urbanist">
-                              ${pkg.price}
+                          <View
+                            style={{ alignItems: "center", marginBottom: 20 }}
+                          >
+                            <Text
+                              style={{
+                                color: "white",
+                                fontSize: 36,
+                                fontFamily: "Urbanist-Bold",
+                                marginBottom: 4,
+                              }}
+                            >
+                              {formatPrice(pkg.price.replace(/\./g, ""))} FCFA
+                            </Text>
+                            <Text
+                              style={{
+                                color: "rgba(255,255,255,0.9)",
+                                fontSize: 18,
+                                fontFamily: "Urbanist-SemiBold",
+                                textTransform: "uppercase",
+                                letterSpacing: 1,
+                              }}
+                            >
+                              {pkg.name}
                             </Text>
                           </View>
 
-                          {/* Package Name */}
-                          <Text className="text-white text-center text-xl font-bold mb-5 font-urbanist">
-                            {pkg.name}
-                          </Text>
-
                           {/* Features */}
-                          <View className="space-y-3.5 mb-6">
+                          <View style={{ marginBottom: 24, gap: 12 }}>
                             {pkg.features.map(
                               (feature: string, idx: number) => (
                                 <View
                                   key={idx}
-                                  className="flex-row items-center mb-2"
+                                  style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                  }}
                                 >
-                                  <View className="bg-white/25 rounded-full p-1.5 mr-3.5">
-                                    <Check size={14} color="white" />
+                                  <View
+                                    style={{
+                                      backgroundColor: "rgba(255,255,255,0.2)",
+                                      borderRadius: 12,
+                                      padding: 4,
+                                      marginRight: 12,
+                                    }}
+                                  >
+                                    <Check
+                                      size={14}
+                                      color="white"
+                                      weight="bold"
+                                    />
                                   </View>
-                                  <Text className="text-white flex-1 font-urbanist text-sm">
+                                  <Text
+                                    style={{
+                                      color: "white",
+                                      fontSize: 15,
+                                      fontFamily: "Urbanist-Medium",
+                                      flex: 1,
+                                    }}
+                                  >
                                     {feature}
                                   </Text>
                                 </View>
@@ -295,8 +508,22 @@ export default function PhotographyScreen() {
                           </View>
 
                           {/* CTA Button */}
-                          <View className="bg-white rounded-2xl py-4 mt-auto">
-                            <Text className="text-center font-bold text-lg font-urbanist">
+                          <View
+                            style={{
+                              backgroundColor: "white",
+                              borderRadius: 16,
+                              paddingVertical: 16,
+                              marginTop: "auto",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: pkg.bgColor,
+                                fontFamily: "Urbanist-Bold",
+                                fontSize: 16,
+                              }}
+                            >
                               Sélectionner
                             </Text>
                           </View>
@@ -307,7 +534,14 @@ export default function PhotographyScreen() {
                 />
 
                 {/* Pagination Dots */}
-                <View className="flex-row justify-center mt-6 gap-2">
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    marginTop: 24,
+                    gap: 8,
+                  }}
+                >
                   {packages.map((_, index) => (
                     <TouchableOpacity
                       key={index}
@@ -320,11 +554,15 @@ export default function PhotographyScreen() {
                       }}
                     >
                       <View
-                        className={`rounded-full ${
-                          index === currentCardIndex
-                            ? "w-8 h-3 bg-figma-primary"
-                            : "w-3 h-3 bg-gray-300"
-                        }`}
+                        style={{
+                          height: 8,
+                          width: index === currentCardIndex ? 24 : 8,
+                          borderRadius: 4,
+                          backgroundColor:
+                            index === currentCardIndex
+                              ? tokens.colors.roogo.primary[500]
+                              : "#E5E7EB",
+                        }}
                       />
                     </TouchableOpacity>
                   ))}
@@ -332,305 +570,328 @@ export default function PhotographyScreen() {
               </View>
 
               {/* Why Choose Us */}
-              <View className="px-6 py-8">
-                <Text className="text-2xl font-bold text-gray-900 mb-6 font-urbanist">
+              <View style={{ paddingHorizontal: 24, paddingBottom: 24 }}>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontFamily: "Urbanist-Bold",
+                    color: tokens.colors.roogo.neutral[900],
+                    marginBottom: 20,
+                  }}
+                >
                   Pourquoi nous choisir?
                 </Text>
-                <View className="space-y-5">
-                  <View className="bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100">
-                    <View className="flex-row items-start">
-                      <View className="bg-blue-100 rounded-full p-3 mr-4">
-                        <Text className="text-2xl">📸</Text>
+                <View style={{ gap: 16 }}>
+                  {[
+                    {
+                      icon: Camera,
+                      title: "Photographes professionnels",
+                      desc: "Équipe expérimentée en photographie immobilière avec équipement de pointe",
+                      color: "#3B82F6",
+                      bg: "#EFF6FF",
+                    },
+                    {
+                      icon: Lightning,
+                      title: "Livraison rapide",
+                      desc: "Vos photos retouchées en 24-48h maximum pour une mise en ligne rapide",
+                      color: "#A855F7",
+                      bg: "#F3E8FF",
+                    },
+                    {
+                      icon: SealCheck,
+                      title: "Qualité garantie",
+                      desc: "Retouches professionnelles et révisions illimitées jusqu'à satisfaction",
+                      color: "#10B981",
+                      bg: "#ECFDF5",
+                    },
+                  ].map((item, idx) => (
+                    <View
+                      key={idx}
+                      style={{
+                        backgroundColor: "white",
+                        borderRadius: 20,
+                        padding: 20,
+                        flexDirection: "row",
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.05,
+                        shadowRadius: 8,
+                        elevation: 2,
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: item.bg,
+                          borderRadius: 12,
+                          padding: 12,
+                          marginRight: 16,
+                          height: 48,
+                          width: 48,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <item.icon
+                          size={24}
+                          color={item.color}
+                          weight="duotone"
+                        />
                       </View>
-                      <View className="flex-1">
-                        <Text className="font-bold text-gray-900 text-lg font-urbanist mb-1">
-                          Photographes professionnels
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontFamily: "Urbanist-Bold",
+                            color: tokens.colors.roogo.neutral[900],
+                            marginBottom: 4,
+                          }}
+                        >
+                          {item.title}
                         </Text>
-                        <Text className="text-gray-600 text-sm font-urbanist leading-5">
-                          Équipe expérimentée en photographie immobilière avec
-                          équipement de pointe
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontFamily: "Urbanist-Regular",
+                            color: tokens.colors.roogo.neutral[500],
+                            lineHeight: 20,
+                          }}
+                        >
+                          {item.desc}
                         </Text>
                       </View>
                     </View>
-                  </View>
-
-                  <View className="bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100">
-                    <View className="flex-row items-start">
-                      <View className="bg-purple-100 rounded-full p-3 mr-4">
-                        <Text className="text-2xl">⚡</Text>
-                      </View>
-                      <View className="flex-1">
-                        <Text className="font-bold text-gray-900 text-lg font-urbanist mb-1">
-                          Livraison rapide
-                        </Text>
-                        <Text className="text-gray-600 text-sm font-urbanist leading-5">
-                          Vos photos retouchées en 24-48h maximum pour une mise
-                          en ligne rapide
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
-                    <View className="flex-row items-start">
-                      <View className="bg-lime-100 rounded-full p-3 mr-4">
-                        <Text className="text-2xl">✨</Text>
-                      </View>
-                      <View className="flex-1">
-                        <Text className="font-bold text-gray-900 text-lg font-urbanist mb-1">
-                          Qualité garantie
-                        </Text>
-                        <Text className="text-gray-600 text-sm font-urbanist leading-5">
-                          Retouches professionnelles et révisions illimitées
-                          jusqu&apos;à satisfaction
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
+                  ))}
                 </View>
               </View>
 
               {/* FAQ Section */}
-              <View className="px-6 py-8 bg-gray-50">
-                <Text className="text-2xl font-bold text-gray-900 mb-6 font-urbanist">
+              <View
+                style={{
+                  paddingHorizontal: 24,
+                  paddingVertical: 32,
+                  backgroundColor: "white",
+                  borderTopLeftRadius: 32,
+                  borderTopRightRadius: 32,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontFamily: "Urbanist-Bold",
+                    color: tokens.colors.roogo.neutral[900],
+                    marginBottom: 24,
+                  }}
+                >
                   Questions fréquentes
                 </Text>
 
-                <View className="space-y-3">
-                  <View className="bg-white rounded-2xl p-5 border border-gray-100">
-                    <View className="flex-row justify-between items-start">
-                      <Text className="flex-1 text-gray-900 font-semibold font-urbanist text-base">
-                        Combien de temps dure une séance photo?
-                      </Text>
-                      <View className="bg-gray-100 rounded-full w-6 h-6 items-center justify-center ml-3">
-                        <Text className="text-gray-600 font-bold">+</Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View className="bg-white rounded-2xl p-5 border border-gray-100">
-                    <View className="flex-row justify-between items-start mb-3">
-                      <Text className="flex-1 text-gray-900 font-semibold font-urbanist text-base">
-                        Puis-je annuler ou reporter une séance?
-                      </Text>
-                      <View className="bg-gray-100 rounded-full w-6 h-6 items-center justify-center ml-3">
-                        <Text className="text-gray-600 font-bold">−</Text>
-                      </View>
-                    </View>
-                    <Text className="text-gray-600 text-sm font-urbanist leading-5">
-                      Oui! Vous pouvez annuler ou reporter votre séance
-                      jusqu&apos;à 24h avant sans frais supplémentaires.
-                    </Text>
-                  </View>
-
-                  <View className="bg-white rounded-2xl p-5 border border-gray-100">
-                    <View className="flex-row justify-between items-start">
-                      <Text className="flex-1 text-gray-900 font-semibold font-urbanist text-base">
-                        Les photos incluent-elles les retouches?
-                      </Text>
-                      <View className="bg-gray-100 rounded-full w-6 h-6 items-center justify-center ml-3">
-                        <Text className="text-gray-600 font-bold">+</Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View className="bg-white rounded-2xl p-5 border border-gray-100">
-                    <View className="flex-row justify-between items-start">
-                      <Text className="flex-1 text-gray-900 font-semibold font-urbanist text-base">
-                        Couvrez-vous toutes les villes du Burkina?
-                      </Text>
-                      <View className="bg-gray-100 rounded-full w-6 h-6 items-center justify-center ml-3">
-                        <Text className="text-gray-600 font-bold">+</Text>
-                      </View>
-                    </View>
-                  </View>
+                <View style={{ gap: 16 }}>
+                  {faqs.map((faq, idx) => (
+                    <FAQItem key={idx} question={faq.q} answer={faq.a} />
+                  ))}
                 </View>
               </View>
             </>
           ) : (
-            <>
-              {/* Request Form */}
-              <View className="px-6 py-6">
-                <TouchableOpacity
-                  onPress={() => setShowForm(false)}
-                  className="mb-4"
+            /* Request Form */
+            <View style={{ paddingHorizontal: 24, paddingVertical: 8 }}>
+              <TouchableOpacity
+                onPress={() => setShowForm(false)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 24,
+                }}
+              >
+                <ArrowLeft
+                  size={20}
+                  color={tokens.colors.roogo.primary[500]}
+                  weight="bold"
+                />
+                <Text
+                  style={{
+                    color: tokens.colors.roogo.primary[500],
+                    fontFamily: "Urbanist-Bold",
+                    fontSize: 16,
+                    marginLeft: 8,
+                  }}
                 >
-                  <Text className="text-figma-primary font-semibold font-urbanist">
-                    ← Retour aux forfaits
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="text-xl font-semibold text-gray-900 mb-2 font-urbanist">
-                  Demande de service photo
+                  Retour aux forfaits
                 </Text>
-                <Text className="text-gray-600 text-sm mb-6 font-urbanist">
-                  Remplissez les informations pour votre propriété
-                </Text>
+              </TouchableOpacity>
 
-                {/* Selected Package Info */}
-                <View className="bg-figma-primary/10 border border-figma-primary rounded-xl p-4 mb-6">
-                  <Text className="text-sm text-gray-600 font-urbanist">
-                    Forfait sélectionné
-                  </Text>
-                  <Text className="text-lg font-bold text-gray-900 font-urbanist">
-                    {packages.find((pkg) => pkg.id === selectedPackage)?.name} -{" "}
-                    {packages.find((pkg) => pkg.id === selectedPackage)?.price}{" "}
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontFamily: "Urbanist-Bold",
+                  color: tokens.colors.roogo.neutral[900],
+                  marginBottom: 8,
+                }}
+              >
+                Demande de service photo
+              </Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontFamily: "Urbanist-Regular",
+                  color: tokens.colors.roogo.neutral[500],
+                  marginBottom: 32,
+                }}
+              >
+                Remplissez les informations pour votre propriété
+              </Text>
+
+              {/* Selected Package Info */}
+              <View
+                style={{
+                  backgroundColor: "rgba(201, 106, 46, 0.08)",
+                  borderRadius: 16,
+                  padding: 20,
+                  marginBottom: 32,
+                  borderWidth: 1,
+                  borderColor: "rgba(201, 106, 46, 0.2)",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "Urbanist-Medium",
+                    color: tokens.colors.roogo.neutral[500],
+                    marginBottom: 4,
+                  }}
+                >
+                  Forfait sélectionné
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontFamily: "Urbanist-Bold",
+                    color: tokens.colors.roogo.neutral[900],
+                  }}
+                >
+                  {packages.find((pkg) => pkg.id === selectedPackage)?.name}
+                  {" - "}
+                  <Text style={{ color: tokens.colors.roogo.primary[500] }}>
+                    {formatPrice(
+                      packages
+                        .find((pkg) => pkg.id === selectedPackage)
+                        ?.price.replace(/\./g, "") || ""
+                    )}{" "}
                     FCFA
                   </Text>
-                </View>
+                </Text>
+              </View>
 
-                {/* Property Address */}
-                <View className="mb-4">
-                  <Text className="text-base font-semibold text-gray-900 mb-2 font-urbanist">
-                    Adresse de la propriété *
-                  </Text>
-                  <TextInput
-                    className="border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-urbanist"
-                    placeholder="Ex: Rue 12.45, Secteur 15"
-                    value={formData.propertyAddress}
-                    onChangeText={(value) =>
-                      handleInputChange("propertyAddress", value)
-                    }
-                  />
-                </View>
+              <View style={{ gap: 20 }}>
+                <OutlinedField
+                  label="Adresse de la propriété *"
+                  value={formData.propertyAddress}
+                  onChangeText={(v: string) =>
+                    handleInputChange("propertyAddress", v)
+                  }
+                  placeholder="Ex: Rue 12.45, Secteur 15"
+                />
 
-                {/* Quartier */}
-                <View className="mb-4">
-                  <Text className="text-base font-semibold text-gray-900 mb-2 font-urbanist">
-                    Quartier *
-                  </Text>
-                  <TextInput
-                    className="border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-urbanist"
-                    placeholder="Ex: Koulouba, Zone du bois"
-                    value={formData.quartier}
-                    onChangeText={(value) =>
-                      handleInputChange("quartier", value)
-                    }
-                  />
-                </View>
+                <OutlinedField
+                  label="Quartier *"
+                  value={formData.quartier}
+                  onChangeText={(v: string) => handleInputChange("quartier", v)}
+                  placeholder="Ex: Koulouba, Zone du bois"
+                />
 
-                {/* City */}
-                <View className="mb-4">
-                  <Text className="text-base font-semibold text-gray-900 mb-2 font-urbanist">
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontFamily: "Urbanist-Bold",
+                      color: tokens.colors.roogo.neutral[900],
+                      marginBottom: 8,
+                      marginLeft: 4,
+                    }}
+                  >
                     Ville *
                   </Text>
-                  <View className="flex-row flex-wrap gap-2">
+                  <View
+                    style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                  >
                     {cities.map((city) => (
-                      <TouchableOpacity
+                      <ChipSelectable
                         key={city}
-                        className={`border rounded-lg px-3 py-2 ${
-                          formData.city === city
-                            ? "border-figma-primary bg-figma-primary/10"
-                            : "border-gray-300 bg-white"
-                        }`}
+                        label={city}
+                        selected={formData.city === city}
                         onPress={() => handleInputChange("city", city)}
-                      >
-                        <Text
-                          className={`text-sm font-urbanist ${
-                            formData.city === city
-                              ? "text-figma-primary"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {city}
-                        </Text>
-                      </TouchableOpacity>
+                      />
                     ))}
                   </View>
                 </View>
 
-                {/* Property Type */}
-                <View className="mb-4">
-                  <Text className="text-base font-semibold text-gray-900 mb-2 font-urbanist">
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontFamily: "Urbanist-Bold",
+                      color: tokens.colors.roogo.neutral[900],
+                      marginBottom: 8,
+                      marginLeft: 4,
+                    }}
+                  >
                     Type de propriété *
                   </Text>
-                  <View className="flex-row flex-wrap gap-3">
+                  <View
+                    style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                  >
                     {propertyTypes.map((type) => (
-                      <TouchableOpacity
+                      <ChipSelectable
                         key={type.id}
-                        className={`border-2 rounded-xl px-4 py-3 ${
-                          formData.propertyType === type.id
-                            ? "border-figma-primary bg-figma-primary/10"
-                            : "border-gray-300 bg-white"
-                        }`}
+                        label={type.label}
+                        selected={formData.propertyType === type.id}
                         onPress={() =>
                           handleInputChange("propertyType", type.id)
                         }
-                      >
-                        <Text
-                          className={`font-medium font-urbanist ${
-                            formData.propertyType === type.id
-                              ? "text-figma-primary"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {type.label}
-                        </Text>
-                      </TouchableOpacity>
+                      />
                     ))}
                   </View>
                 </View>
 
-                {/* Contact Phone */}
-                <View className="mb-4">
-                  <Text className="text-base font-semibold text-gray-900 mb-2 font-urbanist">
-                    Téléphone de contact *
-                  </Text>
-                  <TextInput
-                    className="border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-urbanist"
-                    placeholder="Ex: +226 70 12 34 56"
-                    value={formData.contactPhone}
-                    onChangeText={(value) =>
-                      handleInputChange("contactPhone", value)
-                    }
-                    keyboardType="phone-pad"
-                  />
-                </View>
+                <OutlinedField
+                  label="Téléphone de contact *"
+                  value={formData.contactPhone}
+                  onChangeText={(v: string) =>
+                    handleInputChange("contactPhone", v)
+                  }
+                  placeholder="Ex: +226 70 12 34 56"
+                  keyboardType="phone-pad"
+                />
 
-                {/* Preferred Date */}
-                <View className="mb-4">
-                  <Text className="text-base font-semibold text-gray-900 mb-2 font-urbanist">
-                    Date préférée (optionnel)
-                  </Text>
-                  <TextInput
-                    className="border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-urbanist"
-                    placeholder="Ex: Lundi 25 Octobre"
-                    value={formData.preferredDate}
-                    onChangeText={(value) =>
-                      handleInputChange("preferredDate", value)
-                    }
-                  />
-                </View>
+                <OutlinedField
+                  label="Date préférée (optionnel)"
+                  value={formData.preferredDate}
+                  onChangeText={(v: string) =>
+                    handleInputChange("preferredDate", v)
+                  }
+                  placeholder="Ex: Lundi 25 Octobre"
+                />
 
-                {/* Additional Notes */}
-                <View className="mb-4">
-                  <Text className="text-base font-semibold text-gray-900 mb-2 font-urbanist">
-                    Notes additionnelles (optionnel)
-                  </Text>
-                  <TextInput
-                    className="border border-gray-300 rounded-xl px-4 py-4 text-gray-900 font-urbanist min-h-[100px]"
-                    placeholder="Informations supplémentaires sur la propriété ou vos besoins..."
-                    value={formData.additionalNotes}
-                    onChangeText={(value) =>
-                      handleInputChange("additionalNotes", value)
-                    }
-                    multiline
-                    numberOfLines={4}
-                    textAlignVertical="top"
-                  />
-                </View>
-
-                {/* Submit Button */}
-                <TouchableOpacity
-                  className="bg-figma-primary rounded-xl py-4 items-center mt-6"
-                  onPress={handleSubmit}
-                >
-                  <Text className="text-white font-semibold text-lg font-urbanist">
-                    Envoyer la demande
-                  </Text>
-                </TouchableOpacity>
+                <OutlinedField
+                  label="Notes additionnelles (optionnel)"
+                  value={formData.additionalNotes}
+                  onChangeText={(v: string) =>
+                    handleInputChange("additionalNotes", v)
+                  }
+                  placeholder="Informations supplémentaires..."
+                  multiline
+                  numberOfLines={4}
+                />
               </View>
-            </>
+
+              <View style={{ marginTop: 32 }}>
+                <PrimaryButton
+                  title="Envoyer la demande"
+                  onPress={handleSubmit}
+                  loading={loading}
+                />
+              </View>
+            </View>
           )}
         </ScrollView>
       </SafeAreaView>

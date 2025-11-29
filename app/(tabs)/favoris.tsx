@@ -3,8 +3,8 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AuthPromptModal from "../components/AuthPromptModal";
-import PropertyCard from "../components/PropertyCard";
+import AuthPromptModal from "../../components/AuthPromptModal";
+import PropertyCard from "../../components/PropertyCard";
 
 export default function FavorisScreen() {
   const router = useRouter();

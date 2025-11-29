@@ -3,20 +3,30 @@ import type {
   BottomTabNavigationOptions,
 } from "@react-navigation/bottom-tabs";
 import { BottomTabBar } from "@react-navigation/bottom-tabs";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, Tabs, usePathname } from "expo-router";
-import { Camera, Heart, Plus, User } from "lucide-react-native";
+import {
+  House,
+  Heart,
+  Camera,
+  Plus,
+  User,
+  Buildings,
+  SignIn,
+} from "phosphor-react-native";
 import { useEffect, useRef } from "react";
 import { Animated, Platform, Text, TouchableOpacity, View } from "react-native";
-import { Path, Svg } from "react-native-svg";
-import { useUserType } from "../hooks/useUserType";
+import { useUserType } from "../../hooks/useUserType";
+import { tokens } from "../../theme/tokens";
 
 type IconRendererProps = {
   focused: boolean;
   size: number;
+  color: string;
 };
 
-const ACTIVE_COLOR = "#0EA5E9"; // A modern blue color
-const INACTIVE_COLOR = "#94A3B8";
+const ACTIVE_COLOR = tokens.colors.roogo.primary[500];
+const INACTIVE_COLOR = tokens.colors.roogo.neutral[400];
 
 const IconWrapper = ({
   children,
@@ -28,121 +38,89 @@ const IconWrapper = ({
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: focused ? 1.2 : 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 4,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    if (focused) {
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.2,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 4,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
   }, [focused, scaleAnim]);
 
   return (
     <Animated.View
       style={{
         transform: [{ scale: scaleAnim }],
-        backgroundColor: focused ? `${ACTIVE_COLOR}15` : "transparent",
-        padding: 6,
-        borderRadius: 10,
-        marginTop: 0,
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       {children}
+      {focused && (
+        <View
+          style={{
+            position: "absolute",
+            bottom: -8,
+            width: 4,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: ACTIVE_COLOR,
+          }}
+        />
+      )}
     </Animated.View>
   );
 };
 
-const HomeIcon = ({ focused, size }: IconRendererProps) => (
+const TabIcon = ({
+  Icon,
+  focused,
+  size,
+  weight = "bold",
+}: {
+  Icon: any;
+  focused: boolean;
+  size: number;
+  weight?: "regular" | "bold" | "fill";
+}) => (
   <IconWrapper focused={focused}>
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        stroke={focused ? ACTIVE_COLOR : INACTIVE_COLOR}
-        d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-      />
-    </Svg>
-  </IconWrapper>
-);
-
-const CameraIcon = ({ focused, size }: IconRendererProps) => (
-  <IconWrapper focused={focused}>
-    <Camera size={size} color={focused ? ACTIVE_COLOR : INACTIVE_COLOR} />
-  </IconWrapper>
-);
-
-const ModernHomeIcon = ({ focused, size }: IconRendererProps) => (
-  <IconWrapper focused={focused}>
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        stroke={focused ? ACTIVE_COLOR : INACTIVE_COLOR}
-        d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819"
-      />
-    </Svg>
-  </IconWrapper>
-);
-
-const UserIcon = ({ focused, size }: IconRendererProps) => (
-  <IconWrapper focused={focused}>
-    <User size={size} color={focused ? ACTIVE_COLOR : INACTIVE_COLOR} />
-  </IconWrapper>
-);
-
-const HeartIcon = ({ focused, size }: IconRendererProps) => (
-  <IconWrapper focused={focused}>
-    <Heart size={size} color={focused ? ACTIVE_COLOR : INACTIVE_COLOR} />
-  </IconWrapper>
-);
-
-const LoginIcon = ({ focused, size }: IconRendererProps) => (
-  <IconWrapper focused={focused}>
-    <View style={{ position: "relative" }}>
-      <User size={size} color={focused ? ACTIVE_COLOR : "#FFFFFF"} />
-      <View
-        style={{
-          position: "absolute",
-          top: -2,
-          right: -2,
-          width: 8,
-          height: 8,
-          borderRadius: 4,
-          backgroundColor: focused ? ACTIVE_COLOR : "#FFFFFF",
-          borderWidth: 2,
-          borderColor: "#FFFFFF",
-        }}
-      />
-    </View>
+    <Icon
+      size={size}
+      color={focused ? ACTIVE_COLOR : INACTIVE_COLOR}
+      weight={focused ? "fill" : "bold"}
+    />
   </IconWrapper>
 );
 
 const AddPropertyButton = ({ onPress }: { onPress?: () => void }) => (
   <TouchableOpacity
     onPress={() => onPress?.()}
+    activeOpacity={0.9}
     style={{
-      backgroundColor: ACTIVE_COLOR,
-      width: 48,
-      height: 48,
-      borderRadius: 16,
+      backgroundColor: tokens.colors.roogo.primary[500],
+      width: 64, // Slightly larger
+      height: 64,
+      borderRadius: 32,
       justifyContent: "center",
       alignItems: "center",
-      shadowColor: ACTIVE_COLOR,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 4,
-      marginTop: -4,
+      shadowColor: tokens.colors.roogo.primary[500],
+      shadowOffset: { width: 0, height: 8 }, // Deeper shadow
+      shadowOpacity: 0.4,
+      shadowRadius: 12,
+      elevation: 10,
+      marginBottom: 48, // Lift it up more to break the bar
+      borderWidth: 4,
+      borderColor: "#FFFFFF",
     }}
   >
-    <Plus size={22} color="#FFFFFF" />
+    <Plus size={32} color="#FFFFFF" weight="bold" />
   </TouchableOpacity>
 );
 
@@ -152,163 +130,174 @@ export default function TabLayout() {
   const { isOwner, isRenter, isGuest, isLoaded } = useUserType();
 
   const commonTabBarStyle = {
-    backgroundColor: "#FFFFFF",
-    height: 80,
-    paddingHorizontal: isGuest ? 0 : 16,
-    paddingBottom: Platform.OS === "ios" ? 24 : 20,
-    paddingTop: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.98)", // High opacity, slight translucency
+    position: "absolute",
+    bottom: Platform.OS === "ios" ? 32 : 24,
+    left: 20,
+    right: 20,
+    height: 72,
+    borderRadius: 36,
+    paddingBottom: 0,
+    paddingTop: 0,
+    borderTopWidth: 0,
+    // Reduced top shadow aggressiveness
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: -2,
+      height: 8, // Reduced offset
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 8,
-    borderTopColor: "rgba(229, 231, 235, 0.5)",
-    borderTopWidth: 1,
+    shadowOpacity: 0.2, // Slightly reduced opacity
+    shadowRadius: 16, // Slightly reduced radius
+    elevation: 16,
+    // Border for definition
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.08)",
   };
 
-  // Custom tab bar for guests to center tabs
+  // Custom tab bar to include gradient and guest logic
   const CustomTabBar = (props: BottomTabBarProps) => {
-    if (isGuest) {
-      return (
-        <View
+    // Check if the current tab should be hidden (e.g., Details page)
+    const currentRoute = props.state.routes[props.state.index];
+    const { options } = props.descriptors[currentRoute.key];
+    const isHidden = (options.tabBarStyle as any)?.display === "none";
+
+    if (isHidden) {
+      return null;
+    }
+
+    return (
+      <>
+        {/* Soft Gradient Fade at Bottom - Adjusted to be less aggressive */}
+        <LinearGradient
+          colors={["transparent", "rgba(255,255,255,0.7)", "#FFFFFF"]}
+          locations={[0, 0.7, 1]}
           style={{
-            backgroundColor: "#FFFFFF",
-            height: 80,
-            paddingTop: 16,
-            paddingBottom: Platform.OS === "ios" ? 20 : 16,
-            paddingHorizontal: 16,
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: -2,
-            },
-            shadowOpacity: 0.08,
-            shadowRadius: 3,
-            elevation: 8,
-            borderTopColor: "rgba(229, 231, 235, 0.5)",
-            borderTopWidth: 1,
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 100, // Reduced height
+            zIndex: 0,
           }}
-        >
-          {props.state.routes.map((route, index) => {
-            const { options } = props.descriptors[route.key];
-            const isFocused = props.state.index === index;
+          pointerEvents="none"
+        />
 
-            const onPress = () => {
-              const event = props.navigation.emit({
-                type: "tabPress",
-                target: route.key,
-                canPreventDefault: true,
-              });
+        {isGuest ? (
+          <View
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.98)",
+              position: "absolute",
+              bottom: Platform.OS === "ios" ? 32 : 24,
+              left: 20,
+              right: 20,
+              height: 72,
+              borderRadius: 36,
+              // Reduced top shadow aggressiveness
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 8, // Reduced offset
+              },
+              shadowOpacity: 0.2, // Slightly reduced opacity
+              shadowRadius: 16, // Slightly reduced radius
+              elevation: 16,
+              borderWidth: 1,
+              borderColor: "rgba(0,0,0,0.08)",
+              flexDirection: "row",
+              justifyContent: "space-evenly",
+              alignItems: "center",
+              paddingHorizontal: 8,
+              zIndex: 1,
+            }}
+          >
+            {props.state.routes.map((route, index) => {
+              const { options } = props.descriptors[route.key];
+              const isFocused = props.state.index === index;
 
-              if (!isFocused && !event.defaultPrevented) {
-                props.navigation.navigate(route.name);
-              }
-            };
+              const onPress = () => {
+                const event = props.navigation.emit({
+                  type: "tabPress",
+                  target: route.key,
+                  canPreventDefault: true,
+                });
 
-            if (route.name === "profile" && isGuest) {
-              return (
-                <View
-                  key={route.key}
-                  style={{
-                    flex: 0,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    paddingHorizontal: 12,
-                    marginTop: 0,
-                  }}
-                >
+                if (!isFocused && !event.defaultPrevented) {
+                  props.navigation.navigate(route.name);
+                }
+              };
+
+              if (route.name === "profile" && isGuest) {
+                return (
                   <TouchableOpacity
+                    key={route.key}
                     onPress={() => {
                       router.push("/(auth)/sign-in");
                     }}
                     style={{
-                      backgroundColor: ACTIVE_COLOR,
-                      paddingHorizontal: 24,
+                      backgroundColor: tokens.colors.roogo.neutral[900],
+                      paddingHorizontal: 20,
                       paddingVertical: 10,
-                      borderRadius: 24,
+                      borderRadius: 20,
                       flexDirection: "row",
                       alignItems: "center",
                       justifyContent: "center",
-                      shadowColor: ACTIVE_COLOR,
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.2,
-                      shadowRadius: 4,
-                      elevation: 4,
                     }}
                     activeOpacity={0.8}
                   >
-                    <User size={20} color="#FFFFFF" />
+                    <SignIn size={20} color="#FFFFFF" weight="bold" />
                     <Text
                       style={{
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: "700",
-                        marginLeft: 6,
+                        marginLeft: 8,
                         color: "#FFFFFF",
+                        fontFamily: "Urbanist-Bold",
                       }}
                     >
-                      Rejoindre
+                      Se connecter
                     </Text>
                   </TouchableOpacity>
-                </View>
-              );
-            }
+                );
+              }
 
-            if (route.name === "(home)") {
-              return (
-                <TouchableOpacity
-                  key={route.key}
-                  accessibilityRole="button"
-                  accessibilityState={isFocused ? { selected: true } : {}}
-                  accessibilityLabel={options.tabBarAccessibilityLabel}
-                  onPress={onPress}
-                  style={{
-                    flex: 0,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    paddingHorizontal: 12,
-                    marginTop: 18,
-                  }}
-                >
-                  {options.tabBarIcon &&
-                    options.tabBarIcon({
-                      focused: isFocused,
-                      color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
-                      size: 20,
-                    })}
-                  {(options.title ||
-                    (options.tabBarLabel &&
-                      typeof options.tabBarLabel === "string")) && (
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        fontWeight: "600",
-                        marginTop: 4,
-                        color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
-                      }}
-                    >
-                      {options.title ||
-                        (typeof options.tabBarLabel === "string"
-                          ? options.tabBarLabel
-                          : "")}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              );
-            }
+              if (route.name === "(home)") {
+                return (
+                  <TouchableOpacity
+                    key={route.key}
+                    accessibilityRole="button"
+                    accessibilityState={isFocused ? { selected: true } : {}}
+                    accessibilityLabel={options.tabBarAccessibilityLabel}
+                    onPress={onPress}
+                    style={{
+                      flex: 1,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "100%",
+                    }}
+                  >
+                    <TabIcon Icon={House} focused={isFocused} size={24} />
+                  </TouchableOpacity>
+                );
+              }
 
-            return null;
-          })}
-        </View>
-      );
-    }
-
-    return <BottomTabBar {...props} />;
+              return null;
+            })}
+          </View>
+        ) : (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1,
+            }}
+          >
+            <BottomTabBar {...props} />
+          </View>
+        )}
+      </>
+    );
   };
 
   const commonScreenOptions: BottomTabNavigationOptions = {
@@ -317,21 +306,13 @@ export default function TabLayout() {
     tabBarStyle: isDetailsPage
       ? { display: "none" as const }
       : commonTabBarStyle,
-    tabBarLabelStyle: {
-      fontSize: 12,
-      fontWeight: "600" as const,
-      marginTop: 4,
-      flexShrink: 0, // Prevent text from shrinking
-      flexWrap: "nowrap", // Prevent wrapping
-    },
-    tabBarIconStyle: {
-      marginBottom: 0,
-    },
+    tabBarShowLabel: false, // Hide labels for cleaner look
     tabBarItemStyle: {
+      height: 72,
+      justifyContent: "center",
+      alignItems: "center",
       paddingVertical: 0,
-      paddingHorizontal: isGuest ? 12 : 0, // Add spacing between guest tabs
-      flex: isGuest ? 0 : 1, // Don't flex for guests, let content determine width
-      minWidth: isGuest ? undefined : 0, // Allow natural width for guests
+      paddingTop: 12, // Push icons down visually to center them
     },
     // Add smooth transitions
     tabBarHideOnKeyboard: true,
@@ -360,15 +341,9 @@ export default function TabLayout() {
           name="(home)"
           options={{
             title: "Accueil",
-            tabBarIcon: ({ focused, size }) => HomeIcon({ focused, size: 24 }),
-            headerShown: false,
-            ...(isGuest && {
-              tabBarItemStyle: {
-                paddingVertical: 0,
-                paddingHorizontal: 0,
-                flex: 0,
-              },
-            }),
+            tabBarIcon: ({ focused }) => (
+              <TabIcon Icon={House} focused={focused} size={24} />
+            ),
           }}
         />
 
@@ -377,8 +352,9 @@ export default function TabLayout() {
           name="favoris"
           options={{
             title: "Favoris",
-            tabBarIcon: ({ focused, size }) => HeartIcon({ focused, size: 24 }),
-            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon Icon={Heart} focused={focused} size={24} />
+            ),
             href: isRenter ? undefined : null,
           }}
         />
@@ -388,9 +364,9 @@ export default function TabLayout() {
           name="photography"
           options={{
             title: "Photos",
-            tabBarIcon: ({ focused, size }) =>
-              CameraIcon({ focused, size: 24 }),
-            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon Icon={Camera} focused={focused} size={24} />
+            ),
             href: isOwner ? undefined : null,
           }}
         />
@@ -400,10 +376,12 @@ export default function TabLayout() {
           name="add-property"
           options={{
             title: "",
-            tabBarIcon: ({ focused, size }) => null,
+            tabBarIcon: () => null,
             tabBarButton: isOwner
               ? (props) => (
-                  <View style={{ alignItems: "center" }}>
+                  <View
+                    style={{ alignItems: "center", justifyContent: "center" }}
+                  >
                     <AddPropertyButton
                       onPress={() => {
                         if (props.onPress) {
@@ -417,7 +395,6 @@ export default function TabLayout() {
                   </View>
                 )
               : () => null,
-            headerShown: false,
           }}
         />
 
@@ -426,9 +403,9 @@ export default function TabLayout() {
           name="my-properties"
           options={{
             title: "Biens",
-            tabBarIcon: ({ focused, size }) =>
-              ModernHomeIcon({ focused, size: 24 }),
-            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon Icon={Buildings} focused={focused} size={24} />
+            ),
             href: isOwner ? undefined : null,
           }}
         />
@@ -437,60 +414,11 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            title: isGuest ? "Rejoindre" : "Profil",
-            tabBarIcon: ({ focused, size }) =>
-              isGuest
-                ? LoginIcon({ focused, size: 24 })
-                : UserIcon({ focused, size: 24 }),
-            headerShown: false,
-            ...(isGuest
-              ? {
-                  tabBarButton: (props) => (
-                    <View
-                      style={{
-                        flex: 0,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        paddingHorizontal: 16,
-                        paddingVertical: 8,
-                      }}
-                    >
-                      <TouchableOpacity
-                        onPress={() => {
-                          router.push("/(auth)/sign-in");
-                        }}
-                        style={{
-                          backgroundColor: ACTIVE_COLOR,
-                          paddingHorizontal: 24,
-                          paddingVertical: 10,
-                          borderRadius: 24,
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          shadowColor: ACTIVE_COLOR,
-                          shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.2,
-                          shadowRadius: 4,
-                          elevation: 4,
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        <User size={20} color="#FFFFFF" />
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: "700",
-                            marginLeft: 6,
-                            color: "#FFFFFF",
-                          }}
-                        >
-                          Rejoindre
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  ),
-                }
-              : {}),
+            title: "Profil",
+            tabBarIcon: ({ focused }) => (
+              <TabIcon Icon={User} focused={focused} size={24} />
+            ),
+            href: isGuest ? null : undefined, // Hide from tab bar for guests (handled in CustomTabBar)
           }}
         />
       </Tabs>

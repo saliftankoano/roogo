@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create enum types
-CREATE TYPE property_status AS ENUM ('brouillon', 'en_attente', 'actif', 'inactif');
+CREATE TYPE property_status AS ENUM ('en_attente', 'en_ligne', 'expired');
 CREATE TYPE property_type AS ENUM ('villa', 'appartement', 'maison', 'terrain', 'commercial');
 CREATE TYPE listing_type AS ENUM ('louer', 'vendre');
 
@@ -41,7 +41,7 @@ CREATE TABLE properties (
     longitude DECIMAL(11,8),
     period TEXT, -- 'month' for rentals
     caution_mois INTEGER, -- deposit in months (0-12)
-    interdictions TEXT[], -- array of restrictions: no_animaux, no_fumeurs, no_etudiants, no_colocation
+    interdictions TEXT[], -- array of restriction labels: "Pas d'animaux", "Pas de fumeurs", "Pas d'étudiants", "Pas de colocation"
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     views_count INTEGER DEFAULT 0

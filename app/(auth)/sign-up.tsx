@@ -16,7 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import UserTypeSelection from "../components/UserTypeSelection";
+import UserTypeSelection from "../../components/UserTypeSelection";
 
 WebBrowser.maybeCompleteAuthSession();
 

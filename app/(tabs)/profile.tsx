@@ -1,11 +1,29 @@
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { ChevronRight, LogOut, MapPin } from "lucide-react-native";
+import {
+  CaretRight,
+  Gear,
+  Heart,
+  House,
+  MapPin,
+  Question,
+  SignOut,
+  User,
+  UserCircle,
+} from "phosphor-react-native";
 import { useEffect, useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  Platform,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import UserTypeSelection from "../components/UserTypeSelection";
-import { useUserType } from "../hooks/useUserType";
+import UserTypeSelection from "../../components/UserTypeSelection";
+import { useUserType } from "../../hooks/useUserType";
+import { tokens } from "../../theme/tokens";
 
 export default function ProfileScreen() {
   const { isOwner, hasUserType, userType } = useUserType();
@@ -51,9 +69,18 @@ export default function ProfileScreen() {
   // Show loading state while user data is being fetched
   if (!isLoaded) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
-        <View className="flex-1 justify-center items-center">
-          <Text className="text-base text-gray-500 font-urbanist">
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+        edges={["top"]}
+      >
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <Text
+            style={{
+              fontSize: 16,
+              color: tokens.colors.roogo.neutral[500],
+              fontFamily: "Urbanist-Medium",
+            }}
+          >
             Chargement...
           </Text>
         </View>
@@ -66,9 +93,18 @@ export default function ProfileScreen() {
     // Redirect to sign-in if not authenticated
     router.replace("/(auth)/sign-in");
     return (
-      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
-        <View className="flex-1 justify-center items-center">
-          <Text className="text-base text-gray-500 font-urbanist">
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+        edges={["top"]}
+      >
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <Text
+            style={{
+              fontSize: 16,
+              color: tokens.colors.roogo.neutral[500],
+              fontFamily: "Urbanist-Medium",
+            }}
+          >
             Redirection...
           </Text>
         </View>
@@ -80,19 +116,22 @@ export default function ProfileScreen() {
     isOwner
       ? {
           label: "Mes propriétés",
+          icon: House,
           onPress: () => router.push("/(tabs)/my-properties"),
         }
       : {
           label: "Mes favoris",
+          icon: Heart,
           onPress: () => router.push("/(tabs)/favoris"),
         },
-    { label: "Paramètres", onPress: () => {} },
-    { label: "Aide & Support", onPress: () => {} },
+    { label: "Paramètres", icon: Gear, onPress: () => {} },
+    { label: "Aide & Support", icon: Question, onPress: () => {} },
     // Add option to change user type if user doesn't have one or wants to change
     ...(!hasUserType || !userType
       ? [
           {
             label: "Choisir mon profil",
+            icon: UserCircle,
             onPress: () => setShowUserTypeSelection(true),
           },
         ]
@@ -100,17 +139,38 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+      edges={["top"]}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
-        {/* Profile Header */}
-        <View className="bg-white pb-8">
-          <View className="items-center pt-8 pb-6">
+        {/* Profile Header with Avatar - Design Kept */}
+        <View
+          style={{
+            backgroundColor: "#FFFFFF",
+            paddingBottom: 32,
+            borderBottomLeftRadius: 32,
+            borderBottomRightRadius: 32,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.05,
+            shadowRadius: 12,
+            elevation: 4,
+            zIndex: 10,
+          }}
+        >
+          <View style={{ alignItems: "center", paddingTop: 24, paddingBottom: 24 }}>
             <View
-              className="w-28 h-28 rounded-full mb-5 items-center justify-center"
               style={{
+                width: 112,
+                height: 112,
+                borderRadius: 56,
+                marginBottom: 20,
+                alignItems: "center",
+                justifyContent: "center",
                 borderWidth: 3,
                 borderColor: "#E48C26",
                 backgroundColor: "#FFF5EB",
@@ -122,25 +182,50 @@ export default function ProfileScreen() {
                     ? { uri: user.imageUrl }
                     : require("../../assets/images/icon.png")
                 }
-                className="w-24 h-24 rounded-full"
+                style={{ width: 96, height: 96, borderRadius: 48 }}
               />
             </View>
-            <Text className="text-2xl font-bold text-figma-grey-900 mb-1.5 font-urbanist">
+            <Text
+              style={{
+                fontSize: 24,
+                fontFamily: "Urbanist-Bold",
+                color: tokens.colors.roogo.neutral[900],
+                marginBottom: 6,
+              }}
+            >
               {user?.fullName || user?.firstName || "Utilisateur"}
             </Text>
-            <Text className="text-sm text-figma-grey-600 mb-4 font-urbanist">
-              {user?.primaryEmailAddress?.emailAddress ||
-                "Email non disponible"}
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: "Urbanist-Medium",
+                color: tokens.colors.roogo.neutral[500],
+                marginBottom: 16,
+              }}
+            >
+              {user?.primaryEmailAddress?.emailAddress || "Email non disponible"}
             </Text>
             <View
-              className="flex-row items-center px-4 py-2 rounded-full border"
               style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 100,
                 backgroundColor: "#FFF5EB",
+                borderWidth: 1,
                 borderColor: "rgba(228, 140, 38, 0.2)",
               }}
             >
-              <MapPin size={14} color="#E48C26" />
-              <Text className="ml-1.5 text-sm text-figma-grey-700 font-urbanist">
+              <MapPin size={16} color="#E48C26" weight="fill" />
+              <Text
+                style={{
+                  marginLeft: 6,
+                  fontSize: 14,
+                  fontFamily: "Urbanist-SemiBold",
+                  color: tokens.colors.roogo.neutral[700],
+                }}
+              >
                 {String(
                   user?.unsafeMetadata?.location || "Ouagadougou, Burkina Faso"
                 )}
@@ -148,122 +233,198 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Stats Section */}
-          <View className="px-4">
+          {/* Stats Section - Revamped */}
+          <View style={{ paddingHorizontal: 24 }}>
             <View
-              className="rounded-2xl p-5 border"
               style={{
-                backgroundColor: "#FFF5EB",
-                borderColor: "rgba(228, 140, 38, 0.1)",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                gap: 12,
               }}
             >
               {isOwner ? (
-                <View className="flex-row justify-between">
-                  <View className="flex-1">
-                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
-                      7
-                    </Text>
-                    <Text className="text-xs text-figma-grey-600 font-urbanist">
-                      Propriétés actives
-                    </Text>
-                  </View>
-                  <View
-                    className="w-px mx-4"
-                    style={{ backgroundColor: "rgba(228, 140, 38, 0.2)" }}
-                  />
-                  <View className="flex-1">
-                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
-                      128
-                    </Text>
-                    <Text className="text-xs text-figma-grey-600 font-urbanist">
-                      Vues ce mois
-                    </Text>
-                  </View>
-                  <View
-                    className="w-px mx-4"
-                    style={{ backgroundColor: "rgba(228, 140, 38, 0.2)" }}
-                  />
-                  <View className="flex-1">
-                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
-                      2
-                    </Text>
-                    <Text className="text-xs text-figma-grey-600 font-urbanist">
-                      En attente
-                    </Text>
-                  </View>
-                </View>
+                <>
+                  {[
+                    { label: "Propriétés", value: "7" },
+                    { label: "Vues", value: "128" },
+                    { label: "En attente", value: "2" },
+                  ].map((stat, idx) => (
+                    <View
+                      key={idx}
+                      style={{
+                        flex: 1,
+                        backgroundColor: tokens.colors.roogo.neutral[100],
+                        borderRadius: 16,
+                        padding: 16,
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 20,
+                          fontFamily: "Urbanist-Bold",
+                          color: tokens.colors.roogo.primary[500],
+                          marginBottom: 4,
+                        }}
+                      >
+                        {stat.value}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontFamily: "Urbanist-Medium",
+                          color: tokens.colors.roogo.neutral[500],
+                        }}
+                      >
+                        {stat.label}
+                      </Text>
+                    </View>
+                  ))}
+                </>
               ) : (
-                <View className="flex-row justify-between">
-                  <View className="flex-1">
-                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
-                      6
-                    </Text>
-                    <Text className="text-xs text-figma-grey-600 font-urbanist">
-                      Favoris sauvegardés
-                    </Text>
-                  </View>
-                  <View
-                    className="w-px mx-4"
-                    style={{ backgroundColor: "rgba(228, 140, 38, 0.2)" }}
-                  />
-                  <View className="flex-1">
-                    <Text className="text-3xl font-bold text-figma-primary mb-1 font-urbanist">
-                      4.8
-                    </Text>
-                    <Text className="text-xs text-figma-grey-600 font-urbanist">
-                      Note moyenne
-                    </Text>
-                  </View>
-                </View>
+                <>
+                  {[
+                    { label: "Favoris", value: "6" },
+                    { label: "Note", value: "4.8" },
+                    { label: "Avis", value: "12" },
+                  ].map((stat, idx) => (
+                    <View
+                      key={idx}
+                      style={{
+                        flex: 1,
+                        backgroundColor: tokens.colors.roogo.neutral[100],
+                        borderRadius: 16,
+                        padding: 16,
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 20,
+                          fontFamily: "Urbanist-Bold",
+                          color: tokens.colors.roogo.primary[500],
+                          marginBottom: 4,
+                        }}
+                      >
+                        {stat.value}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontFamily: "Urbanist-Medium",
+                          color: tokens.colors.roogo.neutral[500],
+                        }}
+                      >
+                        {stat.label}
+                      </Text>
+                    </View>
+                  ))}
+                </>
               )}
             </View>
           </View>
         </View>
 
-        {/* Menu Items */}
-        <View className="px-4 pt-6">
-          <View className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-            {menuItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                className={`flex-row items-center justify-between py-4 px-5 ${
-                  index !== menuItems.length - 1
-                    ? "border-b border-figma-border"
-                    : ""
-                }`}
-                style={
-                  index === 0
-                    ? { backgroundColor: "rgba(255, 245, 235, 0.3)" }
-                    : undefined
-                }
-                onPress={item.onPress}
-                activeOpacity={0.7}
-              >
-                <Text
-                  className={`text-base font-urbanist ${
-                    index === 0
-                      ? "text-figma-primary font-semibold"
-                      : "text-figma-grey-900"
-                  }`}
-                >
-                  {item.label}
-                </Text>
-                <ChevronRight
-                  size={18}
-                  color={index === 0 ? "#E48C26" : "#9E9E9E"}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Logout Button */}
-          <TouchableOpacity
-            className="flex-row items-center justify-center py-4 mt-4 bg-white rounded-2xl border border-red-100"
-            activeOpacity={0.7}
-            onPress={handleSignOut}
+        {/* Menu Items - Revamped */}
+        <View style={{ paddingHorizontal: 24, paddingTop: 24, gap: 16 }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontFamily: "Urbanist-Bold",
+              color: tokens.colors.roogo.neutral[900],
+              marginBottom: 8,
+            }}
           >
-            <LogOut size={18} color="#DC2626" />
-            <Text className="ml-2 text-base font-medium text-red-600 font-urbanist">
+            Général
+          </Text>
+
+          {menuItems.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={item.onPress}
+              activeOpacity={0.7}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "white",
+                padding: 20,
+                borderRadius: 20,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 8,
+                elevation: 2,
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: tokens.colors.roogo.neutral[100],
+                  padding: 10,
+                  borderRadius: 12,
+                  marginRight: 16,
+                }}
+              >
+                <item.icon
+                  size={22}
+                  color={tokens.colors.roogo.neutral[900]}
+                  weight="duotone"
+                />
+              </View>
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 16,
+                  fontFamily: "Urbanist-SemiBold",
+                  color: tokens.colors.roogo.neutral[900],
+                }}
+              >
+                {item.label}
+              </Text>
+              <CaretRight
+                size={20}
+                color={tokens.colors.roogo.neutral[400]}
+                weight="bold"
+              />
+            </TouchableOpacity>
+          ))}
+
+          <TouchableOpacity
+            onPress={handleSignOut}
+            activeOpacity={0.7}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "white",
+              padding: 20,
+              borderRadius: 20,
+              marginTop: 8,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 8,
+              elevation: 2,
+              borderWidth: 1,
+              borderColor: "#FEE2E2",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#FEE2E2",
+                padding: 10,
+                borderRadius: 12,
+                marginRight: 16,
+              }}
+            >
+              <SignOut size={22} color="#DC2626" weight="duotone" />
+            </View>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 16,
+                fontFamily: "Urbanist-SemiBold",
+                color: "#DC2626",
+              }}
+            >
               Se déconnecter
             </Text>
           </TouchableOpacity>

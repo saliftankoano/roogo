@@ -1,26 +1,26 @@
 import { useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { Filter, Plus, Search } from "lucide-react-native";
+import { Funnel } from "phosphor-react-native";
 import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   Animated,
   RefreshControl,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import PropertyCard from "../components/PropertyCard";
-import { useUserType } from "../hooks/useUserType";
+import PropertyCard from "../../components/PropertyCard";
+import { useUserType } from "../../hooks/useUserType";
+import { tokens } from "../../theme/tokens";
 
 // Mock data for agent properties
 const mockProperties = [
   {
     id: 1,
     title: "Villa moderne à Ouagadougou",
-    price: "45,000,000",
+    price: "45000000",
     location: "Ouagadougou, Secteur 15",
     image: require("../../assets/images/white_villa.jpg"),
     status: "active",
@@ -35,7 +35,7 @@ const mockProperties = [
   {
     id: 2,
     title: "Appartement 3 pièces",
-    price: "150,000",
+    price: "150000",
     location: "Ouagadougou, Secteur 12",
     image: require("../../assets/images/white_villa_bg.jpg"),
     status: "active",
@@ -50,7 +50,7 @@ const mockProperties = [
   {
     id: 3,
     title: "Maison familiale spacieuse",
-    price: "35,000,000",
+    price: "35000000",
     location: "Ouagadougou, Secteur 8",
     image: require("../../assets/images/white_villa.jpg"),
     status: "pending",
@@ -69,7 +69,6 @@ export default function MyPropertiesScreen() {
   const { isOwner } = useUserType();
   const [refreshing, setRefreshing] = useState(false);
   const [properties, setProperties] = useState(mockProperties);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"price" | "date" | "views">("date");
@@ -78,20 +77,14 @@ export default function MyPropertiesScreen() {
   // Filter and sort properties
   const filteredProperties = properties
     .filter((property) => {
-      const matchesSearch =
-        property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.location.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus =
         !selectedStatus || property.status === selectedStatus;
-      return matchesSearch && matchesStatus;
+      return matchesStatus;
     })
     .sort((a, b) => {
       switch (sortBy) {
         case "price":
-          return (
-            parseInt(a.price.replace(/[^0-9]/g, "")) -
-            parseInt(b.price.replace(/[^0-9]/g, ""))
-          );
+          return parseInt(a.price, 10) - parseInt(b.price, 10);
         case "views":
           return (b.views || 0) - (a.views || 0);
         case "date":
@@ -140,9 +133,20 @@ export default function MyPropertiesScreen() {
   // Show loading state while user data is being fetched
   if (!isLoaded) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
-        <View className="flex-1 justify-center items-center">
-          <Text className="text-base text-figma-grey-600 font-urbanist">
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+        edges={["top"]}
+      >
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              color: tokens.colors.roogo.neutral[500],
+              fontFamily: "Urbanist-Medium",
+            }}
+          >
             Chargement...
           </Text>
         </View>
@@ -153,9 +157,20 @@ export default function MyPropertiesScreen() {
   // Redirect non-owners to home
   if (!isOwner) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
-        <View className="flex-1 justify-center items-center">
-          <Text className="text-base text-figma-grey-600 font-urbanist">
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+        edges={["top"]}
+      >
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              color: tokens.colors.roogo.neutral[500],
+              fontFamily: "Urbanist-Medium",
+            }}
+          >
             Accès réservé aux propriétaires
           </Text>
         </View>
@@ -165,25 +180,52 @@ export default function MyPropertiesScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case "en_ligne":
       case "active":
-        return "bg-green-100 text-green-800";
+        return tokens.colors.roogo.success;
+      case "en_attente":
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return tokens.colors.roogo.warning;
+      case "expired":
+        return tokens.colors.roogo.error;
       case "sold":
-        return "bg-blue-100 text-blue-800";
+        return "#3B82F6"; // Blue-500
       default:
-        return "bg-gray-100 text-gray-800";
+        return tokens.colors.roogo.neutral[500];
+    }
+  };
+
+  const getStatusBg = (status: string) => {
+    switch (status) {
+      case "en_ligne":
+      case "active":
+        return "#ECFDF5"; // light green
+      case "en_attente":
+      case "pending":
+        return "#FFFBEB"; // light yellow
+      case "expired":
+        return "#FEF2F2"; // light red
+      case "sold":
+        return "#EFF6FF"; // light blue
+      default:
+        return tokens.colors.roogo.neutral[100];
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
+      case "en_ligne":
+        return "En ligne";
+      case "en_attente":
+        return "En attente";
+      case "expired":
+        return "Expiré";
       case "active":
         return "Actif";
       case "pending":
         return "En attente";
       case "sold":
-        return "Vendu";
+        return "Louées";
       default:
         return "Inconnu";
     }
@@ -192,165 +234,208 @@ export default function MyPropertiesScreen() {
   // Header opacity animation
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100],
-    outputRange: [1, 0.9],
+    outputRange: [1, 0.98],
     extrapolate: "clamp",
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+      edges={["top"]}
+    >
       {/* Animated Header */}
       <Animated.View
         style={{
           opacity: headerOpacity,
           backgroundColor: "#FFFFFF",
-          paddingHorizontal: 16,
+          paddingHorizontal: 20,
           paddingVertical: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: "rgba(229, 231, 235, 0.5)",
+          borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          elevation: 4,
+          zIndex: 10,
         }}
       >
         {/* Header Title */}
-        <View className="flex-row justify-between items-center mb-6">
-          <View className="flex-1">
-            <Text className="text-2xl font-bold text-figma-grey-900 font-urbanist">
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 24,
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 28,
+                fontFamily: "Urbanist-Bold",
+                color: tokens.colors.roogo.neutral[900],
+              }}
+            >
               Mes Propriétés
             </Text>
-            <Text className="text-sm text-figma-grey-600 mt-1 font-urbanist">
+            <Text
+              style={{
+                fontSize: 15,
+                color: tokens.colors.roogo.neutral[500],
+                fontFamily: "Urbanist-Medium",
+                marginTop: 4,
+              }}
+            >
               Gérez vos annonces immobilières
             </Text>
           </View>
+
+          {/* Filter Button */}
           <TouchableOpacity
-            onPress={() => router.push("/(tabs)/add-property")}
-            className="ml-4"
+            onPress={() => setShowFilters(!showFilters)}
+            activeOpacity={0.7}
             style={{
-              backgroundColor: "#E48C26",
-              padding: 12,
-              borderRadius: 28,
-              shadowColor: "#E48C26",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 3,
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              backgroundColor: showFilters
+                ? tokens.colors.roogo.primary[500]
+                : tokens.colors.roogo.neutral[100],
+              alignItems: "center",
+              justifyContent: "center",
             }}
-            activeOpacity={0.8}
           >
-            <Plus size={22} color="white" />
+            <Funnel
+              size={20}
+              color={showFilters ? "white" : tokens.colors.roogo.neutral[900]}
+              weight={showFilters ? "fill" : "bold"}
+            />
           </TouchableOpacity>
         </View>
 
         {/* Stats Overview */}
-        <View className="flex-row justify-between mb-4">
-          <View
-            className="px-4 py-3.5 rounded-2xl flex-1 mr-2"
-            style={{
-              backgroundColor: "#ECFDF5",
-              borderWidth: 1,
-              borderColor: "rgba(16, 185, 129, 0.15)",
-            }}
-          >
-            <Text className="text-xs font-medium text-[#065F46] mb-1 font-urbanist">
-              Actives
-            </Text>
-            <Text className="text-2xl font-bold text-[#047857] font-urbanist">
-              {properties.filter((p) => p.status === "active").length}
-            </Text>
-          </View>
-          <View
-            className="px-4 py-3.5 rounded-2xl flex-1 mx-2"
-            style={{
-              backgroundColor: "#FFFBEB",
-              borderWidth: 1,
-              borderColor: "rgba(245, 158, 11, 0.15)",
-            }}
-          >
-            <Text className="text-xs font-medium text-[#78350F] mb-1 font-urbanist">
-              En attente
-            </Text>
-            <Text className="text-2xl font-bold text-[#B45309] font-urbanist">
-              {properties.filter((p) => p.status === "pending").length}
-            </Text>
-          </View>
-          <View
-            className="px-4 py-3.5 rounded-2xl flex-1 ml-2"
-            style={{
-              backgroundColor: "#EFF6FF",
-              borderWidth: 1,
-              borderColor: "rgba(59, 130, 246, 0.15)",
-            }}
-          >
-            <Text className="text-xs font-medium text-[#1E3A8A] mb-1 font-urbanist">
-              Vendues
-            </Text>
-            <Text className="text-2xl font-bold text-[#1E40AF] font-urbanist">
-              {properties.filter((p) => p.status === "sold").length}
-            </Text>
-          </View>
-        </View>
-
-        {/* Search and Filter Bar */}
-        <View className="flex-row mt-2">
-          <View
-            className="flex-1 flex-row items-center rounded-xl px-4 py-3 mr-2"
-            style={{
-              backgroundColor: "#F9FAFB",
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
-            }}
-          >
-            <Search size={18} color="#9E9E9E" />
-            <TextInput
-              placeholder="Rechercher une propriété..."
-              placeholderTextColor="#9E9E9E"
-              className="flex-1 ml-2 text-figma-grey-900 font-urbanist"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-          <TouchableOpacity
-            className="p-3 rounded-xl"
-            style={{
-              backgroundColor: showFilters ? "#E48C26" : "#F9FAFB",
-              borderWidth: 1,
-              borderColor: showFilters ? "#E48C26" : "#E5E7EB",
-            }}
-            onPress={() => setShowFilters(!showFilters)}
-            activeOpacity={0.7}
-          >
-            <Filter size={20} color={showFilters ? "white" : "#9E9E9E"} />
-          </TouchableOpacity>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginBottom: 4,
+            gap: 12,
+          }}
+        >
+          {[
+            {
+              label: "Actives",
+              count: properties.filter((p) => p.status === "active").length,
+              color: tokens.colors.roogo.success,
+              bg: "#ECFDF5",
+            },
+            {
+              label: "En attente",
+              count: properties.filter((p) => p.status === "pending").length,
+              color: tokens.colors.roogo.warning,
+              bg: "#FFFBEB",
+            },
+            {
+              label: "Louées",
+              count: properties.filter((p) => p.status === "sold").length,
+              color: "#3B82F6", // Blue-500
+              bg: "#EFF6FF",
+            },
+          ].map((stat, idx) => (
+            <View
+              key={idx}
+              style={{
+                flex: 1,
+                backgroundColor: stat.bg,
+                borderRadius: 16,
+                padding: 12,
+                alignItems: "center",
+                borderWidth: 1,
+                borderColor: stat.bg,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: "Urbanist-SemiBold",
+                  color: stat.color,
+                  marginBottom: 4,
+                  opacity: 0.8,
+                }}
+              >
+                {stat.label}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontFamily: "Urbanist-Bold",
+                  color: stat.color,
+                }}
+              >
+                {stat.count}
+              </Text>
+            </View>
+          ))}
         </View>
 
         {/* Filter Options */}
         {showFilters && (
           <View
-            className="mt-4 p-4 rounded-xl"
             style={{
-              backgroundColor: "#F9FAFB",
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
+              marginTop: 16,
+              backgroundColor: tokens.colors.roogo.neutral[100],
+              padding: 16,
+              borderRadius: 16,
             }}
           >
-            <Text className="text-sm font-semibold text-figma-grey-900 mb-3 font-urbanist">
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: "Urbanist-Bold",
+                color: tokens.colors.roogo.neutral[900],
+                marginBottom: 12,
+              }}
+            >
               Filtrer par statut
             </Text>
-            <View className="flex-row flex-wrap -m-1">
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 8,
+                marginBottom: 20,
+              }}
+            >
               {["active", "pending", "sold"].map((status) => (
                 <TouchableOpacity
                   key={status}
                   onPress={() =>
                     setSelectedStatus(selectedStatus === status ? null : status)
                   }
-                  className="m-1 px-4 py-2 rounded-full"
                   style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 100,
                     backgroundColor:
-                      selectedStatus === status ? "#E48C26" : "#E5E7EB",
+                      selectedStatus === status
+                        ? tokens.colors.roogo.primary[500]
+                        : "white",
+                    borderWidth: 1,
+                    borderColor:
+                      selectedStatus === status
+                        ? tokens.colors.roogo.primary[500]
+                        : "#E5E7EB",
                   }}
-                  activeOpacity={0.7}
                 >
                   <Text
-                    className="text-sm font-urbanist"
                     style={{
-                      color: selectedStatus === status ? "white" : "#374151",
+                      fontSize: 13,
+                      fontFamily: "Urbanist-SemiBold",
+                      color:
+                        selectedStatus === status
+                          ? "white"
+                          : tokens.colors.roogo.neutral[700],
                     }}
                   >
                     {getStatusText(status)}
@@ -359,10 +444,17 @@ export default function MyPropertiesScreen() {
               ))}
             </View>
 
-            <Text className="text-sm font-semibold text-figma-grey-900 mt-5 mb-3 font-urbanist">
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: "Urbanist-Bold",
+                color: tokens.colors.roogo.neutral[900],
+                marginBottom: 12,
+              }}
+            >
               Trier par
             </Text>
-            <View className="flex-row flex-wrap -m-1">
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {[
                 { id: "date", label: "Date" },
                 { id: "price", label: "Prix" },
@@ -373,17 +465,29 @@ export default function MyPropertiesScreen() {
                   onPress={() =>
                     setSortBy(option.id as "date" | "price" | "views")
                   }
-                  className="m-1 px-4 py-2 rounded-full"
                   style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 100,
                     backgroundColor:
-                      sortBy === option.id ? "#E48C26" : "#E5E7EB",
+                      sortBy === option.id
+                        ? tokens.colors.roogo.primary[500]
+                        : "white",
+                    borderWidth: 1,
+                    borderColor:
+                      sortBy === option.id
+                        ? tokens.colors.roogo.primary[500]
+                        : "#E5E7EB",
                   }}
-                  activeOpacity={0.7}
                 >
                   <Text
-                    className="text-sm font-urbanist"
                     style={{
-                      color: sortBy === option.id ? "white" : "#374151",
+                      fontSize: 13,
+                      fontFamily: "Urbanist-SemiBold",
+                      color:
+                        sortBy === option.id
+                          ? "white"
+                          : tokens.colors.roogo.neutral[700],
                     }}
                   >
                     {option.label}
@@ -405,37 +509,59 @@ export default function MyPropertiesScreen() {
           { useNativeDriver: true }
         )}
         scrollEventThrottle={16}
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
-        <View className="px-4 py-2">
+        <View style={{ padding: 20 }}>
           {/* Properties Grid */}
-          <View className="flex-row flex-wrap -mx-2">
+          <View style={{ gap: 20 }}>
             {filteredProperties.map((property) => (
-              <View key={property.id} className="w-full px-2 mb-4">
-                <View className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                  <PropertyCard
-                    property={{
-                      ...property,
-                      category:
-                        property.type === "Location"
-                          ? "Residential"
-                          : "Business",
-                      parking: 1, // Default value since it's required
+              <View
+                key={property.id}
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: 20,
+                  padding: 12,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 12,
+                  elevation: 3,
+                }}
+              >
+                <PropertyCard
+                  property={{
+                    ...property,
+                    category:
+                      property.type === "Location" ? "Residential" : "Business",
+                    parking: 1, // Default value since it's required
+                  }}
+                  showStats={true}
+                  showActions={true}
+                  onEdit={() => handleEdit(property.id)}
+                  onDelete={() => handleDelete(property.id)}
+                />
+                {/* Status Badge */}
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 24,
+                    right: 24,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 100,
+                    backgroundColor: getStatusBg(property.status),
+                    zIndex: 10,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontFamily: "Urbanist-Bold",
+                      color: getStatusColor(property.status),
                     }}
-                    showStats={true}
-                    showActions={true}
-                    onEdit={() => handleEdit(property.id)}
-                    onDelete={() => handleDelete(property.id)}
-                  />
-                  {/* Status Badge */}
-                  <View
-                    className={`absolute top-2 right-20 px-3 py-1 rounded-full shadow-sm ${getStatusColor(
-                      property.status
-                    )}`}
                   >
-                    <Text className="text-xs font-medium">
-                      {getStatusText(property.status)}
-                    </Text>
-                  </View>
+                    {getStatusText(property.status)}
+                  </Text>
                 </View>
               </View>
             ))}
