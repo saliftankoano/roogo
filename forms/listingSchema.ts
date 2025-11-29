@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getInterdictionIds } from "../utils/interdictions";
 
 export const listingSchema = z.object({
   // Step 1: Infos
@@ -40,7 +41,6 @@ export const listingSchema = z.object({
     .array(
       z.enum([
         "wifi",
-        "parking",
         "securite",
         "jardin",
         "solaires",
@@ -51,9 +51,7 @@ export const listingSchema = z.object({
     .optional(),
   cautionMois: z.coerce.number().int().min(0).max(12).optional(),
   interdictions: z
-    .array(
-      z.enum(["no_animaux", "no_fumeurs", "no_etudiants", "no_colocation"])
-    )
+    .array(z.enum(getInterdictionIds() as [string, ...string[]]))
     .optional(),
 });
 
@@ -73,7 +71,6 @@ export const CITIES = [
 
 export const EQUIPEMENTS = [
   { id: "wifi", label: "WiFi" },
-  { id: "parking", label: "Parking" },
   { id: "securite", label: "Sécurité" },
   { id: "jardin", label: "Jardin" },
   { id: "solaires", label: "Panneaux solaires" },
@@ -81,9 +78,5 @@ export const EQUIPEMENTS = [
   { id: "meuble", label: "Meublé" },
 ] as const;
 
-export const INTERDICTIONS = [
-  { id: "no_animaux", label: "Pas d'animaux" },
-  { id: "no_fumeurs", label: "Pas de fumeurs" },
-  { id: "no_etudiants", label: "Pas d'étudiants" },
-  { id: "no_colocation", label: "Pas de colocation" },
-] as const;
+// Re-export from utility for backward compatibility
+export { INTERDICTIONS_CONFIG as INTERDICTIONS } from "../utils/interdictions";

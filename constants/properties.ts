@@ -2,9 +2,9 @@ import type { ImageSourcePropType } from "react-native";
 
 // Image imports - React Native requires require() for images
 // @ts-ignore - React Native images must use require(), not ES6 imports
-const whiteVilla = require("../../assets/images/white_villa.jpg");
+const whiteVilla = require("../assets/images/white_villa.jpg");
 // @ts-ignore - React Native images must use require(), not ES6 imports
-const whiteVillaBg = require("../../assets/images/white_villa_bg.jpg");
+const whiteVillaBg = require("../assets/images/white_villa_bg.jpg");
 
 export type PropertyAgent = {
   name: string;
@@ -15,7 +15,8 @@ export type PropertyAgent = {
 };
 
 export type Property = {
-  id: number;
+  id: number; // Numeric ID for backward compatibility with mock data
+  uuid?: string; // Original UUID from database (for API-fetched properties)
   title: string;
   location: string;
   address: string;
