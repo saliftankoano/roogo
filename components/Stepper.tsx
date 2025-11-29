@@ -2,6 +2,7 @@ import { Check } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { tokens } from "../theme/tokens";
 
 interface Step {
   id: number;
@@ -85,26 +86,24 @@ const AnimatedStep: React.FC<{
               height: 32,
               borderRadius: 16,
               overflow: "hidden",
-              shadowColor: "#22C55E",
+              shadowColor: tokens.colors.roogo.success,
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.2,
               shadowRadius: 4,
               elevation: 3,
             }}
           >
-            <LinearGradient
-              colors={["#22C55E", "#16A34A"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
               style={{
                 width: "100%",
                 height: "100%",
                 alignItems: "center",
                 justifyContent: "center",
+                backgroundColor: tokens.colors.roogo.success,
               }}
             >
               <Check size={16} color="#FFFFFF" strokeWidth={3} />
-            </LinearGradient>
+            </View>
           </View>
         ) : isCurrent ? (
           <View
@@ -113,34 +112,32 @@ const AnimatedStep: React.FC<{
               height: 32,
               borderRadius: 16,
               overflow: "hidden",
-              shadowColor: "#3A8BFF",
+              shadowColor: tokens.colors.roogo.primary[500],
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.25,
               shadowRadius: 6,
               elevation: 4,
             }}
           >
-            <LinearGradient
-              colors={["#3A8BFF", "#2C74E6"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
               style={{
                 width: "100%",
                 height: "100%",
                 alignItems: "center",
                 justifyContent: "center",
+                backgroundColor: tokens.colors.roogo.primary[500],
               }}
             >
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight: "700",
+                  fontFamily: "Urbanist-Bold",
                   color: "#FFFFFF",
                 }}
               >
                 {step.id}
               </Text>
-            </LinearGradient>
+            </View>
           </View>
         ) : (
           <View
@@ -152,14 +149,14 @@ const AnimatedStep: React.FC<{
               justifyContent: "center",
               backgroundColor: "#FFFFFF",
               borderWidth: 2,
-              borderColor: "#E5E7EB",
+              borderColor: tokens.colors.roogo.neutral[200],
             }}
           >
             <Text
               style={{
                 fontSize: 13,
-                fontWeight: "600",
-                color: "#D1D5DB",
+                fontFamily: "Urbanist-SemiBold",
+                color: tokens.colors.roogo.neutral[400],
               }}
             >
               {step.id}
@@ -172,10 +169,14 @@ const AnimatedStep: React.FC<{
       <Text
         style={{
           fontSize: 11,
-          fontWeight: isCurrent ? "600" : "500",
+          fontFamily: isCurrent ? "Urbanist-Bold" : "Urbanist-Medium",
           marginTop: 6,
           textAlign: "center",
-          color: isCurrent ? "#3A8BFF" : isCompleted ? "#22C55E" : "#9CA3AF",
+          color: isCurrent
+            ? tokens.colors.roogo.primary[500]
+            : isCompleted
+              ? tokens.colors.roogo.success
+              : tokens.colors.roogo.neutral[400],
         }}
       >
         {step.label}
@@ -219,7 +220,7 @@ const AnimatedConnectingLine: React.FC<{
         flex: 0.8,
         marginHorizontal: 6,
         marginTop: -20,
-        backgroundColor: "#E5E7EB",
+        backgroundColor: tokens.colors.roogo.neutral[200],
         borderRadius: 1,
         overflow: "hidden",
       }}
@@ -228,7 +229,7 @@ const AnimatedConnectingLine: React.FC<{
         style={{
           width: animatedWidth,
           height: "100%",
-          backgroundColor: "#22C55E",
+          backgroundColor: tokens.colors.roogo.success,
           borderRadius: 1,
         }}
       />

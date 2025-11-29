@@ -259,7 +259,7 @@ export async function submitProperty(
         }
       } catch (imageError) {
         console.error("Error uploading images:", imageError);
-        // Don't fail the whole submission if images fail
+          // Don't fail the whole submission if images fail
         // The property is already created, images can be added later
       }
     }

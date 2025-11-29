@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   TouchableOpacityProps,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { tokens } from "../theme/tokens";
 
 interface PrimaryButtonProps extends TouchableOpacityProps {
   title: string;
@@ -27,11 +27,11 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
         disabled={true}
         style={[
           {
-            height: 52,
-            borderRadius: 12,
+            height: 54,
+            borderRadius: 100,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#E5E7EB",
+            backgroundColor: "#F3F4F6",
           },
           touchableProps.style,
         ]}
@@ -42,7 +42,7 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
           <Text
             style={{
               fontSize: 16,
-              fontWeight: "600",
+              fontFamily: "Urbanist-Bold",
               color: "#9CA3AF",
             }}
           >
@@ -60,10 +60,12 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
       activeOpacity={0.85}
       style={[
         {
-          height: 52,
-          borderRadius: 12,
-          overflow: "hidden",
-          shadowColor: "#3A8BFF",
+          height: 54,
+          borderRadius: 100,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: tokens.colors.roogo.primary[500],
+          shadowColor: tokens.colors.roogo.primary[500],
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,
@@ -72,32 +74,19 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
         touchableProps.style,
       ]}
     >
-      <LinearGradient
-        colors={["#3A8BFF", "#2C74E6"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{
-          flex: 1,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          paddingHorizontal: 24,
-        }}
-      >
-        {loading ? (
-          <ActivityIndicator color="#FFFFFF" size="small" />
-        ) : (
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "600",
-              color: "#FFFFFF",
-            }}
-          >
-            {title}
-          </Text>
-        )}
-      </LinearGradient>
+      {loading ? (
+        <ActivityIndicator color="#FFFFFF" size="small" />
+      ) : (
+        <Text
+          style={{
+            fontSize: 16,
+            fontFamily: "Urbanist-Bold",
+            color: "#FFFFFF",
+          }}
+        >
+          {title}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };

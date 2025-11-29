@@ -1,3 +1,4 @@
+import { tokens } from "../theme/tokens";
 import { BlurView } from "expo-blur";
 import {
   Check,
@@ -115,7 +116,15 @@ export const SubmissionOverlay: React.FC<SubmissionOverlayProps> = ({
   const getIcon = () => {
     if (isSuccess) {
       return (
-        <View style={[styles.iconCircle, { backgroundColor: "#10B981" }]}>
+        <View
+          style={[
+            styles.iconCircle,
+            {
+              backgroundColor: tokens.colors.roogo.success,
+              shadowColor: tokens.colors.roogo.success,
+            },
+          ]}
+        >
           <Check size={48} color="white" strokeWidth={3} />
         </View>
       );
@@ -129,7 +138,12 @@ export const SubmissionOverlay: React.FC<SubmissionOverlayProps> = ({
           : Home;
 
     return (
-      <View style={[styles.iconCircle, { backgroundColor: "#3B82F6" }]}>
+      <View
+        style={[
+          styles.iconCircle,
+          { backgroundColor: tokens.colors.roogo.primary[500] },
+        ]}
+      >
         <IconComponent size={40} color="white" />
       </View>
     );
@@ -157,7 +171,7 @@ export const SubmissionOverlay: React.FC<SubmissionOverlayProps> = ({
             </Animated.View>
 
             <Text style={styles.title}>
-              {isSuccess ? "Annonce publiée !" : "Publication en cours"}
+              {isSuccess ? "Annonce soumise !" : "Soumission en cours"}
             </Text>
 
             <Text style={styles.statusText}>{status}</Text>
@@ -227,7 +241,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#3B82F6",
+    shadowColor: tokens.colors.roogo.primary[500],
     shadowOffset: {
       width: 0,
       height: 8,
@@ -239,13 +253,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#111827",
+    color: tokens.colors.roogo.neutral[900],
     marginBottom: 8,
     textAlign: "center",
   },
   statusText: {
     fontSize: 16,
-    color: "#6B7280",
+    color: tokens.colors.roogo.neutral[500],
     textAlign: "center",
     marginBottom: 24,
     height: 24,
@@ -253,7 +267,7 @@ const styles = StyleSheet.create({
   progressBarContainer: {
     width: "100%",
     height: 6,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: tokens.colors.roogo.neutral[100],
     borderRadius: 3,
     overflow: "hidden",
     marginTop: 16,
@@ -265,7 +279,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#3B82F6",
+    backgroundColor: tokens.colors.roogo.primary[500],
     borderRadius: 3,
   },
 });

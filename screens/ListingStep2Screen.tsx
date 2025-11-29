@@ -1,14 +1,27 @@
 import { ChevronLeft } from "lucide-react-native";
+import {
+  Armchair,
+  Bed,
+  Car,
+  PottedPlant,
+  Ruler,
+  ShieldCheck,
+  Shower,
+  Sun,
+  SwimmingPool,
+  WifiHigh,
+} from "phosphor-react-native";
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChipSelectable } from "../components/ChipSelectable";
-import { OutlinedField } from "../components/OutlinedField";
-import { PhotoDropZone } from "../components/PhotoDropZone";
-import { PrimaryButton } from "../components/PrimaryButton";
-import { Stepper } from "../components/Stepper";
-import type { ListingDraft } from "../forms/listingSchema";
-import { EQUIPEMENTS, INTERDICTIONS } from "../forms/listingSchema";
+import { ChipSelectable } from "@/components/ChipSelectable";
+import { OutlinedField } from "@/components/OutlinedField";
+import { PhotoDropZone } from "@/components/PhotoDropZone";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { Stepper } from "@/components/Stepper";
+import type { ListingDraft } from "@/forms/listingSchema";
+import { EQUIPEMENTS, INTERDICTIONS } from "@/forms/listingSchema";
+import { tokens } from "@/theme/tokens";
 
 interface ListingStep2ScreenProps {
   navigation: any;
@@ -47,25 +60,44 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
     handleFieldChange("interdictions", updated);
   };
 
+  const getEquipementIcon = (id: string) => {
+    switch (id) {
+      case "wifi":
+        return <WifiHigh size={18} color={tokens.colors.roogo.neutral[500]} />;
+      case "securite":
+        return (
+          <ShieldCheck size={18} color={tokens.colors.roogo.neutral[500]} />
+        );
+      case "jardin":
+        return (
+          <PottedPlant size={18} color={tokens.colors.roogo.neutral[500]} />
+        );
+      case "solaires":
+        return <Sun size={18} color={tokens.colors.roogo.neutral[500]} />;
+      case "piscine":
+        return (
+          <SwimmingPool size={18} color={tokens.colors.roogo.neutral[500]} />
+        );
+      case "meuble":
+        return <Armchair size={18} color={tokens.colors.roogo.neutral[500]} />;
+      default:
+        return null;
+    }
+  };
+
   const isValid = formData.photos && formData.photos.length >= 3;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+    <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 24,
-          paddingVertical: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: "#F3F4F6",
-        }}
-      >
-        <TouchableOpacity onPress={onBack} style={{ marginRight: 12 }}>
-          <ChevronLeft size={24} color="#111111" />
+      <View className="flex-row items-center px-6 py-4 border-b border-roogo-neutral-100">
+        <TouchableOpacity
+          onPress={onBack}
+          className="mr-4 p-2 -ml-2 rounded-full active:bg-roogo-neutral-100"
+        >
+          <ChevronLeft size={28} color={tokens.colors.roogo.neutral[900]} />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: "600", color: "#111827" }}>
+        <Text className="text-xl font-urbanist font-bold text-roogo-neutral-900">
           Ajouter une propriété
         </Text>
       </View>
@@ -82,30 +114,18 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
       />
 
       <ScrollView
-        style={{ flex: 1, paddingHorizontal: 24 }}
+        className="flex-1 px-6"
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
       >
         {/* Grid inputs: Chambres, Salles de bain, Superficie */}
-        <View
-          style={{
-            flexDirection: "row",
-            gap: 12,
-            marginTop: 20,
-            marginBottom: 8,
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: "600",
-                color: "#6B7280",
-                marginBottom: 6,
-              }}
-            >
-              Chambres
-            </Text>
+        <View className="flex-row gap-3 mb-2">
+          <View className="flex-1">
             <OutlinedField
+              label="Chambres"
+              labelIcon={
+                <Bed size={18} color={tokens.colors.roogo.neutral[900]} />
+              }
               placeholder="0"
               value={formData.chambres?.toString() || ""}
               onChangeText={(value) => {
@@ -119,18 +139,12 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
               error={errors.chambres}
             />
           </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: "600",
-                color: "#6B7280",
-                marginBottom: 6,
-              }}
-            >
-              Salles de bain
-            </Text>
+          <View className="flex-1">
             <OutlinedField
+              label="Douche(s)"
+              labelIcon={
+                <Shower size={18} color={tokens.colors.roogo.neutral[900]} />
+              }
               placeholder="0"
               value={formData.sdb?.toString() || ""}
               onChangeText={(value) => {
@@ -144,18 +158,12 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
               error={errors.sdb}
             />
           </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: "600",
-                color: "#6B7280",
-                marginBottom: 6,
-              }}
-            >
-              Superficie (m²)
-            </Text>
+          <View className="flex-1">
             <OutlinedField
+              label="Superficie"
+              labelIcon={
+                <Ruler size={18} color={tokens.colors.roogo.neutral[900]} />
+              }
               placeholder="0"
               value={formData.superficie?.toString() || ""}
               onChangeText={(value) => {
@@ -174,6 +182,7 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
         {/* Nombre de véhicules */}
         <OutlinedField
           label="Nombre de véhicules"
+          labelIcon={<Car size={18} color={tokens.colors.roogo.neutral[900]} />}
           placeholder="0"
           value={formData.vehicules?.toString() || ""}
           onChangeText={(value) => {
@@ -188,40 +197,24 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
         />
 
         {/* Description */}
-        <View style={{ marginBottom: 24 }}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: "600",
-              color: "#374151",
-              marginBottom: 8,
-            }}
-          >
-            Description
-          </Text>
+        <View className="mb-16">
           <OutlinedField
+            label="Description"
             placeholder="Décrivez votre propriété..."
             value={formData.description || ""}
             onChangeText={(value) => handleFieldChange("description", value)}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
-            style={{ minHeight: 100 }}
+            style={{ minHeight: 120 }}
             error={errors.description}
           />
         </View>
 
         {/* Photos */}
-        <View style={{ marginBottom: 24, marginTop: 18 }}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: "600",
-              color: "#374151",
-              marginBottom: 12,
-            }}
-          >
-            Photos <Text style={{ color: "#EF4444" }}>*</Text>
+        <View className="mb-8 mt-4">
+          <Text className="text-sm font-bold text-roogo-neutral-900 mb-3 font-urbanist">
+            Photos <Text className="text-roogo-error">*</Text>
           </Text>
           <PhotoDropZone
             photos={formData.photos || []}
@@ -233,40 +226,40 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
         </View>
 
         {/* Équipements et services */}
-        <View style={{ marginBottom: 16 }}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: "600",
-              color: "#374151",
-              marginBottom: 10,
-            }}
-          >
+        <View className="mb-6">
+          <Text className="text-sm font-bold text-roogo-neutral-900 mb-3 font-urbanist">
             Équipements et services
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 8,
-              paddingVertical: 6,
-            }}
-          >
-            {EQUIPEMENTS.map((equipement) => (
-              <ChipSelectable
-                key={equipement.id}
-                label={equipement.label}
-                selected={(formData.equipements || []).includes(
-                  equipement.id as any
-                )}
-                onPress={() => handleEquipementToggle(equipement.id)}
-              />
-            ))}
+          <View className="flex-row flex-wrap gap-2">
+            {EQUIPEMENTS.map((equipement) => {
+              const icon = getEquipementIcon(equipement.id);
+              const isSelected = (formData.equipements || []).includes(
+                equipement.id as any
+              );
+              // Clone icon with correct color if selected
+              const iconElement = icon
+                ? React.cloneElement(icon as any, {
+                    color: isSelected
+                      ? "#FFFFFF"
+                      : tokens.colors.roogo.neutral[500],
+                  })
+                : null;
+
+              return (
+                <ChipSelectable
+                  key={equipement.id}
+                  label={equipement.label}
+                  icon={iconElement}
+                  selected={isSelected}
+                  onPress={() => handleEquipementToggle(equipement.id)}
+                />
+              );
+            })}
           </View>
         </View>
 
         {/* Conditions de location */}
-        <View style={{ marginBottom: 16 }}>
+        <View className="mb-8">
           {/* Caution */}
           <OutlinedField
             label="Caution (en mois de loyer)"
@@ -284,54 +277,49 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
           />
 
           {/* Interdictions */}
-          <View>
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: "600",
-                color: "#6B7280",
-                marginBottom: 8,
-              }}
-            >
+          <View className="mt-4">
+            <Text className="text-sm font-bold text-roogo-neutral-900 mb-3 font-urbanist">
               Interdictions
             </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: 8,
-                paddingVertical: 6,
-              }}
-            >
-              {INTERDICTIONS.map((interdiction) => (
-                <ChipSelectable
-                  key={interdiction.id}
-                  label={interdiction.label}
-                  selected={(formData.interdictions || []).includes(
-                    interdiction.id as any
-                  )}
-                  onPress={() => handleInterdictionToggle(interdiction.id)}
-                />
-              ))}
+            <View className="flex-row flex-wrap justify-between">
+              {INTERDICTIONS.map((interdiction) => {
+                const Icon = interdiction.icon;
+                const isSelected = (formData.interdictions || []).includes(
+                  interdiction.id as any
+                );
+                return (
+                  <View
+                    key={interdiction.id}
+                    style={{ width: "48%", marginBottom: 8 }}
+                  >
+                    <ChipSelectable
+                      label={interdiction.label}
+                      icon={
+                        <Icon
+                          size={18}
+                          color={
+                            isSelected
+                              ? "#FFFFFF"
+                              : tokens.colors.roogo.neutral[500]
+                          }
+                        />
+                      }
+                      selected={isSelected}
+                      onPress={() => handleInterdictionToggle(interdiction.id)}
+                      style={{ marginRight: 0, width: "100%" }}
+                    />
+                  </View>
+                );
+              })}
             </View>
           </View>
         </View>
 
-        <View style={{ height: 80 }} />
+        {/* Static Footer Button */}
+        <View className="mb-8">
+          <PrimaryButton title="Suivant" onPress={onNext} disabled={!isValid} />
+        </View>
       </ScrollView>
-
-      {/* Sticky footer */}
-      <View
-        style={{
-          paddingHorizontal: 24,
-          paddingVertical: 16,
-          borderTopWidth: 1,
-          borderTopColor: "#F3F4F6",
-          backgroundColor: "#FFFFFF",
-        }}
-      >
-        <PrimaryButton title="Suivant" onPress={onNext} disabled={!isValid} />
-      </View>
     </SafeAreaView>
   );
 };

@@ -3,13 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import AgentOnly from "../components/AgentOnly";
-import { SubmissionOverlay } from "../components/SubmissionOverlay";
-import { listingSchema, type ListingDraft } from "../forms/listingSchema";
-import { submitProperty } from "../services/propertyService";
-import { ListingStep1Screen } from "../screens/ListingStep1Screen";
-import { ListingStep2Screen } from "../screens/ListingStep2Screen";
-import { ListingStep3Screen } from "../screens/ListingStep3Screen";
+import AgentOnly from "../../components/AgentOnly";
+import { SubmissionOverlay } from "../../components/SubmissionOverlay";
+import { listingSchema, type ListingDraft } from "../../forms/listingSchema";
+import { submitProperty } from "../../services/propertyService";
+import { ListingStep1Screen } from "../../screens/ListingStep1Screen";
+import { ListingStep2Screen } from "../../screens/ListingStep2Screen";
+import { ListingStep3Screen } from "../../screens/ListingStep3Screen";
 
 export default function AddPropertyScreen() {
   const navigation = useNavigation();
@@ -181,7 +181,7 @@ export default function AddPropertyScreen() {
 
       // Success
       setSubmissionSuccess(true);
-      setSubmissionStatus("Terminé !");
+      setSubmissionStatus("Votre annonce est en cours de révision");
 
       console.log(
         "Property submitted successfully:",

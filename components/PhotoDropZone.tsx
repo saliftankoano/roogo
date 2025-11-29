@@ -2,6 +2,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Camera, X } from "lucide-react-native";
 import React from "react";
 import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
+import { tokens } from "../theme/tokens";
 
 interface Photo {
   uri: string;
@@ -110,28 +111,47 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
       {/* Drop zone button */}
       <TouchableOpacity
         onPress={handleAddPhoto}
+        activeOpacity={0.8}
         style={{
           borderWidth: 2,
           borderStyle: "dashed",
-          borderColor: error ? "#EF4444" : "#F59E0B",
-          borderRadius: 12,
-          padding: 24,
+          borderColor: error
+            ? tokens.colors.roogo.error
+            : tokens.colors.roogo.primary[500],
+          borderRadius: 16,
+          padding: 32,
           alignItems: "center",
-          backgroundColor: "#FFFBF0",
+          backgroundColor: tokens.colors.roogo.secondary[100],
         }}
       >
-        <Camera size={32} color="#F59E0B" />
+        <View
+          style={{
+            backgroundColor: "#FFFFFF",
+            padding: 12,
+            borderRadius: 50,
+            marginBottom: 12,
+          }}
+        >
+          <Camera size={32} color={tokens.colors.roogo.primary[500]} />
+        </View>
         <Text
           style={{
-            color: "#F59E0B",
-            fontWeight: "600",
-            marginTop: 8,
-            fontSize: 14,
+            color: tokens.colors.roogo.primary[500],
+            fontWeight: "700",
+            fontSize: 15,
+            fontFamily: "Urbanist-Bold",
           }}
         >
           Ajouter des photos
         </Text>
-        <Text style={{ color: "#9CA3AF", fontSize: 12, marginTop: 4 }}>
+        <Text
+          style={{
+            color: tokens.colors.roogo.neutral[500],
+            fontSize: 13,
+            marginTop: 4,
+            fontFamily: "Urbanist-Medium",
+          }}
+        >
           {photos.length}/{maxPhotos} photos • Min. {minPhotos}
         </Text>
       </TouchableOpacity>
@@ -140,9 +160,10 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
         <Text
           style={{
             fontSize: 12,
-            color: "#EF4444",
+            color: tokens.colors.roogo.error,
             marginTop: 6,
             fontWeight: "500",
+            fontFamily: "Urbanist-Medium",
           }}
         >
           {error}
@@ -151,13 +172,14 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
 
       {/* Photo grid preview */}
       {photos.length > 0 && (
-        <View style={{ marginTop: 12 }}>
+        <View style={{ marginTop: 16 }}>
           <Text
             style={{
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: "600",
-              color: "#6B7280",
-              marginBottom: 8,
+              color: tokens.colors.roogo.neutral[700],
+              marginBottom: 10,
+              fontFamily: "Urbanist-SemiBold",
             }}
           >
             Photos ajoutées ({photos.length})
@@ -170,7 +192,7 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
                   style={{
                     width: 80,
                     height: 80,
-                    borderRadius: 8,
+                    borderRadius: 12,
                   }}
                   resizeMode="cover"
                 />
@@ -180,7 +202,7 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
                     position: "absolute",
                     top: -6,
                     right: -6,
-                    backgroundColor: "#EF4444",
+                    backgroundColor: tokens.colors.roogo.error,
                     borderRadius: 12,
                     width: 24,
                     height: 24,
@@ -191,9 +213,11 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
                     shadowOpacity: 0.2,
                     shadowRadius: 3,
                     elevation: 4,
+                    borderWidth: 2,
+                    borderColor: "#FFFFFF",
                   }}
                 >
-                  <X size={14} color="white" strokeWidth={2.5} />
+                  <X size={12} color="white" strokeWidth={3} />
                 </TouchableOpacity>
               </View>
             ))}
