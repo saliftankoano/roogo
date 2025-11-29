@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -28,6 +28,7 @@ export default function PhotoGallery({
 }: PhotoGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const scrollViewRef = useRef<ScrollView>(null);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible && scrollViewRef.current) {
@@ -99,73 +100,66 @@ export default function PhotoGallery({
           }}
         >
           {/* Top Header Bar */}
-          <SafeAreaView
-            edges={["top"]}
+          <View
             style={{
               position: "absolute",
-              top: 0,
+              top: Math.max(insets.top, 20) + 10, // Safe area + margin
               left: 0,
               right: 0,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingHorizontal: 16,
+              zIndex: 50,
               pointerEvents: "box-none",
             }}
           >
+            {/* Close Button */}
+            <Pressable
+              onPress={onClose}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 24,
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                alignItems: "center",
+                justifyContent: "center",
+                elevation: 10,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+              }}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <X size={24} color="white" strokeWidth={2.5} />
+            </Pressable>
+
+            {/* Photo Counter */}
             <View
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
                 paddingHorizontal: 16,
-                paddingVertical: 12,
-                pointerEvents: "box-none",
+                paddingVertical: 8,
+                borderRadius: 20,
+                pointerEvents: "none",
               }}
             >
-              {/* Close Button */}
-              <Pressable
-                onPress={onClose}
+              <Text
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: "rgba(0, 0, 0, 0.7)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  elevation: 10,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
-                }}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <X size={24} color="white" strokeWidth={2.5} />
-              </Pressable>
-
-              {/* Photo Counter */}
-              <View
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 20,
-                  pointerEvents: "none",
+                  color: "white",
+                  fontSize: 14,
+                  fontWeight: "600",
+                  fontFamily: "Urbanist",
                 }}
               >
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 14,
-                    fontWeight: "600",
-                    fontFamily: "Urbanist",
-                  }}
-                >
-                  {currentIndex + 1} / {images.length}
-                </Text>
-              </View>
-
-              {/* Spacer */}
-              <View style={{ width: 48 }} />
+                {currentIndex + 1} / {images.length}
+              </Text>
             </View>
-          </SafeAreaView>
+
+            {/* Spacer to center the counter relative to space between buttons if there were more */}
+            <View style={{ width: 48 }} />
+          </View>
 
           {/* Bottom Dots Indicator */}
           {images.length > 1 && (

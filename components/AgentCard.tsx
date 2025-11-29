@@ -19,7 +19,6 @@ export default function AgentCard({ agent, onContactPress }: AgentCardProps) {
         <Text className="text-base font-semibold text-gray-900">
           {agent.name}
         </Text>
-        <Text className="text-sm text-gray-500">{agent.agency}</Text>
       </View>
 
       <TouchableOpacity

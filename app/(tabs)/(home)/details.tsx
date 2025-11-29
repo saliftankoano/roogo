@@ -1,27 +1,30 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import {
-  ArrowLeft,
-  Ban,
-  Bath,
-  BedDouble,
+  Bed,
   Camera,
   Car,
-  DollarSign,
+  CaretLeft,
+  Coins,
   Heart,
   MapPin,
   Ruler,
-  Share2,
-  Shield,
-  Sofa,
+  ShareNetwork,
+  ShieldCheck,
+  Shower,
   Sun,
-  Trees,
-  Tv,
-  Waves,
-  Wifi,
-} from "lucide-react-native";
-import { useMemo, useState } from "react";
+  SwimmingPool,
+  Television,
+  Tree,
+  WarningCircle,
+  WifiHigh,
+} from "phosphor-react-native";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
+  Animated,
+  Easing,
   Image,
   ScrollView,
   StatusBar,
@@ -30,15 +33,17 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AgentCard from "../../components/AgentCard";
-import AuthPromptModal from "../../components/AuthPromptModal";
-import ContactSheet from "../../components/ContactSheet";
-import PhotoGallery from "../../components/PhotoGallery";
-import type { Property } from "../../constants/properties";
-import { properties } from "../../constants/properties";
-
-const formatPrice = (price: string) =>
-  price.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+import AgentCard from "../../../components/AgentCard";
+import AuthPromptModal from "../../../components/AuthPromptModal";
+import ContactSheet from "../../../components/ContactSheet";
+import PhotoGallery from "../../../components/PhotoGallery";
+import { PrimaryButton } from "../../../components/PrimaryButton";
+import type { Property } from "../../../constants/properties";
+import { properties } from "../../../constants/properties";
+import { fetchPropertyById } from "../../../services/propertyFetchService";
+import { tokens } from "../../../theme/tokens";
+import { formatPrice } from "../../../utils/formatting";
+import { getInterdictionByLabel } from "../../../utils/interdictions";
 
 export default function PropertyDetailsScreen() {
   const router = useRouter();
@@ -50,330 +55,352 @@ export default function PropertyDetailsScreen() {
   const { user } = useUser();
   const isAuthenticated = !!user;
 
-  const property: Property | undefined = useMemo(() => {
-    if (!id) return undefined;
-    const numericId = Array.isArray(id)
-      ? parseInt(id[0], 10)
-      : parseInt(id, 10);
-    if (Number.isNaN(numericId)) return undefined;
-    return properties.find((item) => item.id === numericId);
+  const [property, setProperty] = useState<Property | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+
+  const bounceAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: -4,
+          duration: 600,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [bounceAnim]);
+
+  useEffect(() => {
+    const loadProperty = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+
+      const propertyId = Array.isArray(id) ? id[0] : id;
+      const isUUID = propertyId.includes("-");
+
+      try {
+        setLoading(true);
+        if (isUUID) {
+          const fetchedProperty = await fetchPropertyById(propertyId);
+          setProperty(fetchedProperty || undefined);
+        } else {
+          const numericId = parseInt(propertyId, 10);
+          if (!Number.isNaN(numericId)) {
+            const mockProperty = properties.find(
+              (item) => item.id === numericId
+            );
+            setProperty(mockProperty);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading property:", error);
+        const numericId = parseInt(propertyId, 10);
+        if (!Number.isNaN(numericId)) {
+          const mockProperty = properties.find((item) => item.id === numericId);
+          setProperty(mockProperty);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProperty();
   }, [id]);
 
-  if (!property) {
+  if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <StatusBar barStyle="dark-content" />
-        <Text className="text-lg font-semibold text-gray-800">
-          Propriété introuvable.
-        </Text>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="mt-4 px-4 py-2 bg-blue-500 rounded-full"
-        >
-          <Text className="text-white font-semibold">Retour</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      <View className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator
+          size="large"
+          color={tokens.colors.roogo.primary[500]}
+        />
+      </View>
     );
   }
 
+  if (!property) {
+    return (
+      <View className="flex-1 bg-white items-center justify-center px-6">
+        <Text className="text-lg font-urbanist-bold text-roogo-neutral-900 text-center mb-4">
+          Propriété introuvable.
+        </Text>
+        <PrimaryButton
+          title="Retour à l'accueil"
+          onPress={() => router.back()}
+        />
+      </View>
+    );
+  }
+
+  const getAmenityIcon = (amenity: string) => {
+    const lower = amenity.toLowerCase();
+    if (lower.includes("wifi") || lower.includes("internet")) return WifiHigh;
+    if (lower.includes("piscine")) return SwimmingPool;
+    if (lower.includes("solaire") || lower.includes("panneau")) return Sun;
+    if (lower.includes("sécurité") || lower.includes("gardien"))
+      return ShieldCheck;
+    if (lower.includes("cinéma") || lower.includes("tv")) return Television;
+    if (lower.includes("jardin") || lower.includes("parc")) return Tree;
+    return WarningCircle;
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-transparent">
-      <StatusBar barStyle="dark-content" />
+    <View className="flex-1 bg-white">
+      <StatusBar barStyle="light-content" />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        className="bg-transparent"
+        contentContainerStyle={{ paddingBottom: property.agent ? 0 : 120 }}
+        bounces={false}
       >
-        <View className="relative">
+        {/* Immersive Header Image */}
+        <View className="h-[420px] relative w-full">
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={() => {
-              const images = property.images || [property.image];
-              if (images.length > 0) {
-                setGalleryInitialIndex(0);
-                setIsGalleryVisible(true);
-              }
+              setGalleryInitialIndex(0);
+              setIsGalleryVisible(true);
             }}
+            className="w-full h-full"
           >
-            <Image source={property.image} className="w-full h-[360px]" />
-
-            {/* Photo Counter Badge */}
-            {((property.images && property.images.length > 1) ||
-              (!property.images && property.image)) && (
-              <View className="absolute bottom-4 right-4 bg-black/70 px-3 py-2 rounded-full flex-row items-center">
-                <Camera size={16} color="white" />
-                <Text className="ml-2 text-white text-sm font-semibold font-urbanist">
-                  {property.images ? property.images.length : 1} photo
-                  {property.images && property.images.length > 1 ? "s" : ""}
-                </Text>
-              </View>
-            )}
+            <Image
+              source={property.image}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+            <LinearGradient
+              colors={["rgba(0,0,0,0.6)", "transparent", "rgba(0,0,0,0.3)"]}
+              style={{ position: "absolute", inset: 0 }}
+            />
           </TouchableOpacity>
 
-          {/* Photo Thumbnails */}
-          {property.images && property.images.length > 1 && (
-            <View className="absolute bottom-4 left-4 flex-row gap-2">
-              {property.images.slice(0, 3).map((img, index) => (
-                <TouchableOpacity
-                  key={index}
-                  activeOpacity={0.9}
-                  onPress={() => {
-                    setGalleryInitialIndex(index);
-                    setIsGalleryVisible(true);
-                  }}
-                  className="w-20 h-20 rounded-xl overflow-hidden border-2 border-white"
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 3.84,
-                    elevation: 5,
-                  }}
-                >
-                  <Image
-                    source={img}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                  />
-                </TouchableOpacity>
-              ))}
+          {/* Header Actions */}
+          <SafeAreaView className="absolute top-0 left-0 right-0 flex-row justify-between items-center px-6">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="w-10 h-10 rounded-full bg-white/20 items-center justify-center backdrop-blur-md"
+            >
+              <CaretLeft size={24} color="#FFFFFF" weight="bold" />
+            </TouchableOpacity>
+
+            <View className="flex-row gap-3">
+              <TouchableOpacity className="w-10 h-10 rounded-full bg-white/20 items-center justify-center backdrop-blur-md">
+                <ShareNetwork size={20} color="#FFFFFF" weight="bold" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="w-10 h-10 rounded-full bg-white/20 items-center justify-center backdrop-blur-md"
+                onPress={() => {
+                  if (!isAuthenticated) setAuthPromptVisible(true);
+                }}
+              >
+                <Heart size={20} color="#FFFFFF" weight="bold" />
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+
+          {/* Photo Counter Badge - Explicit Button with Icon Bounce Animation */}
+          <View
+            style={{
+              position: "absolute",
+              bottom: 48,
+              right: 24,
+              zIndex: 10,
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                setGalleryInitialIndex(0);
+                setIsGalleryVisible(true);
+              }}
+              className="bg-black/70 px-4 py-2.5 rounded-full flex-row items-center backdrop-blur-md border border-white/20 shadow-lg shadow-black/20"
+            >
+              <Animated.View
+                style={{ transform: [{ translateY: bounceAnim }] }}
+              >
+                <Camera size={16} color="white" weight="fill" />
+              </Animated.View>
+              <Text className="ml-2 text-white text-sm font-urbanist-bold">
+                Voir les photos ({property.images ? property.images.length : 1})
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Main Content - Overlapping Sheet */}
+        <View className="-mt-8 bg-white rounded-t-[32px] px-6 pt-8 min-h-screen shadow-lg shadow-black/10">
+          {/* Header Info */}
+          <View className="flex-row justify-between items-start mb-2">
+            <View className="flex-1 mr-4">
+              <Text className="text-2xl font-urbanist-bold text-roogo-neutral-900 mb-1 leading-tight">
+                {property.propertyType === "Villa"
+                  ? "Villa de Luxe"
+                  : property.address}
+              </Text>
+              <View className="flex-row items-center">
+                <MapPin
+                  size={16}
+                  color={tokens.colors.roogo.neutral[500]}
+                  weight="fill"
+                />
+                <Text className="ml-1 text-roogo-neutral-500 font-urbanist-medium text-sm">
+                  {property.address}
+                </Text>
+              </View>
+            </View>
+            <View>
+              <Text className="text-xl font-urbanist-bold text-roogo-primary-500">
+                {formatPrice(property.price)}
+              </Text>
+              <Text className="text-xs text-roogo-neutral-500 font-urbanist text-right">
+                {property.period || "par mois"}
+              </Text>
+            </View>
+          </View>
+
+          {/* Divider */}
+          <View className="h-[1px] bg-roogo-neutral-100 my-6" />
+
+          {/* Key Features Row */}
+          <View className="flex-row justify-between mb-8">
+            <FeatureItem
+              icon={Bed}
+              value={property.bedrooms}
+              label="Chambres"
+            />
+            <FeatureItem
+              icon={Shower}
+              value={property.bathrooms}
+              label="Douches"
+            />
+            <FeatureItem icon={Ruler} value={property.area} label="m²" />
+            <FeatureItem icon={Car} value={property.parking} label="Parking" />
+          </View>
+
+          {/* Description */}
+          <View className="mb-8">
+            <Text className="text-lg font-urbanist-bold text-roogo-neutral-900 mb-3">
+              Description
+            </Text>
+            <Text className="text-roogo-neutral-500 font-urbanist leading-6">
+              {property.description}
+            </Text>
+          </View>
+
+          {/* Amenities */}
+          <View className="mb-8">
+            <Text className="text-lg font-urbanist-bold text-roogo-neutral-900 mb-4">
+              Équipements
+            </Text>
+            <View className="flex-row flex-wrap gap-3">
+              {property.amenities.map((amenity, idx) => {
+                const Icon = getAmenityIcon(amenity);
+                return (
+                  <View
+                    key={idx}
+                    className="bg-roogo-neutral-100 px-4 py-3 rounded-2xl flex-row items-center"
+                  >
+                    <Icon
+                      size={18}
+                      color={tokens.colors.roogo.neutral[900]}
+                      weight="duotone"
+                    />
+                    <Text className="ml-2 text-roogo-neutral-900 font-urbanist-medium text-sm">
+                      {amenity}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Rental Conditions (Caution & Interdictions) */}
+          {(property.deposit ||
+            (property.prohibitions && property.prohibitions.length > 0)) && (
+            <View className="mb-8">
+              <Text className="text-lg font-urbanist-bold text-roogo-neutral-900 mb-4">
+                Conditions
+              </Text>
+
+              {property.deposit && (
+                <View className="flex-row items-center mb-4 bg-roogo-warning/10 p-4 rounded-2xl">
+                  <View className="bg-roogo-warning/20 p-2 rounded-full mr-3">
+                    <Coins size={20} color={tokens.colors.roogo.warning} />
+                  </View>
+                  <View>
+                    <Text className="text-roogo-neutral-900 font-urbanist-bold">
+                      Caution : {property.deposit} mois
+                    </Text>
+                    <Text className="text-roogo-neutral-600 font-urbanist-medium text-sm mt-1">
+                      Total:{" "}
+                      {formatPrice(
+                        String(Number(property.price) * property.deposit)
+                      )}{" "}
+                      CFA
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {property.prohibitions && property.prohibitions.length > 0 && (
+                <View className="flex-row flex-wrap gap-2">
+                  {property.prohibitions.map((prohibition, idx) => {
+                    const config = getInterdictionByLabel(prohibition);
+                    const Icon = config?.icon || WarningCircle;
+                    return (
+                      <View
+                        key={idx}
+                        className="flex-row items-center border border-roogo-error/20 bg-roogo-error/5 px-3 py-2 rounded-xl"
+                      >
+                        <Icon
+                          size={14}
+                          color={tokens.colors.roogo.error}
+                          weight="fill"
+                        />
+                        <Text className="ml-2 text-roogo-error font-urbanist-medium text-xs">
+                          {config?.label || prohibition}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
             </View>
           )}
 
-          <View className="absolute top-6 left-4 right-4 flex-row justify-between items-center">
-            <TouchableOpacity
-              className="bg-white/90 rounded-full px-4 py-3 flex-row items-center"
-              onPress={() => router.back()}
-            >
-              <ArrowLeft size={20} color="#111827" />
-              <Text className="ml-2 text-sm font-semibold text-gray-900">
-                Retour
-              </Text>
-            </TouchableOpacity>
-            <View className="flex-row gap-2">
-              <TouchableOpacity className="bg-white/90 w-12 h-12 rounded-full items-center justify-center">
-                <Share2 size={20} color="#111827" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="bg-white/90 w-12 h-12 rounded-full items-center justify-center"
-                onPress={() => {
-                  if (!isAuthenticated) {
-                    setAuthPromptVisible(true);
-                  } else {
-                    // Handle favorite toggle
-                    // TODO: Implement favorite logic
-                  }
-                }}
-              >
-                <Heart size={20} color="#111827" />
-              </TouchableOpacity>
+          {/* Agent Card (Inline if agent exists) */}
+          {property.agent && (
+            <View className="mb-8">
+              <AgentCard
+                agent={property.agent}
+                onContactPress={() => setIsContactSheetVisible(true)}
+              />
             </View>
-          </View>
+          )}
         </View>
-
-        <View className="px-6 py-6 bg-white mt-6 rounded-3xl mx-4">
-          {/* Price & Address */}
-          <View>
-            <Text className="text-2xl font-bold text-gray-900">
-              {formatPrice(property.price)} CFA
-              {property.period ? `/${property.period}` : ""}
-            </Text>
-          </View>
-
-          {/* Address */}
-          <View className="flex-row items-center mt-3 mb-4">
-            <MapPin size={18} color="#2563EB" />
-            <Text className="ml-2 text-sm text-gray-600 flex-1">
-              {property.address}
-            </Text>
-          </View>
-
-          {/* Property High Level Details */}
-          <View className="flex-row flex-wrap gap-6 mb-6 mt-4">
-            {/* Bedrooms */}
-            <View className="flex-row justify-center items-center space-x-2">
-              <BedDouble size={15} color="#666666" />
-              <Text className="text-gray-600 text-sm pl-1">
-                {property.bedrooms}{" "}
-                {property.bedrooms === 1 ? "Chambre" : "Chambres"}
-              </Text>
-            </View>
-            {/* Bathrooms */}
-            <View className="flex-row items-center space-x-2">
-              <Bath size={15} color="#666666" />
-              <Text className="text-gray-600 text-sm pl-1">
-                {property.bathrooms}{" "}
-                {property.bathrooms === 1 ? "Salle de bain" : "Salles de bain"}
-              </Text>
-            </View>
-            {/* Area */}
-            <View className="flex-row items-center space-x-2">
-              <Ruler size={15} color="#666666" />
-              <Text className="text-gray-600 text-sm pl-1">
-                {property.area} m²
-              </Text>
-            </View>
-            {/* Parking */}
-            <View className="flex-row items-center space-x-2">
-              <Car size={15} color="#666666" />
-              <Text className="text-gray-600 text-sm pl-1">
-                {property.parking}{" "}
-                {property.parking === 1 ? "Véhicule" : "Véhicules"}
-              </Text>
-            </View>
-            {/* Swimming Pool */}
-            {property.amenities.some((amenity) =>
-              amenity.toLowerCase().includes("piscine")
-            ) && (
-              <View className="flex-row items-center space-x-2">
-                <Waves size={15} color="#666666" />
-                <Text className="text-gray-600 text-sm pl-1">Piscine</Text>
-              </View>
-            )}
-            {/* Furnished Status */}
-            {property.description.toLowerCase().includes("meubl") && (
-              <View className="flex-row items-center space-x-2">
-                <Sofa size={15} color="#666666" />
-                <Text className="text-gray-600 text-sm pl-1">Meublé</Text>
-              </View>
-            )}
-          </View>
-          {/* Description */}
-          <Text className="text-lg font-semibold text-gray-900 mb-3">
-            Description
-          </Text>
-          <Text className="text-sm leading-6 text-gray-600">
-            {property.description}
-          </Text>
-        </View>
-
-        {/* Rental Requirements */}
-        {(property.deposit ||
-          (property.prohibitions && property.prohibitions.length > 0)) && (
-          <View className="px-6 py-6 bg-white mt-4 rounded-3xl mx-4">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">
-              Conditions de location
-            </Text>
-
-            {/* Deposit */}
-            {property.deposit && (
-              <View className="mb-4 pb-4 border-b border-gray-100">
-                <View className="flex-row items-center mb-2">
-                  <View className="bg-orange-50 p-2 rounded-full mr-3">
-                    <DollarSign size={20} color="#E48C26" />
-                  </View>
-                  <Text className="text-base font-semibold text-gray-900">
-                    Caution
-                  </Text>
-                </View>
-                <Text className="text-sm text-gray-600 ml-12">
-                  {property.deposit} {property.deposit === 1 ? "mois" : "mois"}{" "}
-                  de loyer
-                </Text>
-                <Text className="text-xs text-gray-500 ml-12 mt-1">
-                  ({formatPrice(property.price)} × {property.deposit} ={" "}
-                  {formatPrice(
-                    String(Number(property.price) * property.deposit)
-                  )}{" "}
-                  CFA)
-                </Text>
-              </View>
-            )}
-
-            {/* Prohibitions */}
-            {property.prohibitions && property.prohibitions.length > 0 && (
-              <View>
-                <View className="flex-row items-center mb-3">
-                  <View className="bg-red-50 p-2 rounded-full mr-3">
-                    <Ban size={20} color="#EF4444" />
-                  </View>
-                  <Text className="text-base font-semibold text-gray-900">
-                    Interdictions
-                  </Text>
-                </View>
-                <View className="ml-12">
-                  {property.prohibitions.map((prohibition, index) => (
-                    <View key={index} className="flex-row items-center mb-2">
-                      <View className="w-1.5 h-1.5 rounded-full bg-red-500 mr-3" />
-                      <Text className="text-sm text-gray-700">
-                        {prohibition}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
-        )}
-
-        <View className="px-6 py-6 bg-white mt-4 rounded-3xl mx-4">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">
-            Équipements
-          </Text>
-          <View className="flex-row flex-wrap gap-4">
-            <View className="flex-row items-center space-x-2 w-[30%]">
-              <View className="bg-blue-50 p-2 rounded-full">
-                <Wifi size={20} color="#2563EB" />
-              </View>
-              <Text className="text-gray-700 text-sm">Fibre optique</Text>
-            </View>
-            <View className="flex-row items-center space-x-2 w-[30%]">
-              <View className="bg-blue-50 p-2 rounded-full">
-                <Shield size={20} color="#2563EB" />
-              </View>
-              <Text className="text-gray-700 text-sm">Sécurité 24/7</Text>
-            </View>
-            <View className="flex-row items-center space-x-2 w-[30%]">
-              <View className="bg-blue-50 p-2 rounded-full">
-                <Waves size={20} color="#2563EB" />
-              </View>
-              <Text className="text-gray-700 text-sm">Piscine privée</Text>
-            </View>
-            <View className="flex-row items-center space-x-2 w-[30%]">
-              <View className="bg-blue-50 p-2 rounded-full">
-                <Tv size={20} color="#2563EB" />
-              </View>
-              <Text className="text-gray-700 text-sm">Salle cinéma</Text>
-            </View>
-            <View className="flex-row items-center space-x-2 w-[30%]">
-              <View className="bg-blue-50 p-2 rounded-full">
-                <Sun size={20} color="#2563EB" />
-              </View>
-              <Text className="text-gray-700 text-sm">Panneaux solaires</Text>
-            </View>
-            <View className="flex-row items-center space-x-2 w-[30%]">
-              <View className="bg-blue-50 p-2 rounded-full">
-                <Trees size={20} color="#2563EB" />
-              </View>
-              <Text className="text-gray-700 text-sm">Jardin privé</Text>
-            </View>
-          </View>
-        </View>
-        {/* Add padding at bottom to prevent content from being hidden behind the agent section */}
-        <View className="h-24" />
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-2">
-        {property.agent ? (
-          <View className="shadow-lg shadow-black/10">
-            <AgentCard
-              agent={property.agent}
-              onContactPress={() => setIsContactSheetVisible(true)}
-            />
-          </View>
-        ) : (
-          <TouchableOpacity
-            className="bg-blue-500 py-4 rounded-2xl items-center"
+      {/* Floating Contact Footer */}
+      {!property.agent && (
+        <View className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 bg-white border-t border-roogo-neutral-100">
+          <PrimaryButton
+            title="Contacter l'agent"
             onPress={() => setIsContactSheetVisible(true)}
-            accessibilityLabel="Contacter l'agent"
-            accessibilityRole="button"
-          >
-            <Text className="text-white text-lg font-semibold">
-              Contactez l&apos;agent
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+          />
+        </View>
+      )}
 
+      {/* Modals */}
       <ContactSheet
         visible={isContactSheetVisible}
         onClose={() => setIsContactSheetVisible(false)}
@@ -393,6 +420,28 @@ export default function PropertyDetailsScreen() {
         title="Enregistrez vos favoris"
         description="Connectez-vous pour sauvegarder vos propriétés favorites"
       />
-    </SafeAreaView>
+    </View>
   );
 }
+
+const FeatureItem = ({
+  icon: Icon,
+  value,
+  label,
+}: {
+  icon: any;
+  value?: number | string;
+  label: string;
+}) => (
+  <View className="items-center bg-roogo-neutral-100/50 p-3 rounded-2xl w-[22%]">
+    <View className="bg-white p-2 rounded-full shadow-sm shadow-black/5 mb-2">
+      <Icon size={20} color={tokens.colors.roogo.primary[500]} weight="fill" />
+    </View>
+    <Text className="text-roogo-neutral-900 font-urbanist-bold text-base">
+      {value || 0}
+    </Text>
+    <Text className="text-roogo-neutral-500 font-urbanist text-[10px] uppercase tracking-wider">
+      {label}
+    </Text>
+  </View>
+);
