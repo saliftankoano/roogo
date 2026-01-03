@@ -36,11 +36,21 @@ export interface DatabaseProperty {
   period: string | null;
   caution_mois: number | null;
   interdictions: string[] | null;
+  slots_filled: number | null;
+  slot_limit: number | null;
   created_at: string;
   updated_at: string;
   views_count: number;
   images?: PropertyImage[];
   amenities?: PropertyAmenity[];
+  open_house_slots?: {
+    id: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    capacity: number;
+    bookings_count: number;
+  }[];
   agent?: {
     id: string;
     full_name: string | null;
@@ -121,6 +131,16 @@ function transformProperty(dbProperty: DatabaseProperty): Property {
     prohibitions:
       dbProperty.interdictions?.map((int) => normalizeInterdiction(int)) ||
       undefined,
+    slots_filled: dbProperty.slots_filled || 0,
+    slot_limit: dbProperty.slot_limit || 0,
+    created_at: dbProperty.created_at,
+    openHouseSlots: dbProperty.open_house_slots?.map((s: any) => ({
+      id: s.id,
+      date: s.date,
+      startTime: s.start_time,
+      endTime: s.end_time,
+      capacity: s.capacity,
+    })),
   };
 }
 
@@ -162,8 +182,15 @@ export async function fetchActiveProperties(): Promise<Property[]> {
       .order("created_at", { ascending: false });
 
     if (propertiesError) {
-      console.error("Error fetching properties:", propertiesError);
-      throw new Error(`Failed to fetch properties: ${propertiesError.message}`);
+      console.error(
+        "Error fetching properties:",
+        JSON.stringify(propertiesError)
+      );
+      throw new Error(
+        `Failed to fetch properties: ${
+          propertiesError.message || "Unknown error"
+        }`
+      );
     }
 
     if (!properties || properties.length === 0) {
@@ -230,6 +257,13 @@ export async function fetchPropertyById(
           avatar_url,
           phone,
           email
+        ),
+        open_house_slots (
+          id,
+          date,
+          start_time,
+          end_time,
+          capacity
         )
       `
       )
@@ -389,6 +423,72 @@ export async function fetchPropertiesWithFilters(
     return transformedProperties.filter(Boolean) as Property[];
   } catch (error) {
     console.error("Error in fetchPropertiesWithFilters:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch all properties belonging to a specific agent (user)
+ */
+export async function fetchUserProperties(userId: string): Promise<Property[]> {
+  try {
+    const { data: properties, error } = await supabase
+      .from("properties")
+      .select(
+        `
+        *,
+        property_images (
+          id,
+          url,
+          width,
+          height,
+          is_primary
+        ),
+        property_amenities (
+          amenities (
+            name,
+            icon
+          )
+        ),
+        users:agent_id (
+          id,
+          full_name,
+          avatar_url,
+          phone,
+          email
+        )
+      `
+      )
+      .eq("agent_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching user properties:", error);
+      throw new Error(`Failed to fetch your properties: ${error.message}`);
+    }
+
+    if (!properties || properties.length === 0) {
+      return [];
+    }
+
+    // Transform the data structure
+    return properties.map((prop: any) => {
+      const images = prop.property_images || [];
+      const amenities =
+        prop.property_amenities
+          ?.map((pa: any) => pa.amenities)
+          .filter(Boolean) || [];
+      const agent = Array.isArray(prop.users) ? prop.users[0] : prop.users;
+
+      return transformProperty({
+        ...prop,
+        images,
+        amenities,
+        agent,
+      });
+    });
+  } catch (error) {
+    console.error("Error in fetchUserProperties:", error);
     throw error;
   }
 }

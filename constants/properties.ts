@@ -37,6 +37,16 @@ export type Property = {
   agent?: PropertyAgent;
   deposit?: number; // Number of months of rent required as deposit
   prohibitions?: string[]; // List of prohibitions (e.g., "Pas d'animaux", "Pas de fumeurs")
+  slots_filled?: number;
+  slot_limit?: number;
+  created_at?: string;
+  openHouseSlots?: {
+    id: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    capacity: number;
+  }[];
 };
 
 export const properties: Property[] = [
