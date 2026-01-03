@@ -1,5 +1,11 @@
-import React from "react";
-import { Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import React, { useRef, useEffect } from "react";
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+  Animated,
+} from "react-native";
 import { tokens } from "../theme/tokens";
 
 interface ChipSelectableProps {
@@ -11,6 +17,9 @@ interface ChipSelectableProps {
   style?: ViewStyle;
 }
 
+const AnimatedTouchableOpacity =
+  Animated.createAnimatedComponent(TouchableOpacity);
+
 export const ChipSelectable: React.FC<ChipSelectableProps> = ({
   label,
   icon,
@@ -19,30 +28,88 @@ export const ChipSelectable: React.FC<ChipSelectableProps> = ({
   compact = false,
   style,
 }) => {
+  const anim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: selected ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [selected]);
+
+  const onPressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      useNativeDriver: false,
+      speed: 20,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: false,
+      speed: 20,
+    }).start();
+  };
+
+  const backgroundColor = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#FFFFFF", tokens.colors.roogo.neutral[900]],
+  });
+
+  const borderColor = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [tokens.colors.border, tokens.colors.roogo.neutral[900]],
+  });
+
+  const borderWidth = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1.5, 0],
+  });
+
+  const shadowOpacity = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.03, 0.2],
+  });
+
+  const elevation = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [2, 6],
+  });
+
+  const textColor = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [tokens.colors.roogo.neutral[500], "#FFFFFF"],
+  });
+
   return (
-    <TouchableOpacity
+    <AnimatedTouchableOpacity
       onPress={onPress}
-      activeOpacity={0.8}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      activeOpacity={1}
       style={[
         {
-          backgroundColor: selected
-            ? tokens.colors.roogo.neutral[900]
-            : "#FFFFFF",
+          backgroundColor,
           paddingHorizontal: compact ? 16 : 20,
           paddingVertical: compact ? 10 : 12,
           borderRadius: 100,
-          borderWidth: selected ? 0 : 1.5,
-          borderColor: tokens.colors.roogo.neutral[200],
+          borderWidth,
+          borderColor,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
           shadowColor: selected ? tokens.colors.roogo.neutral[900] : "#000",
           shadowOffset: { width: 0, height: selected ? 4 : 2 },
-          shadowOpacity: selected ? 0.2 : 0.03,
+          shadowOpacity,
           shadowRadius: selected ? 8 : 4,
-          elevation: selected ? 6 : 2,
+          elevation,
           marginRight: 8,
           marginBottom: 8,
+          transform: [{ scale: scaleAnim }],
         },
         style,
       ]}
@@ -56,18 +123,18 @@ export const ChipSelectable: React.FC<ChipSelectableProps> = ({
           )}
         </View>
       )}
-      <Text
+      <Animated.Text
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.85}
         style={{
           fontSize: compact ? 14 : 15,
           fontFamily: "Urbanist-Bold",
-          color: selected ? "#FFFFFF" : tokens.colors.roogo.neutral[500],
+          color: textColor,
         }}
       >
         {label}
-      </Text>
-    </TouchableOpacity>
+      </Animated.Text>
+    </AnimatedTouchableOpacity>
   );
 };

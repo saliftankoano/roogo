@@ -51,7 +51,8 @@
             "./assets/fonts/urbanist.ttf"
           ]
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

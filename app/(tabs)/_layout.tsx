@@ -6,27 +6,28 @@ import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, Tabs, usePathname } from "expo-router";
 import {
-  House,
-  Heart,
-  Camera,
-  Plus,
-  User,
-  Buildings,
-  SignIn,
+  HouseIcon,
+  HeartIcon,
+  CameraIcon,
+  PlusIcon,
+  UserIcon,
+  BuildingsIcon,
+  SignInIcon,
 } from "phosphor-react-native";
 import { useEffect, useRef } from "react";
-import { Animated, Platform, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Animated,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useUserType } from "../../hooks/useUserType";
 import { tokens } from "../../theme/tokens";
 
-type IconRendererProps = {
-  focused: boolean;
-  size: number;
-  color: string;
-};
-
 const ACTIVE_COLOR = tokens.colors.roogo.primary[500];
-const INACTIVE_COLOR = tokens.colors.roogo.neutral[400];
+const INACTIVE_COLOR = tokens.colors.roogo.neutral[500];
 
 const IconWrapper = ({
   children,
@@ -120,7 +121,7 @@ const AddPropertyButton = ({ onPress }: { onPress?: () => void }) => (
       borderColor: "#FFFFFF",
     }}
   >
-    <Plus size={32} color="#FFFFFF" weight="bold" />
+    <PlusIcon size={32} color="#FFFFFF" weight="bold" />
   </TouchableOpacity>
 );
 
@@ -131,7 +132,7 @@ export default function TabLayout() {
 
   const commonTabBarStyle = {
     backgroundColor: "rgba(255, 255, 255, 0.98)", // High opacity, slight translucency
-    position: "absolute",
+    position: "absolute" as const,
     bottom: Platform.OS === "ios" ? 32 : 24,
     left: 20,
     right: 20,
@@ -244,7 +245,7 @@ export default function TabLayout() {
                     }}
                     activeOpacity={0.8}
                   >
-                    <SignIn size={20} color="#FFFFFF" weight="bold" />
+                    <SignInIcon size={20} color="#FFFFFF" weight="bold" />
                     <Text
                       style={{
                         fontSize: 14,
@@ -275,7 +276,7 @@ export default function TabLayout() {
                       height: "100%",
                     }}
                   >
-                    <TabIcon Icon={House} focused={isFocused} size={24} />
+                    <TabIcon Icon={HouseIcon} focused={isFocused} size={24} />
                   </TouchableOpacity>
                 );
               }
@@ -319,9 +320,20 @@ export default function TabLayout() {
     headerShown: false,
   };
 
-  // Don't render tabs until auth state is loaded
+  // Show loading state while auth is being determined
   if (!isLoaded) {
-    return null;
+    return (
+      <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={tokens.colors.roogo.primary[500]}
+          />
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -342,7 +354,7 @@ export default function TabLayout() {
           options={{
             title: "Accueil",
             tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={House} focused={focused} size={24} />
+              <TabIcon Icon={HouseIcon} focused={focused} size={24} />
             ),
           }}
         />
@@ -353,7 +365,7 @@ export default function TabLayout() {
           options={{
             title: "Favoris",
             tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={Heart} focused={focused} size={24} />
+              <TabIcon Icon={HeartIcon} focused={focused} size={24} />
             ),
             href: isRenter ? undefined : null,
           }}
@@ -365,7 +377,7 @@ export default function TabLayout() {
           options={{
             title: "Photos",
             tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={Camera} focused={focused} size={24} />
+              <TabIcon Icon={CameraIcon} focused={focused} size={24} />
             ),
             href: isOwner ? undefined : null,
           }}
@@ -404,7 +416,7 @@ export default function TabLayout() {
           options={{
             title: "Biens",
             tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={Buildings} focused={focused} size={24} />
+              <TabIcon Icon={BuildingsIcon} focused={focused} size={24} />
             ),
             href: isOwner ? undefined : null,
           }}
@@ -416,7 +428,7 @@ export default function TabLayout() {
           options={{
             title: "Profil",
             tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={User} focused={focused} size={24} />
+              <TabIcon Icon={UserIcon} focused={focused} size={24} />
             ),
             href: isGuest ? null : undefined, // Hide from tab bar for guests (handled in CustomTabBar)
           }}

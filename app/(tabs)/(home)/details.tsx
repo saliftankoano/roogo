@@ -2,23 +2,23 @@ import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import {
-  Bed,
-  Camera,
-  Car,
-  CaretLeft,
-  Coins,
-  Heart,
-  MapPin,
-  Ruler,
-  ShareNetwork,
-  ShieldCheck,
-  Shower,
-  Sun,
-  SwimmingPool,
-  Television,
-  Tree,
-  WarningCircle,
-  WifiHigh,
+  BedIcon,
+  CameraIcon,
+  CarIcon,
+  CaretLeftIcon,
+  CoinsIcon,
+  HeartIcon,
+  MapPinIcon,
+  RulerIcon,
+  ShareNetworkIcon,
+  ShieldCheckIcon,
+  ShowerIcon,
+  SunIcon,
+  SwimmingPoolIcon,
+  TelevisionIcon,
+  TreeIcon,
+  WarningCircleIcon,
+  WifiHighIcon,
 } from "phosphor-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -31,6 +31,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AgentCard from "../../../components/AgentCard";
@@ -44,6 +45,12 @@ import { fetchPropertyById } from "../../../services/propertyFetchService";
 import { tokens } from "../../../theme/tokens";
 import { formatPrice } from "../../../utils/formatting";
 import { getInterdictionByLabel } from "../../../utils/interdictions";
+import { SlotMeter } from "../../../components/SlotMeter";
+import {
+  submitApplication,
+  bookOpenHouseSlot,
+} from "../../../services/applicationService";
+import { OpenHousePickerModal } from "../../../components/OpenHousePickerModal";
 
 export default function PropertyDetailsScreen() {
   const router = useRouter();
@@ -57,6 +64,53 @@ export default function PropertyDetailsScreen() {
 
   const [property, setProperty] = useState<Property | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [isApplying, setIsApplying] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+
+  const handleApply = async () => {
+    if (!isAuthenticated) {
+      setAuthPromptVisible(true);
+      return;
+    }
+
+    if (!property?.uuid || !user?.id) return;
+
+    setIsApplying(true);
+    try {
+      const result = await submitApplication(property.uuid, user.id);
+      if (result.success) {
+        setHasApplied(true);
+        Alert.alert(
+          "C'est fait !",
+          "Votre candidature a été envoyée avec succès. Voulez-vous maintenant choisir une date de visite ?",
+          [
+            { text: "Plus tard", style: "cancel" },
+            { text: "Voir les dates", onPress: () => setShowPicker(true) },
+          ]
+        );
+        // Optionally refresh property to update slots_filled
+        if (property.slots_filled !== undefined) {
+          setProperty({ ...property, slots_filled: property.slots_filled + 1 });
+        }
+      } else {
+        Alert.alert("Oups", result.error || "Une erreur est survenue.");
+      }
+    } catch (error) {
+      console.error("Error applying:", error);
+      Alert.alert("Erreur", "Impossible d'envoyer votre candidature.");
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleBookSlot = async (slotId: string) => {
+    if (!user?.id) return;
+    const result = await bookOpenHouseSlot(slotId, user.id);
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+  };
 
   const bounceAnim = useRef(new Animated.Value(0)).current;
 
@@ -145,14 +199,15 @@ export default function PropertyDetailsScreen() {
 
   const getAmenityIcon = (amenity: string) => {
     const lower = amenity.toLowerCase();
-    if (lower.includes("wifi") || lower.includes("internet")) return WifiHigh;
-    if (lower.includes("piscine")) return SwimmingPool;
-    if (lower.includes("solaire") || lower.includes("panneau")) return Sun;
+    if (lower.includes("wifi") || lower.includes("internet"))
+      return WifiHighIcon;
+    if (lower.includes("piscine")) return SwimmingPoolIcon;
+    if (lower.includes("solaire") || lower.includes("panneau")) return SunIcon;
     if (lower.includes("sécurité") || lower.includes("gardien"))
-      return ShieldCheck;
-    if (lower.includes("cinéma") || lower.includes("tv")) return Television;
-    if (lower.includes("jardin") || lower.includes("parc")) return Tree;
-    return WarningCircle;
+      return ShieldCheckIcon;
+    if (lower.includes("cinéma") || lower.includes("tv")) return TelevisionIcon;
+    if (lower.includes("jardin") || lower.includes("parc")) return TreeIcon;
+    return WarningCircleIcon;
   };
 
   return (
@@ -190,12 +245,12 @@ export default function PropertyDetailsScreen() {
               onPress={() => router.back()}
               className="w-10 h-10 rounded-full bg-white/20 items-center justify-center backdrop-blur-md"
             >
-              <CaretLeft size={24} color="#FFFFFF" weight="bold" />
+              <CaretLeftIcon size={24} color="#FFFFFF" weight="bold" />
             </TouchableOpacity>
 
             <View className="flex-row gap-3">
               <TouchableOpacity className="w-10 h-10 rounded-full bg-white/20 items-center justify-center backdrop-blur-md">
-                <ShareNetwork size={20} color="#FFFFFF" weight="bold" />
+                <ShareNetworkIcon size={20} color="#FFFFFF" weight="bold" />
               </TouchableOpacity>
               <TouchableOpacity
                 className="w-10 h-10 rounded-full bg-white/20 items-center justify-center backdrop-blur-md"
@@ -203,7 +258,7 @@ export default function PropertyDetailsScreen() {
                   if (!isAuthenticated) setAuthPromptVisible(true);
                 }}
               >
-                <Heart size={20} color="#FFFFFF" weight="bold" />
+                <HeartIcon size={20} color="#FFFFFF" weight="bold" />
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -228,7 +283,7 @@ export default function PropertyDetailsScreen() {
               <Animated.View
                 style={{ transform: [{ translateY: bounceAnim }] }}
               >
-                <Camera size={16} color="white" weight="fill" />
+                <CameraIcon size={16} color="white" weight="fill" />
               </Animated.View>
               <Text className="ml-2 text-white text-sm font-urbanist-bold">
                 Voir les photos ({property.images ? property.images.length : 1})
@@ -248,7 +303,7 @@ export default function PropertyDetailsScreen() {
                   : property.address}
               </Text>
               <View className="flex-row items-center">
-                <MapPin
+                <MapPinIcon
                   size={16}
                   color={tokens.colors.roogo.neutral[500]}
                   weight="fill"
@@ -271,20 +326,32 @@ export default function PropertyDetailsScreen() {
           {/* Divider */}
           <View className="h-[1px] bg-roogo-neutral-100 my-6" />
 
+          {/* Slot Meter for Seeker Urgency */}
+          {property.slot_limit ? (
+            <SlotMeter
+              slotsFilled={property.slots_filled || 0}
+              slotLimit={property.slot_limit}
+            />
+          ) : null}
+
           {/* Key Features Row */}
           <View className="flex-row justify-between mb-8">
             <FeatureItem
-              icon={Bed}
+              icon={BedIcon}
               value={property.bedrooms}
               label="Chambres"
             />
             <FeatureItem
-              icon={Shower}
+              icon={ShowerIcon}
               value={property.bathrooms}
               label="Douches"
             />
-            <FeatureItem icon={Ruler} value={property.area} label="m²" />
-            <FeatureItem icon={Car} value={property.parking} label="Parking" />
+            <FeatureItem icon={RulerIcon} value={property.area} label="m²" />
+            <FeatureItem
+              icon={CarIcon}
+              value={property.parking}
+              label="Parking"
+            />
           </View>
 
           {/* Description */}
@@ -335,7 +402,7 @@ export default function PropertyDetailsScreen() {
               {property.deposit && (
                 <View className="flex-row items-center mb-4 bg-roogo-warning/10 p-4 rounded-2xl">
                   <View className="bg-roogo-warning/20 p-2 rounded-full mr-3">
-                    <Coins size={20} color={tokens.colors.roogo.warning} />
+                    <CoinsIcon size={20} color={tokens.colors.roogo.warning} />
                   </View>
                   <View>
                     <Text className="text-roogo-neutral-900 font-urbanist-bold">
@@ -356,7 +423,7 @@ export default function PropertyDetailsScreen() {
                 <View className="flex-row flex-wrap gap-2">
                   {property.prohibitions.map((prohibition, idx) => {
                     const config = getInterdictionByLabel(prohibition);
-                    const Icon = config?.icon || WarningCircle;
+                    const Icon = config?.icon || WarningCircleIcon;
                     return (
                       <View
                         key={idx}
@@ -391,14 +458,35 @@ export default function PropertyDetailsScreen() {
       </ScrollView>
 
       {/* Floating Contact Footer */}
-      {!property.agent && (
-        <View className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 bg-white border-t border-roogo-neutral-100">
-          <PrimaryButton
-            title="Contacter l'agent"
+      <View className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 bg-white border-t border-roogo-neutral-100 flex-row gap-3">
+        {!property.agent && (
+          <TouchableOpacity
             onPress={() => setIsContactSheetVisible(true)}
+            className="flex-1 bg-roogo-neutral-100 py-4 rounded-2xl items-center justify-center"
+          >
+            <Text className="text-roogo-neutral-900 font-urbanist-bold text-base">
+              Contacter
+            </Text>
+          </TouchableOpacity>
+        )}
+        <View className="flex-[2]">
+          <PrimaryButton
+            title={
+              hasApplied
+                ? "Réserver une visite"
+                : (property.slots_filled ?? 0) >= (property.slot_limit ?? 1)
+                  ? "Plus de places"
+                  : "Postuler gratuitement"
+            }
+            onPress={hasApplied ? () => setShowPicker(true) : handleApply}
+            loading={isApplying}
+            disabled={
+              !hasApplied &&
+              (property.slots_filled ?? 0) >= (property.slot_limit ?? 1)
+            }
           />
         </View>
-      )}
+      </View>
 
       {/* Modals */}
       <ContactSheet
@@ -419,6 +507,14 @@ export default function PropertyDetailsScreen() {
         onClose={() => setAuthPromptVisible(false)}
         title="Enregistrez vos favoris"
         description="Connectez-vous pour sauvegarder vos propriétés favorites"
+      />
+
+      <OpenHousePickerModal
+        visible={showPicker}
+        onClose={() => setShowPicker(false)}
+        propertyId={property.uuid || ""}
+        availableSlots={(property.openHouseSlots || []) as any}
+        onBook={handleBookSlot}
       />
     </View>
   );

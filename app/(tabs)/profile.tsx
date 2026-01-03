@@ -1,25 +1,17 @@
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import {
-  CaretRight,
-  Gear,
-  Heart,
-  House,
-  MapPin,
-  Question,
-  SignOut,
-  User,
-  UserCircle,
+  CaretRightIcon,
+  GearIcon,
+  HeartIcon,
+  HouseIcon,
+  MapPinIcon,
+  QuestionIcon,
+  SignOutIcon,
+  UserCircleIcon,
 } from "phosphor-react-native";
 import { useEffect, useState } from "react";
-import {
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-  Platform,
-} from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import UserTypeSelection from "../../components/UserTypeSelection";
 import { useUserType } from "../../hooks/useUserType";
@@ -73,7 +65,9 @@ export default function ProfileScreen() {
         style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
         edges={["top"]}
       >
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <Text
             style={{
               fontSize: 16,
@@ -97,7 +91,9 @@ export default function ProfileScreen() {
         style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
         edges={["top"]}
       >
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <Text
             style={{
               fontSize: 16,
@@ -116,22 +112,22 @@ export default function ProfileScreen() {
     isOwner
       ? {
           label: "Mes propriétés",
-          icon: House,
+          icon: HouseIcon,
           onPress: () => router.push("/(tabs)/my-properties"),
         }
       : {
           label: "Mes favoris",
-          icon: Heart,
+          icon: HeartIcon,
           onPress: () => router.push("/(tabs)/favoris"),
         },
-    { label: "Paramètres", icon: Gear, onPress: () => {} },
-    { label: "Aide & Support", icon: Question, onPress: () => {} },
+    { label: "Paramètres", icon: GearIcon, onPress: () => {} },
+    { label: "Aide & Support", icon: QuestionIcon, onPress: () => {} },
     // Add option to change user type if user doesn't have one or wants to change
     ...(!hasUserType || !userType
       ? [
           {
             label: "Choisir mon profil",
-            icon: UserCircle,
+            icon: UserCircleIcon,
             onPress: () => setShowUserTypeSelection(true),
           },
         ]
@@ -162,7 +158,9 @@ export default function ProfileScreen() {
             zIndex: 10,
           }}
         >
-          <View style={{ alignItems: "center", paddingTop: 24, paddingBottom: 24 }}>
+          <View
+            style={{ alignItems: "center", paddingTop: 24, paddingBottom: 24 }}
+          >
             <View
               style={{
                 width: 112,
@@ -203,7 +201,8 @@ export default function ProfileScreen() {
                 marginBottom: 16,
               }}
             >
-              {user?.primaryEmailAddress?.emailAddress || "Email non disponible"}
+              {user?.primaryEmailAddress?.emailAddress ||
+                "Email non disponible"}
             </Text>
             <View
               style={{
@@ -217,7 +216,7 @@ export default function ProfileScreen() {
                 borderColor: "rgba(228, 140, 38, 0.2)",
               }}
             >
-              <MapPin size={16} color="#E48C26" weight="fill" />
+              <MapPinIcon size={16} color="#E48C26" weight="fill" />
               <Text
                 style={{
                   marginLeft: 6,
@@ -380,7 +379,7 @@ export default function ProfileScreen() {
               >
                 {item.label}
               </Text>
-              <CaretRight
+              <CaretRightIcon
                 size={20}
                 color={tokens.colors.roogo.neutral[400]}
                 weight="bold"
@@ -415,7 +414,7 @@ export default function ProfileScreen() {
                 marginRight: 16,
               }}
             >
-              <SignOut size={22} color="#DC2626" weight="duotone" />
+              <SignOutIcon size={22} color="#DC2626" weight="duotone" />
             </View>
             <Text
               style={{

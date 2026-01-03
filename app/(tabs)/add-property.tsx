@@ -5,11 +5,17 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import AgentOnly from "../../components/AgentOnly";
 import { SubmissionOverlay } from "../../components/SubmissionOverlay";
-import { listingSchema, type ListingDraft } from "../../forms/listingSchema";
+import {
+  listingSchema,
+  type ListingDraft,
+  TIERS,
+} from "../../forms/listingSchema";
 import { submitProperty } from "../../services/propertyService";
 import { ListingStep1Screen } from "../../screens/ListingStep1Screen";
 import { ListingStep2Screen } from "../../screens/ListingStep2Screen";
 import { ListingStep3Screen } from "../../screens/ListingStep3Screen";
+import { PaymentModal } from "../../components/PaymentModal";
+import { UpsellModal } from "../../components/UpsellModal";
 
 export default function AddPropertyScreen() {
   const navigation = useNavigation();
@@ -21,6 +27,36 @@ export default function AddPropertyScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState("");
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
+
+  // Upsell state
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
+
+  // Payment state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  const calculateAddOnTotal = () => {
+    const prices: Record<string, number> = {
+      video: 10000,
+      extra_slots: 7500,
+      "3d_env": 25000,
+      extra_photos: 10000,
+      boost: 7000,
+    };
+    return selectedAddOns.reduce((sum, id) => sum + (prices[id] || 0), 0);
+  };
+
+  const calculateTierPrice = () => {
+    if (!formData.tier_id) return 0;
+    const tier = TIERS.find((t) => t.id === formData.tier_id);
+    if (!tier) return 0;
+
+    const rent = formData.prixMensuel || 0;
+    const baseFee = tier.base_fee;
+    const percentageFee = rent * 0.05;
+
+    return baseFee + percentageFee + calculateAddOnTotal();
+  };
 
   const [formData, setFormData] = useState<Partial<ListingDraft>>({
     photos: [],
@@ -155,20 +191,35 @@ export default function AddPropertyScreen() {
         throw new Error("User not authenticated");
       }
 
+      // Show upsell flow instead of going straight to payment
+      setShowUpsellModal(true);
+    } catch (error) {
+      console.error("Validation error:", error);
+    }
+  };
+
+  const handleUpsellConfirm = (addOns: string[]) => {
+    setSelectedAddOns(addOns);
+    setShowUpsellModal(false);
+    // After upsell, proceed to payment
+    setShowPaymentModal(true);
+  };
+
+  // Called after payment is successful
+  const handlePaymentSuccess = async () => {
+    setShowPaymentModal(false);
+    setIsSubmitting(true);
+    setSubmissionSuccess(false);
+    setSubmissionStatus("Paiement reçu ! Initialisation...");
+
+    try {
       // Get Clerk session token
       const token = await getToken();
-      if (!token) {
-        throw new Error("Failed to get authentication token");
-      }
+      if (!token) throw new Error("Authentication failed");
 
-      // Start submission process
-      setIsSubmitting(true);
-      setSubmissionSuccess(false);
-      setSubmissionStatus("Initialisation...");
-
-      // Submit to backend API (which will handle Supabase insertion)
+      // Submit to backend API
       const submissionResult = await submitProperty(
-        result.data,
+        formData as ListingDraft,
         token,
         (status) => setSubmissionStatus(status)
       );
@@ -205,7 +256,7 @@ export default function AddPropertyScreen() {
     } catch (error) {
       console.error("Submit error:", error);
       setIsSubmitting(false);
-      throw error; // Re-throw to let the calling component handle if needed
+      alert("Erreur lors de la soumission. Veuillez contacter le support.");
     }
   };
 
@@ -234,6 +285,7 @@ export default function AddPropertyScreen() {
         <ListingStep3Screen
           navigation={navigation}
           formData={formData}
+          onFormChange={handleFormChange}
           onBack={handleBackStep3}
           onSubmit={handleSubmit}
           errors={errors}
@@ -245,6 +297,30 @@ export default function AddPropertyScreen() {
         visible={isSubmitting}
         status={submissionStatus}
         isSuccess={submissionSuccess}
+      />
+
+      {/* Payment Modal */}
+      <PaymentModal
+        visible={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={handlePaymentSuccess}
+        amount={calculateTierPrice()}
+        description={`Pack ${
+          TIERS.find((t) => t.id === formData.tier_id)?.name || ""
+        }${selectedAddOns.length > 0 ? " avec Options" : ""}`}
+        transactionType="listing_submission"
+      />
+
+      {/* Upsell Modal */}
+      <UpsellModal
+        visible={showUpsellModal}
+        onClose={() => {
+          setShowUpsellModal(false);
+          setShowPaymentModal(true); // Still proceed to payment even if dismissed?
+          // Actually, usually users want to proceed.
+        }}
+        onConfirm={handleUpsellConfirm}
+        currentTierId={formData.tier_id}
       />
     </AgentOnly>
   );

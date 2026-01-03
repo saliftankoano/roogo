@@ -26,7 +26,7 @@ import AuthPromptModal from "./AuthPromptModal";
 
 interface PropertyCardProps {
   property: {
-    id: number;
+    id: number | string;
     title: string;
     location: string;
     price: string;

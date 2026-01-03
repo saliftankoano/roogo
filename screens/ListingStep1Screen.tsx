@@ -10,7 +10,7 @@ import { Stepper } from "@/components/Stepper";
 import type { ListingDraft } from "@/forms/listingSchema";
 import { CITIES, PROPERTY_TYPES } from "@/forms/listingSchema";
 import { tokens } from "@/theme/tokens";
-import { MagicWand } from "phosphor-react-native";
+import { MagicWandIcon } from "phosphor-react-native";
 
 interface ListingStep1ScreenProps {
   navigation: any;
@@ -109,7 +109,7 @@ export const ListingStep1Screen: React.FC<ListingStep1ScreenProps> = ({
           onPress={handleFillMockData}
           className="p-2 rounded-full bg-roogo-primary-500/10"
         >
-          <MagicWand
+          <MagicWandIcon
             size={20}
             color={tokens.colors.roogo.primary[500]}
             weight="bold"

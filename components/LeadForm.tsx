@@ -1,5 +1,5 @@
-import { AlertCircle, CheckCircle } from "lucide-react-native";
-import React, { useMemo, useRef, useState } from "react";
+import { AlertCircle, CheckCircle, Phone } from "lucide-react-native";
+import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -8,13 +8,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  PhoneInput,
-  isValidNumber,
-  type CountryCode,
-} from "react-native-phone-entry";
 import { submitLead, type LeadData } from "../api/leads";
 import type { Property } from "../constants/properties";
+import { tokens } from "../theme/tokens";
 
 interface LeadFormProps {
   property: Property;
@@ -28,12 +24,6 @@ interface LeadFormData {
   phone: string;
   email: string;
   message: string;
-}
-
-interface PhoneState {
-  countryCode: CountryCode;
-  callingCode: string; // Always includes leading +
-  fullNumber: string; // Full E.164-style value (may be just calling code initially)
 }
 
 interface FormErrors {
@@ -55,53 +45,21 @@ const LeadForm: React.FC<LeadFormProps> = ({
     message: `Bonjour, je suis intéressé(e) par la propriété "${property.title}" située à ${property.location}. Prix: ${property.price} CFA${property.period ? `/${property.period}` : ""}. ${property.bedrooms} chambre(s), ${property.bathrooms} salle(s) de bain, ${property.area} m². Référence: #${property.id}. Merci de me recontacter.`,
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [phoneState, setPhoneState] = useState<PhoneState>({
-    countryCode: "BF",
-    callingCode: "+226",
-    fullNumber: "+226",
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
-
-  const normalizeCallingCode = (callingCode: string): string =>
-    callingCode.startsWith("+") ? callingCode : `+${callingCode}`;
-
-  const buildFullPhoneNumber = (
-    callingCode: string,
-    phoneNumber: string
-  ): string => {
-    const digitsOnly = phoneNumber.replace(/\D/g, "");
-    const normalizedCode = normalizeCallingCode(callingCode);
-    return digitsOnly ? `${normalizedCode}${digitsOnly}` : normalizedCode;
-  };
-
-  const extractNationalNumber = (
-    fullNumber: string,
-    callingCode: string
-  ): string => {
-    const normalizedCode = normalizeCallingCode(callingCode);
-    return fullNumber.replace(new RegExp(`^${normalizedCode}`), "");
-  };
-
-  const phoneDefaultValues = useMemo(
-    () => ({
-      countryCode: phoneState.countryCode,
-      callingCode: phoneState.callingCode,
-      phoneNumber: phoneState.fullNumber,
-    }),
-    [phoneState.countryCode, phoneState.callingCode, phoneState.fullNumber]
-  );
 
   // Focus management refs
   const nameInputRef = useRef<TextInput>(null);
   const emailInputRef = useRef<TextInput>(null);
   const messageInputRef = useRef<TextInput>(null);
 
-  // Phone number validation (library helper)
-  const validatePhone = (phone: string, country: CountryCode): boolean =>
-    isValidNumber(phone, country);
+  // Phone number validation (simple)
+  const validatePhone = (phone: string): boolean => {
+    const cleaned = phone.replace(/\s/g, "");
+    return cleaned.length >= 8;
+  };
 
   // Email validation
   const validateEmail = (email: string): boolean => {
@@ -118,15 +76,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
       newErrors.name = "Le nom est requis";
     }
 
-    const sanitizedFullNumber = phoneState.fullNumber.replace(/\s/g, "");
-    const nationalDigits = extractNationalNumber(
-      sanitizedFullNumber,
-      phoneState.callingCode
-    );
-
-    if (!nationalDigits) {
+    if (!formData.phone.trim()) {
       newErrors.phone = "Le téléphone est requis";
-    } else if (!validatePhone(sanitizedFullNumber, phoneState.countryCode)) {
+    } else if (!validatePhone(formData.phone)) {
       newErrors.phone = "Format de téléphone invalide";
     }
 
@@ -152,12 +104,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Ensure phone number in E.164 format
-      const sanitizedFullNumber = buildFullPhoneNumber(
-        phoneState.callingCode,
-        extractNationalNumber(phoneState.fullNumber, phoneState.callingCode)
-      );
-      const phoneNumber = sanitizedFullNumber.replace(/\s/g, "");
+      const phoneNumber = formData.phone.replace(/\s/g, "");
 
       const leadData: LeadData = {
         listingId: property.id,
@@ -190,14 +137,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   const isFormValid =
     formData.name.trim() &&
-    extractNationalNumber(
-      phoneState.fullNumber,
-      phoneState.callingCode
-    ).trim() &&
-    validatePhone(
-      phoneState.fullNumber.replace(/\s/g, ""),
-      phoneState.countryCode
-    ) &&
+    validatePhone(formData.phone) &&
     (!formData.email || validateEmail(formData.email));
 
   if (submitStatus === "success") {
@@ -299,82 +239,20 @@ const LeadForm: React.FC<LeadFormProps> = ({
         <Text className="text-sm font-semibold text-gray-800 mb-2">
           Numéro de téléphone *
         </Text>
-        <PhoneInput
-          defaultValues={phoneDefaultValues}
-          value={phoneState.fullNumber}
-          onChangeText={(value) => {
-            setPhoneState((prev) => ({
-              ...prev,
-              fullNumber: value,
-            }));
-
-            setFormData((prev) => ({
-              ...prev,
-              phone: value,
-            }));
-          }}
-          onChangeCountry={(country) => {
-            const nextCallingCode = Array.isArray(country.callingCode)
-              ? (country.callingCode[0] ?? phoneState.callingCode)
-              : country.callingCode;
-
-            const normalizedCode = normalizeCallingCode(nextCallingCode);
-            const nationalNumber = extractNationalNumber(
-              phoneState.fullNumber,
-              phoneState.callingCode
-            );
-            const updatedFullNumber = buildFullPhoneNumber(
-              normalizedCode,
-              nationalNumber
-            );
-
-            setPhoneState((prev) => ({
-              ...prev,
-              countryCode: country.cca2,
-              callingCode: normalizedCode,
-              fullNumber: updatedFullNumber,
-            }));
-
-            setFormData((prev) => ({
-              ...prev,
-              phone: updatedFullNumber,
-            }));
-          }}
-          autoFocus={false}
-          hideDropdownIcon={false}
-          isCallingCodeEditable={false}
-          countryPickerProps={{
-            withFilter: true,
-            withFlag: true,
-            withCountryNameButton: false,
-          }}
-          theme={{
-            containerStyle: {
-              borderWidth: 1,
-              borderColor: errors.phone ? "#EF4444" : "#E5E7EB",
-              borderRadius: 16,
-              paddingHorizontal: 8,
-              paddingVertical: 2,
-              backgroundColor: "#F9FAFB",
-              minHeight: 58,
-              maxHeight: 58,
-            },
-            textInputStyle: {
-              fontSize: 16,
-              color: "#111827",
-            },
-            flagButtonStyle: {
-              marginRight: 6,
-              marginLeft: 0,
-              minWidth: 55,
-              paddingHorizontal: 2,
-            },
-            codeTextStyle: {
-              fontSize: 16,
-              color: "#111827",
-            },
-          }}
-        />
+        <View className="flex-row items-center border border-gray-200 rounded-xl px-4 py-3 bg-gray-50">
+          <Phone size={20} color="#6B7280" className="mr-3" />
+          <TextInput
+            value={formData.phone}
+            onChangeText={(text) =>
+              setFormData((prev) => ({ ...prev, phone: text }))
+            }
+            placeholder="Ex: +226 70 12 34 56"
+            className="flex-1 text-base"
+            keyboardType="phone-pad"
+            returnKeyType="next"
+            accessibilityLabel="Téléphone"
+          />
+        </View>
         {errors.phone && (
           <Text className="text-red-500 text-sm mt-1 font-medium">
             {errors.phone}

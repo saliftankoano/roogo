@@ -39,20 +39,14 @@ export const listingSchema = z.object({
     .max(15, "Vous ne pouvez ajouter que 15 photos maximum"),
   equipements: z
     .array(
-      z.enum([
-        "wifi",
-        "securite",
-        "jardin",
-        "solaires",
-        "piscine",
-        "meuble",
-      ])
+      z.enum(["wifi", "securite", "jardin", "solaires", "piscine", "meuble"])
     )
     .optional(),
   cautionMois: z.coerce.number().int().min(0).max(12).optional(),
   interdictions: z
     .array(z.enum(getInterdictionIds() as [string, ...string[]]))
     .optional(),
+  tier_id: z.enum(["essentiel", "standard", "premium"]).optional(),
 });
 
 export type ListingDraft = z.infer<typeof listingSchema>;
@@ -76,6 +70,37 @@ export const EQUIPEMENTS = [
   { id: "solaires", label: "Panneaux solaires" },
   { id: "piscine", label: "Piscine" },
   { id: "meuble", label: "Meublé" },
+] as const;
+
+export const TIERS = [
+  {
+    id: "essentiel",
+    name: "Essentiel",
+    photo_limit: 8,
+    slot_limit: 25,
+    video_included: false,
+    open_house_limit: 1,
+    base_fee: 15000,
+  },
+  {
+    id: "standard",
+    name: "Standard",
+    photo_limit: 8,
+    slot_limit: 50,
+    video_included: true,
+    open_house_limit: 2,
+    base_fee: 25000,
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    photo_limit: 15,
+    slot_limit: 100,
+    video_included: true,
+    open_house_limit: 3,
+    base_fee: 45000,
+    has_badge: true,
+  },
 ] as const;
 
 // Re-export from utility for backward compatibility

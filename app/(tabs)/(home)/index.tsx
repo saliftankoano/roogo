@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FilterModal, { FiltersState } from "../../../components/FilterModal";
 import PropertyCard from "../../../components/PropertyCard";
 import type { Property } from "../../../constants/properties";
@@ -40,7 +40,7 @@ const CATEGORIES = [
 ] as const;
 
 export default function HomeScreen() {
-  // const { user } = useUser();
+  const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState<
     "All" | "Residential" | "Business"
   >("All");
@@ -155,7 +155,9 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <View
+        style={{ flex: 1, backgroundColor: "#FFFFFF", paddingTop: insets.top }}
+      >
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator
             size="large"
@@ -165,13 +167,15 @@ export default function HomeScreen() {
             Chargement des propriétés...
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <View
+        style={{ flex: 1, backgroundColor: "#FFFFFF", paddingTop: insets.top }}
+      >
         <View className="flex-1 items-center justify-center px-6">
           <Text className="text-lg font-semibold text-gray-900 mb-2">
             Erreur de chargement
@@ -192,12 +196,18 @@ export default function HomeScreen() {
             <Text className="text-white font-semibold">Réessayer</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-roogo-neutral-100" edges={["top"]}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: tokens.colors.roogo.neutral[100],
+        paddingTop: insets.top,
+      }}
+    >
       {/* Header with Location and Filters */}
       <View className="px-6 pt-2 pb-6 flex-row items-center justify-between">
         <TouchableOpacity className="flex-row items-center bg-white px-4 py-3 rounded-full shadow-sm border border-roogo-neutral-100 flex-1 mr-3">
@@ -289,6 +299,6 @@ export default function HomeScreen() {
         onReset={resetFilters}
         resultsCount={filteredProperties.length}
       />
-    </SafeAreaView>
+    </View>
   );
 }

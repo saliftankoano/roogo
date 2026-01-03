@@ -1,0 +1,84 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{amsmath}
+
+\definecolor{roogoprimary}{HTML}{E11D48} % Adjust to Roogo's actual primary color
+
+\titleformat{\section}{\color{roogoprimary}\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\title{\textbf{Stratégie Commerciale et Opérationnelle Roogo}}
+\author{Direction Stratégique Roogo}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Ce document récapitule les décisions stratégiques et techniques prises pour l'évolution de la plateforme Roogo au Burkina Faso (XOF). L'objectif est de supprimer les barrières à l'entrée pour les chercheurs de biens tout en garantissant une rentabilité via un modèle de service premium pour les propriétaires.
+
+\section{Modèle de Revenus (Propriétaires)}
+Le coût de publication est basé sur un frais fixe par pack plus une commission sur la valeur du bien pour assurer une différenciation claire des prix.
+\medskip
+
+\textbf{Formule de Tarification :} \\
+\text{Prix} = \text{Frais Fixe du Pack} + 5\% \text{ du loyer mensuel}
+
+\subsection{Packs de Publication}
+\begin{table}[h]
+\centering
+\begin{tabular}{lccccr}
+\toprule
+\textbf{Pack} & \textbf{Photos Pro} & \textbf{Slots App.} & \textbf{Vidéo} & \textbf{Open House} & \textbf{Frais Fixe} \\
+\midrule
+Essentiel & 8 & 25 & Non & 1 & 15 000 XOF \\
+Standard & 8 & 50 & Oui & 2 & 25 000 XOF \\
+Premium & 15 & 100 & Oui & 3 & 45 000 XOF \\
+\bottomrule
+\end{tabular}
+\caption{Structure des packs (Base fixe + 5\% loyer)}
+\end{table}
+
+\section{Expérience Chercheur (Gratuité)}
+Pour maximiser l'adoption et l'engagement des utilisateurs cherchant un logement :
+\begin{itemize}[label=\checkmark]
+    \item \textbf{Zéro Frais de Visite :} Les utilisateurs ne paient plus pour visiter les propriétés.
+    \item \textbf{Modèle Open House :} Les visites sont groupées par sessions de 1h gérées par le staff Roogo.
+    \item \textbf{Réservation Native :} Possibilité de réserver son créneau directement dans l'application après avoir postulé.
+\end{itemize}
+
+\section{Gestion du Cycle de Vie des Annonces}
+Le système utilise l'urgence pour motiver les chercheurs et assurer une rotation rapide des biens.
+\begin{enumerate}
+    \item \textbf{Phase d'Attente :} L'annonce est créée avec des photos temporaires du propriétaire (\texttt{en\_attente}).
+    \item \textbf{Mise en Ligne :} Le staff Roogo remplace les photos par des clichés professionnels (\texttt{en\_ligne}).
+    \item \textbf{Clôture Automatique :} Dès que le quota de slots d'applications du pack est atteint, l'annonce passe en statut \texttt{closing}.
+    \item \textbf{Expiration :} L'annonce reste visible 3 jours après avoir été complète pour générer de l'intérêt futur, puis passe en \texttt{expired}.
+\end{enumerate}
+
+\section{Options de Personnalisation (Add-ons)}
+\begin{itemize}
+    \item +25 Candidats : 7 500 XOF
+    \item +5 Photos professionnelles : 10 000 XOF
+    \item Vidéo Professionnelle (si non incluse) : 10 000 XOF
+    \item Environnement 3D : 25 000 XOF
+    \item Boost "A la Une" (7 jours) : 7 000 XOF
+\end{itemize}
+
+\section{Flux Opérationnel}
+\begin{itemize}
+    \item Le propriétaire paie et publie via l'application mobile.
+    \item Le staff Roogo est notifié pour planifier la séance photo.
+    \item Les photos professionnelles valident la mise en ligne définitive.
+    \item Le staff définit les créneaux de visite via la console d'administration web.
+\end{itemize}
+
+\end{document}

@@ -20,7 +20,7 @@ export const KeyValueRow: React.FC<KeyValueRowProps> = ({
           {value}
         </Text>
       </View>
-      {showDivider && <View className="h-[1px] bg-[#E9ECEF]" />}
+      {showDivider && <View className="h-[1px] bg-roogo-neutral-400" />}
     </View>
   );
 };

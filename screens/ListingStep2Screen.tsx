@@ -1,15 +1,15 @@
 import { ChevronLeft } from "lucide-react-native";
 import {
-  Armchair,
-  Bed,
-  Car,
-  PottedPlant,
-  Ruler,
-  ShieldCheck,
-  Shower,
-  Sun,
-  SwimmingPool,
-  WifiHigh,
+  ArmchairIcon,
+  BedIcon,
+  CarIcon,
+  PottedPlantIcon,
+  RulerIcon,
+  ShieldCheckIcon,
+  ShowerIcon,
+  SunIcon,
+  SwimmingPoolIcon,
+  WifiHighIcon,
 } from "phosphor-react-native";
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -63,23 +63,30 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
   const getEquipementIcon = (id: string) => {
     switch (id) {
       case "wifi":
-        return <WifiHigh size={18} color={tokens.colors.roogo.neutral[500]} />;
+        return (
+          <WifiHighIcon size={18} color={tokens.colors.roogo.neutral[500]} />
+        );
       case "securite":
         return (
-          <ShieldCheck size={18} color={tokens.colors.roogo.neutral[500]} />
+          <ShieldCheckIcon size={18} color={tokens.colors.roogo.neutral[500]} />
         );
       case "jardin":
         return (
-          <PottedPlant size={18} color={tokens.colors.roogo.neutral[500]} />
+          <PottedPlantIcon size={18} color={tokens.colors.roogo.neutral[500]} />
         );
       case "solaires":
-        return <Sun size={18} color={tokens.colors.roogo.neutral[500]} />;
+        return <SunIcon size={18} color={tokens.colors.roogo.neutral[500]} />;
       case "piscine":
         return (
-          <SwimmingPool size={18} color={tokens.colors.roogo.neutral[500]} />
+          <SwimmingPoolIcon
+            size={18}
+            color={tokens.colors.roogo.neutral[500]}
+          />
         );
       case "meuble":
-        return <Armchair size={18} color={tokens.colors.roogo.neutral[500]} />;
+        return (
+          <ArmchairIcon size={18} color={tokens.colors.roogo.neutral[500]} />
+        );
       default:
         return null;
     }
@@ -124,7 +131,7 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
             <OutlinedField
               label="Chambres"
               labelIcon={
-                <Bed size={18} color={tokens.colors.roogo.neutral[900]} />
+                <BedIcon size={18} color={tokens.colors.roogo.neutral[900]} />
               }
               placeholder="0"
               value={formData.chambres?.toString() || ""}
@@ -143,7 +150,10 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
             <OutlinedField
               label="Douche(s)"
               labelIcon={
-                <Shower size={18} color={tokens.colors.roogo.neutral[900]} />
+                <ShowerIcon
+                  size={18}
+                  color={tokens.colors.roogo.neutral[900]}
+                />
               }
               placeholder="0"
               value={formData.sdb?.toString() || ""}
@@ -162,7 +172,7 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
             <OutlinedField
               label="Superficie"
               labelIcon={
-                <Ruler size={18} color={tokens.colors.roogo.neutral[900]} />
+                <RulerIcon size={18} color={tokens.colors.roogo.neutral[900]} />
               }
               placeholder="0"
               value={formData.superficie?.toString() || ""}
@@ -182,7 +192,9 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
         {/* Nombre de véhicules */}
         <OutlinedField
           label="Nombre de véhicules"
-          labelIcon={<Car size={18} color={tokens.colors.roogo.neutral[900]} />}
+          labelIcon={
+            <CarIcon size={18} color={tokens.colors.roogo.neutral[900]} />
+          }
           placeholder="0"
           value={formData.vehicules?.toString() || ""}
           onChangeText={(value) => {
@@ -197,7 +209,7 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
         />
 
         {/* Description */}
-        <View className="mb-16">
+        <View className="mb-8">
           <OutlinedField
             label="Description"
             placeholder="Décrivez votre propriété..."
@@ -212,7 +224,7 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
         </View>
 
         {/* Photos */}
-        <View className="mb-8 mt-4">
+        <View className="mb-8 mt-8">
           <Text className="text-sm font-bold text-roogo-neutral-900 mb-3 font-urbanist">
             Photos <Text className="text-roogo-error">*</Text>
           </Text>

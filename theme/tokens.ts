@@ -7,6 +7,8 @@ export const tokens = {
   colors: {
     roogo: {
       primary: {
+        50: "rgba(201, 106, 46, 0.08)", // Primary Tint
+        100: "#FBECE2", // Very light tint
         500: "#C96A2E", // Terracotta Ember (main CTA)
         600: "#8A4924", // Clay Brown (hover / pressed)
         700: "#5A321A", // Earth Umber (strong accents)
@@ -24,7 +26,11 @@ export const tokens = {
         900: "#1A1A1A", // main text
         700: "#323232", // subtitles
         500: "#6A6A6A", // secondary text
+        400: "#A1A1A1", // light icons
+        300: "#D1D1D1", // dividers / inactive
+        200: "#EAEAEA", // light borders
         100: "#F8F8F8", // light background
+        50: "#FAFAFA", // ultra light bg
       },
       success: "#2E8B57",
       warning: "#E59F2B",

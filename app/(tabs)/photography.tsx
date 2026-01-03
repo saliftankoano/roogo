@@ -15,13 +15,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  Camera,
-  Check,
-  Crown,
-  Lightning,
-  SealCheck,
-  CaretDown,
-  ArrowLeft,
+  CameraIcon,
+  CheckIcon,
+  CrownIcon,
+  LightningIcon,
+  SealCheckIcon,
+  CaretDownIcon,
+  ArrowLeftIcon,
 } from "phosphor-react-native";
 import AgentOnly from "../../components/AgentOnly";
 import { tokens } from "../../theme/tokens";
@@ -29,6 +29,7 @@ import { formatPrice } from "../../utils/formatting";
 import { OutlinedField } from "../../components/OutlinedField";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { ChipSelectable } from "../../components/ChipSelectable";
+import { PaymentModal } from "../../components/PaymentModal";
 
 if (Platform.OS === "android") {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -116,7 +117,7 @@ const FAQItem = ({
           }}
         >
           <Animated.View style={{ transform: [{ rotate }] }}>
-            <CaretDown
+            <CaretDownIcon
               size={16}
               color={tokens.colors.roogo.neutral[500]}
               weight="bold"
@@ -158,6 +159,11 @@ export default function PhotographyScreen() {
     additionalNotes: "",
   });
   const [loading, setLoading] = useState(false);
+
+  // Payment State
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [paymentDescription, setPaymentDescription] = useState("");
 
   const packages: Package[] = [
     {
@@ -235,6 +241,29 @@ export default function PhotographyScreen() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+
+    const selectedPkg = packages.find((pkg) => pkg.id === selectedPackage);
+    Alert.alert(
+      "Paiement reçu !",
+      `Votre demande pour le forfait ${selectedPkg?.name} a été envoyée. Nous vous contacterons bientôt au ${formData.contactPhone}.`
+    );
+
+    // Reset form
+    setFormData({
+      propertyAddress: "",
+      quartier: "",
+      city: "",
+      propertyType: "",
+      contactPhone: "",
+      preferredDate: "",
+      additionalNotes: "",
+    });
+    setSelectedPackage(null);
+    setShowForm(false);
+  };
+
   const handleSubmit = async () => {
     // Validate required fields
     if (
@@ -248,29 +277,16 @@ export default function PhotographyScreen() {
       return;
     }
 
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      const selectedPkg = packages.find((pkg) => pkg.id === selectedPackage);
-      Alert.alert(
-        "Demande envoyée!",
-        `Votre demande pour le forfait ${selectedPkg?.name} a été envoyée. Nous vous contacterons bientôt au ${formData.contactPhone}.`
-      );
+    const selectedPkg = packages.find((pkg) => pkg.id === selectedPackage);
+    if (!selectedPkg) return;
 
-      // Reset form
-      setFormData({
-        propertyAddress: "",
-        quartier: "",
-        city: "",
-        propertyType: "",
-        contactPhone: "",
-        preferredDate: "",
-        additionalNotes: "",
-      });
-      setSelectedPackage(null);
-      setShowForm(false);
-    }, 1500);
+    // Prepare Payment
+    const price = parseInt(selectedPkg.price.replace(/\./g, ""), 10);
+    setPaymentAmount(price);
+    setPaymentDescription(
+      `Forfait photo ${selectedPkg.name.replace(/[^a-zA-Z0-9\s]/g, "")}`
+    );
+    setShowPaymentModal(true);
   };
 
   const faqs = [
@@ -316,7 +332,7 @@ export default function PhotographyScreen() {
                   marginBottom: 16,
                 }}
               >
-                <Camera
+                <CameraIcon
                   size={32}
                   color={tokens.colors.roogo.primary[500]}
                   weight="duotone"
@@ -425,13 +441,13 @@ export default function PhotographyScreen() {
                               }}
                             >
                               {pkg.id === "premium" ? (
-                                <Crown
+                                <CrownIcon
                                   size={ICON_SIZE}
                                   color="white"
                                   weight="fill"
                                 />
                               ) : (
-                                <Camera
+                                <CameraIcon
                                   size={ICON_SIZE}
                                   color="white"
                                   weight="fill"
@@ -486,7 +502,7 @@ export default function PhotographyScreen() {
                                       marginRight: 12,
                                     }}
                                   >
-                                    <Check
+                                    <CheckIcon
                                       size={14}
                                       color="white"
                                       weight="bold"
@@ -584,21 +600,21 @@ export default function PhotographyScreen() {
                 <View style={{ gap: 16 }}>
                   {[
                     {
-                      icon: Camera,
+                      icon: CameraIcon,
                       title: "Photographes professionnels",
                       desc: "Équipe expérimentée en photographie immobilière avec équipement de pointe",
                       color: "#3B82F6",
                       bg: "#EFF6FF",
                     },
                     {
-                      icon: Lightning,
+                      icon: LightningIcon,
                       title: "Livraison rapide",
                       desc: "Vos photos retouchées en 24-48h maximum pour une mise en ligne rapide",
                       color: "#A855F7",
                       bg: "#F3E8FF",
                     },
                     {
-                      icon: SealCheck,
+                      icon: SealCheckIcon,
                       title: "Qualité garantie",
                       desc: "Retouches professionnelles et révisions illimitées jusqu'à satisfaction",
                       color: "#10B981",
@@ -703,7 +719,7 @@ export default function PhotographyScreen() {
                   marginBottom: 24,
                 }}
               >
-                <ArrowLeft
+                <ArrowLeftIcon
                   size={20}
                   color={tokens.colors.roogo.primary[500]}
                   weight="bold"
@@ -886,7 +902,7 @@ export default function PhotographyScreen() {
 
               <View style={{ marginTop: 32 }}>
                 <PrimaryButton
-                  title="Envoyer la demande"
+                  title="Payer et Envoyer"
                   onPress={handleSubmit}
                   loading={loading}
                 />
@@ -895,6 +911,16 @@ export default function PhotographyScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        visible={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={handlePaymentSuccess}
+        amount={paymentAmount}
+        description={paymentDescription}
+        transactionType="photography"
+      />
     </AgentOnly>
   );
 }
