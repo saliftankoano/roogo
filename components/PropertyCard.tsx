@@ -48,6 +48,7 @@ interface PropertyCardProps {
   onDelete?: () => void;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  showFavorite?: boolean;
 }
 
 export default function PropertyCard({
@@ -60,6 +61,7 @@ export default function PropertyCard({
   onDelete,
   isFavorite: propIsFavorite,
   onToggleFavorite,
+  showFavorite = true,
 }: PropertyCardProps) {
   const [localIsFavorite, setLocalIsFavorite] = useState(
     propIsFavorite ?? false
@@ -142,24 +144,26 @@ export default function PropertyCard({
           </Text>
         </View>
         {/* Heart Icon */}
-        <TouchableOpacity
-          className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2.5 rounded-full shadow-sm"
-          onPress={handleFavoritePress}
-          activeOpacity={0.7}
-        >
-          <Animated.View style={{ transform: [{ scale: heartScale }] }}>
-            <Heart
-              size={20}
-              color={
-                isFavorite
-                  ? tokens.colors.roogo.error
-                  : tokens.colors.roogo.neutral[900]
-              }
-              strokeWidth={2.5}
-              fill={isFavorite ? tokens.colors.roogo.error : "transparent"}
-            />
-          </Animated.View>
-        </TouchableOpacity>
+        {showFavorite && (
+          <TouchableOpacity
+            className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2.5 rounded-full shadow-sm"
+            onPress={handleFavoritePress}
+            activeOpacity={0.7}
+          >
+            <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+              <Heart
+                size={20}
+                color={
+                  isFavorite
+                    ? tokens.colors.roogo.error
+                    : tokens.colors.roogo.neutral[900]
+                }
+                strokeWidth={2.5}
+                fill={isFavorite ? tokens.colors.roogo.error : "transparent"}
+              />
+            </Animated.View>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Content Section */}

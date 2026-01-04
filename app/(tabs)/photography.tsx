@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -12,24 +12,34 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ActivityIndicator,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   CameraIcon,
   CheckIcon,
-  CrownIcon,
   LightningIcon,
   SealCheckIcon,
   CaretDownIcon,
   ArrowLeftIcon,
+  CubeIcon,
+  VideoCameraIcon,
+  MapPinIcon,
+  PlusIcon,
+  UsersIcon,
+  RocketIcon,
+  CalendarIcon,
 } from "phosphor-react-native";
+import { useUser } from "@clerk/clerk-expo";
 import AgentOnly from "../../components/AgentOnly";
 import { tokens } from "../../theme/tokens";
 import { formatPrice } from "../../utils/formatting";
 import { OutlinedField } from "../../components/OutlinedField";
 import { PrimaryButton } from "../../components/PrimaryButton";
-import { ChipSelectable } from "../../components/ChipSelectable";
 import { PaymentModal } from "../../components/PaymentModal";
+import { fetchUserProperties } from "../../services/propertyFetchService";
+import type { Property } from "../../constants/properties";
 
 if (Platform.OS === "android") {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -47,11 +57,11 @@ const ICON_SIZE = Math.round(CARD_WIDTH * 0.14);
 type Package = {
   id: string;
   name: string;
-  photos: number;
-  price: string;
+  price: number;
   features: string[];
   color: string;
   bgColor: string;
+  icon: any;
 };
 
 const FAQItem = ({
@@ -144,21 +154,23 @@ const FAQItem = ({
 };
 
 export default function PhotographyScreen() {
+  const { user } = useUser();
+  const [userProperties, setUserProperties] = useState<Property[]>([]);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
+    null
+  );
+  const [loadingProperties, setLoadingProperties] = useState(true);
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
+
   const [formData, setFormData] = useState({
-    propertyAddress: "",
-    quartier: "",
-    city: "",
-    propertyType: "",
-    contactPhone: "",
+    contactPhone: user?.primaryPhoneNumber?.toString() || "",
     preferredDate: "",
     additionalNotes: "",
   });
-  const [loading, setLoading] = useState(false);
 
   // Payment State
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -167,72 +179,118 @@ export default function PhotographyScreen() {
 
   const packages: Package[] = [
     {
-      id: "basic",
-      name: "À nous aller",
-      photos: 10,
-      price: "25.000",
+      id: "boost",
+      name: "Boost 'A la Une'",
+      price: 7000,
+      color: "#F59E0B",
+      bgColor: "#F59E0B",
+      icon: RocketIcon,
+      features: [
+        "En tête de liste",
+        "Pendant 7 jours",
+        "Badge 'A la Une'",
+        "Visibilité maximale",
+      ],
+    },
+    {
+      id: "extra_slots",
+      name: "+25 Candidats",
+      price: 7500,
+      color: tokens.colors.roogo.primary[500],
+      bgColor: tokens.colors.roogo.primary[500],
+      icon: UsersIcon,
+      features: [
+        "25 slots supplémentaires",
+        "Plus de choix",
+        "Clôture rapide",
+        "Activation instantanée",
+      ],
+    },
+    {
+      id: "extra_photos",
+      name: "Pack +5 Photos Pro",
+      price: 10000,
       color: tokens.colors.roogo.accent[500],
       bgColor: "#3FA6D9",
+      icon: CameraIcon,
       features: [
-        "10 photos professionnelles",
-        "Retouche basique",
-        "Livraison en 48h",
-        "Photos haute résolution",
-      ],
-    },
-    {
-      id: "standard",
-      name: "Patron oubien?",
-      photos: 20,
-      price: "45.000",
-      color: tokens.colors.roogo.primary[500],
-      bgColor: "#C96A2E",
-      features: [
-        "20 photos professionnelles",
-        "Retouche avancée",
-        "Livraison en 24h",
-        "Photos haute résolution",
-        "Vue drone (extérieur)",
-        "Photos crépusculaires",
-      ],
-    },
-    {
-      id: "premium",
-      name: "Grand Boss",
-      photos: 35,
-      price: "75.000",
-      color: tokens.colors.roogo.primary[700],
-      bgColor: "#5A321A",
-      features: [
-        "35 photos professionnelles",
+        "5 photos professionnelles",
         "Retouche premium",
         "Livraison en 24h",
-        "Photos haute résolution",
-        "Vue drone complète",
-        "Photos crépusculaires",
-        "Visite virtuelle 360°",
+        "Mise à jour automatique",
+      ],
+    },
+    {
+      id: "video",
+      name: "Vidéo Pro",
+      price: 10000,
+      color: "#8B5CF6",
+      bgColor: "#8B5CF6",
+      icon: VideoCameraIcon,
+      features: [
+        "Vidéo immersive (1-2 min)",
+        "Montage professionnel",
+        "Musique libre de droits",
+        "Format RS (9:16) inclus",
+      ],
+    },
+    {
+      id: "3d_env",
+      name: "Environnement 3D",
+      price: 25000,
+      color: tokens.colors.roogo.primary[700],
+      bgColor: "#5A321A",
+      icon: CubeIcon,
+      features: [
+        "Visite virtuelle 3D",
+        "Immersion totale",
+        "Plan de masse 3D",
+        "Lien partageable",
+      ],
+    },
+    {
+      id: "open_house",
+      name: "+1 Session Visite",
+      price: 3000,
+      color: "#10B981",
+      bgColor: "#10B981",
+      icon: CalendarIcon,
+      features: [
+        "1h de visite groupée",
+        "Staff Roogo inclus",
+        "Logistique gérée",
+        "Rapport de visite",
       ],
     },
   ];
 
-  const propertyTypes = [
-    { id: "villa", label: "Villa" },
-    { id: "apartment", label: "Appartement" },
-    { id: "house", label: "Maison" },
-    { id: "land", label: "Terrain" },
-    { id: "commercial", label: "Commercial" },
-  ];
+  const loadProperties = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      setLoadingProperties(true);
+      const props = await fetchUserProperties(user.id);
+      setUserProperties(props);
+    } catch (error) {
+      console.error("Error loading user properties:", error);
+    } finally {
+      setLoadingProperties(false);
+    }
+  }, [user?.id]);
 
-  const cities = [
-    "Ouagadougou",
-    "Bobo-Dioulasso",
-    "Koudougou",
-    "Ouahigouya",
-    "Banfora",
-    "Kaya",
-  ];
+  useEffect(() => {
+    if (user?.id) {
+      loadProperties();
+    }
+  }, [user?.id, loadProperties]);
 
   const handlePackageSelect = (packageId: string) => {
+    if (!selectedPropertyId) {
+      Alert.alert(
+        "Sélection requise",
+        "Veuillez d'abord sélectionner une propriété à améliorer."
+      );
+      return;
+    }
     setSelectedPackage(packageId);
     setShowForm(true);
   };
@@ -247,33 +305,24 @@ export default function PhotographyScreen() {
     const selectedPkg = packages.find((pkg) => pkg.id === selectedPackage);
     Alert.alert(
       "Paiement reçu !",
-      `Votre demande pour le forfait ${selectedPkg?.name} a été envoyée. Nous vous contacterons bientôt au ${formData.contactPhone}.`
+      `Votre demande pour le service ${selectedPkg?.name} a été envoyée. Nous vous contacterons bientôt.`
     );
 
     // Reset form
     setFormData({
-      propertyAddress: "",
-      quartier: "",
-      city: "",
-      propertyType: "",
-      contactPhone: "",
+      contactPhone: user?.primaryPhoneNumber?.toString() || "",
       preferredDate: "",
       additionalNotes: "",
     });
     setSelectedPackage(null);
     setShowForm(false);
+    setSelectedPropertyId(null);
   };
 
   const handleSubmit = async () => {
     // Validate required fields
-    if (
-      !formData.propertyAddress ||
-      !formData.quartier ||
-      !formData.city ||
-      !formData.propertyType ||
-      !formData.contactPhone
-    ) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs obligatoires");
+    if (!formData.contactPhone) {
+      Alert.alert("Erreur", "Veuillez remplir votre numéro de contact");
       return;
     }
 
@@ -281,32 +330,35 @@ export default function PhotographyScreen() {
     if (!selectedPkg) return;
 
     // Prepare Payment
-    const price = parseInt(selectedPkg.price.replace(/\./g, ""), 10);
-    setPaymentAmount(price);
+    setPaymentAmount(selectedPkg.price);
     setPaymentDescription(
-      `Forfait photo ${selectedPkg.name.replace(/[^a-zA-Z0-9\s]/g, "")}`
+      `${selectedPkg.name.replace(/[^a-zA-Z0-9\s]/g, "")} - Prop ${selectedPropertyId?.substring(0, 8)}`
     );
     setShowPaymentModal(true);
   };
 
   const faqs = [
     {
-      q: "Combien de temps dure une séance photo?",
-      a: "Une séance photo dure généralement entre 45 minutes et 1h30, selon la taille de la propriété et le forfait choisi.",
+      q: "Comment fonctionne l'amélioration d'annonce ?",
+      a: "Une fois le paiement effectué, les services digitaux (Boost, Slots) sont activés instantanément. Pour les interventions techniques (Photo, Vidéo, 3D), notre équipe vous contacte pour planifier une séance.",
     },
     {
-      q: "Puis-je annuler ou reporter une séance?",
-      a: "Oui, vous pouvez annuler ou reporter votre séance jusqu'à 24h avant l'heure prévue sans frais supplémentaires.",
+      q: "Le Boost 'A la Une' dure combien de temps ?",
+      a: "L'option Boost place votre annonce en tête des résultats de recherche pendant 7 jours consécutifs, avec un badge distinctif pour attirer l'œil.",
     },
     {
-      q: "Les photos incluent-elles les retouches?",
-      a: "Oui, toutes nos photos incluent des retouches professionnelles pour garantir la meilleure qualité possible.",
+      q: "Combien de temps dure une séance photo/vidéo ?",
+      a: "Une séance dure généralement entre 45 minutes et 1h30, selon l'option choisie et la taille de la propriété.",
     },
     {
-      q: "Couvrez-vous toutes les villes du Burkina?",
-      a: "Nous couvrons principalement Ouagadougou et Bobo-Dioulasso, mais nous pouvons nous déplacer dans d'autres villes sur demande (frais supplémentaires possibles).",
+      q: "Quand mon annonce sera-t-elle mise à jour ?",
+      a: "Pour les séances photo/vidéo, vos nouveaux visuels sont traités et ajoutés à votre annonce sous 24h à 48h.",
     },
   ];
+
+  const selectedProperty = userProperties.find(
+    (p) => p.uuid === selectedPropertyId
+  );
 
   return (
     <AgentOnly>
@@ -332,7 +384,7 @@ export default function PhotographyScreen() {
                   marginBottom: 16,
                 }}
               >
-                <CameraIcon
+                <LightningIcon
                   size={32}
                   color={tokens.colors.roogo.primary[500]}
                   weight="duotone"
@@ -341,14 +393,13 @@ export default function PhotographyScreen() {
               <Text
                 style={{
                   fontSize: 28,
-                  fontWeight: "bold",
                   fontFamily: "Urbanist-Bold",
                   color: tokens.colors.roogo.neutral[900],
                   textAlign: "center",
                   marginBottom: 8,
                 }}
               >
-                Services Photo Pro
+                Améliorations & Boosts
               </Text>
               <Text
                 style={{
@@ -360,230 +411,408 @@ export default function PhotographyScreen() {
                   paddingHorizontal: 16,
                 }}
               >
-                Swipez pour découvrir nos offres professionnelles
+                Boostez la visibilité de vos biens avec nos options premium
               </Text>
             </View>
           </View>
 
           {!showForm ? (
             <>
-              {/* Swipeable Cards */}
-              <View style={{ marginBottom: 24, marginTop: 12 }}>
-                <Animated.FlatList
-                  ref={flatListRef}
-                  data={packages}
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  snapToInterval={CARD_WIDTH + CARD_SPACING}
-                  decelerationRate="fast"
-                  scrollEventThrottle={16}
-                  contentContainerStyle={{
-                    paddingLeft: (SCREEN_WIDTH - CARD_WIDTH) / 2,
-                    paddingRight:
-                      (SCREEN_WIDTH - CARD_WIDTH) / 2 + CARD_SPACING,
-                  }}
-                  onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                    { useNativeDriver: true }
-                  )}
-                  onMomentumScrollEnd={(event) => {
-                    const index = Math.round(
-                      event.nativeEvent.contentOffset.x /
-                        (CARD_WIDTH + CARD_SPACING)
-                    );
-                    setCurrentCardIndex(index);
-                  }}
-                  keyExtractor={(item) => item.id}
-                  renderItem={({ item: pkg, index }) => {
-                    const inputRange = [
-                      (index - 1) * (CARD_WIDTH + CARD_SPACING),
-                      index * (CARD_WIDTH + CARD_SPACING),
-                      (index + 1) * (CARD_WIDTH + CARD_SPACING),
-                    ];
-                    const scale = scrollX.interpolate({
-                      inputRange,
-                      outputRange: [0.92, 1, 0.92],
-                      extrapolate: "clamp",
-                    });
-                    return (
-                      <TouchableOpacity
-                        onPress={() => handlePackageSelect(pkg.id)}
-                        activeOpacity={0.9}
-                        style={{
-                          width: CARD_WIDTH,
-                          marginRight: CARD_SPACING,
-                        }}
-                      >
-                        <Animated.View
-                          style={{
-                            backgroundColor: pkg.bgColor,
-                            padding: 24,
-                            transform: [{ scale }],
-                            minHeight: CARD_HEIGHT,
-                            borderRadius: 24,
-                            shadowColor: pkg.bgColor,
-                            shadowOffset: { width: 0, height: 12 },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 16,
-                            elevation: 8,
-                          }}
-                        >
-                          {/* Icon */}
-                          <View
-                            style={{ alignItems: "center", marginBottom: 16 }}
-                          >
-                            <View
-                              style={{
-                                backgroundColor: "rgba(255,255,255,0.2)",
-                                borderRadius: 50,
-                                padding: 12,
-                              }}
-                            >
-                              {pkg.id === "premium" ? (
-                                <CrownIcon
-                                  size={ICON_SIZE}
-                                  color="white"
-                                  weight="fill"
-                                />
-                              ) : (
-                                <CameraIcon
-                                  size={ICON_SIZE}
-                                  color="white"
-                                  weight="fill"
-                                />
-                              )}
-                            </View>
-                          </View>
-
-                          {/* Price */}
-                          <View
-                            style={{ alignItems: "center", marginBottom: 20 }}
-                          >
-                            <Text
-                              style={{
-                                color: "white",
-                                fontSize: 36,
-                                fontFamily: "Urbanist-Bold",
-                                marginBottom: 4,
-                              }}
-                            >
-                              {formatPrice(pkg.price.replace(/\./g, ""))} FCFA
-                            </Text>
-                            <Text
-                              style={{
-                                color: "rgba(255,255,255,0.9)",
-                                fontSize: 18,
-                                fontFamily: "Urbanist-SemiBold",
-                                textTransform: "uppercase",
-                                letterSpacing: 1,
-                              }}
-                            >
-                              {pkg.name}
-                            </Text>
-                          </View>
-
-                          {/* Features */}
-                          <View style={{ marginBottom: 24, gap: 12 }}>
-                            {pkg.features.map(
-                              (feature: string, idx: number) => (
-                                <View
-                                  key={idx}
-                                  style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <View
-                                    style={{
-                                      backgroundColor: "rgba(255,255,255,0.2)",
-                                      borderRadius: 12,
-                                      padding: 4,
-                                      marginRight: 12,
-                                    }}
-                                  >
-                                    <CheckIcon
-                                      size={14}
-                                      color="white"
-                                      weight="bold"
-                                    />
-                                  </View>
-                                  <Text
-                                    style={{
-                                      color: "white",
-                                      fontSize: 15,
-                                      fontFamily: "Urbanist-Medium",
-                                      flex: 1,
-                                    }}
-                                  >
-                                    {feature}
-                                  </Text>
-                                </View>
-                              )
-                            )}
-                          </View>
-
-                          {/* CTA Button */}
-                          <View
-                            style={{
-                              backgroundColor: "white",
-                              borderRadius: 16,
-                              paddingVertical: 16,
-                              marginTop: "auto",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Text
-                              style={{
-                                color: pkg.bgColor,
-                                fontFamily: "Urbanist-Bold",
-                                fontSize: 16,
-                              }}
-                            >
-                              Sélectionner
-                            </Text>
-                          </View>
-                        </Animated.View>
-                      </TouchableOpacity>
-                    );
-                  }}
-                />
-
-                {/* Pagination Dots */}
-                <View
+              {/* Property Selection */}
+              <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
+                <Text
                   style={{
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    marginTop: 24,
-                    gap: 8,
+                    fontSize: 18,
+                    fontFamily: "Urbanist-Bold",
+                    color: tokens.colors.roogo.neutral[900],
+                    marginBottom: 16,
                   }}
                 >
-                  {packages.map((_, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => {
-                        flatListRef.current?.scrollToIndex({
-                          index,
-                          animated: true,
-                        });
-                        setCurrentCardIndex(index);
+                  1. Sélectionnez une propriété
+                </Text>
+
+                {loadingProperties ? (
+                  <ActivityIndicator
+                    color={tokens.colors.roogo.primary[500]}
+                    style={{ marginVertical: 20 }}
+                  />
+                ) : userProperties.length === 0 ? (
+                  <View
+                    style={{
+                      backgroundColor: "white",
+                      borderRadius: 24,
+                      padding: 24,
+                      alignItems: "center",
+                      borderWidth: 1,
+                      borderColor: tokens.colors.roogo.neutral[200],
+                      borderStyle: "dashed",
+                    }}
+                  >
+                    <View
+                      style={{
+                        backgroundColor: tokens.colors.roogo.neutral[50],
+                        padding: 16,
+                        borderRadius: 50,
+                        marginBottom: 16,
                       }}
                     >
-                      <View
-                        style={{
-                          height: 8,
-                          width: index === currentCardIndex ? 24 : 8,
-                          borderRadius: 4,
-                          backgroundColor:
-                            index === currentCardIndex
-                              ? tokens.colors.roogo.primary[500]
-                              : "#E5E7EB",
-                        }}
+                      <PlusIcon
+                        size={24}
+                        color={tokens.colors.roogo.neutral[400]}
                       />
+                    </View>
+                    <Text
+                      style={{
+                        fontFamily: "Urbanist-Bold",
+                        color: tokens.colors.roogo.neutral[900],
+                        fontSize: 16,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Aucune annonce active
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: "Urbanist-Medium",
+                        color: tokens.colors.roogo.neutral[500],
+                        fontSize: 14,
+                        textAlign: "center",
+                        marginBottom: 20,
+                      }}
+                    >
+                      Vous devez avoir une annonce publiée pour commander une
+                      amélioration.
+                    </Text>
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: tokens.colors.roogo.primary[500],
+                        paddingHorizontal: 24,
+                        paddingVertical: 12,
+                        borderRadius: 16,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "white",
+                          fontFamily: "Urbanist-Bold",
+                        }}
+                      >
+                        Publier une annonce
+                      </Text>
                     </TouchableOpacity>
-                  ))}
-                </View>
+                  </View>
+                ) : (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ marginHorizontal: -24 }}
+                    contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
+                  >
+                    {userProperties.map((prop) => (
+                      <TouchableOpacity
+                        key={prop.uuid}
+                        onPress={() => setSelectedPropertyId(prop.uuid!)}
+                        style={{
+                          width: 160,
+                          backgroundColor: "white",
+                          borderRadius: 20,
+                          padding: 12,
+                          borderWidth: 2,
+                          borderColor:
+                            selectedPropertyId === prop.uuid
+                              ? tokens.colors.roogo.primary[500]
+                              : "transparent",
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.05,
+                          shadowRadius: 8,
+                          elevation: 2,
+                        }}
+                      >
+                        <Image
+                          source={
+                            prop.image ||
+                            require("../../assets/images/white_villa.jpg")
+                          }
+                          style={{
+                            width: "100%",
+                            height: 100,
+                            borderRadius: 14,
+                            marginBottom: 8,
+                          }}
+                        />
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontFamily: "Urbanist-Bold",
+                            fontSize: 14,
+                            color: tokens.colors.roogo.neutral[900],
+                          }}
+                        >
+                          {prop.title}
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            marginTop: 4,
+                          }}
+                        >
+                          <MapPinIcon
+                            size={10}
+                            color={tokens.colors.roogo.neutral[400]}
+                          />
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              fontFamily: "Urbanist-Medium",
+                              fontSize: 10,
+                              color: tokens.colors.roogo.neutral[400],
+                              marginLeft: 2,
+                              flex: 1,
+                            }}
+                          >
+                            {prop.location}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                )}
               </View>
+
+              {userProperties.length > 0 && (
+                <>
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontFamily: "Urbanist-Bold",
+                      color: tokens.colors.roogo.neutral[900],
+                      marginBottom: 16,
+                      marginHorizontal: 24,
+                    }}
+                  >
+                    2. Choisissez un pack
+                  </Text>
+
+                  {/* Swipeable Cards */}
+                  <View style={{ marginBottom: 24 }}>
+                    <Animated.FlatList
+                      ref={flatListRef}
+                      data={packages}
+                      horizontal
+                      pagingEnabled
+                      showsHorizontalScrollIndicator={false}
+                      snapToInterval={CARD_WIDTH + CARD_SPACING}
+                      decelerationRate="fast"
+                      scrollEventThrottle={16}
+                      contentContainerStyle={{
+                        paddingLeft: (SCREEN_WIDTH - CARD_WIDTH) / 2,
+                        paddingRight:
+                          (SCREEN_WIDTH - CARD_WIDTH) / 2 + CARD_SPACING,
+                      }}
+                      onScroll={Animated.event(
+                        [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                        { useNativeDriver: true }
+                      )}
+                      onMomentumScrollEnd={(event) => {
+                        const index = Math.round(
+                          event.nativeEvent.contentOffset.x /
+                            (CARD_WIDTH + CARD_SPACING)
+                        );
+                        setCurrentCardIndex(index);
+                      }}
+                      keyExtractor={(item) => item.id}
+                      renderItem={({ item: pkg, index }) => {
+                        const inputRange = [
+                          (index - 1) * (CARD_WIDTH + CARD_SPACING),
+                          index * (CARD_WIDTH + CARD_SPACING),
+                          (index + 1) * (CARD_WIDTH + CARD_SPACING),
+                        ];
+                        const scale = scrollX.interpolate({
+                          inputRange,
+                          outputRange: [0.92, 1, 0.92],
+                          extrapolate: "clamp",
+                        });
+                        return (
+                          <TouchableOpacity
+                            onPress={() => handlePackageSelect(pkg.id)}
+                            activeOpacity={0.9}
+                            style={{
+                              width: CARD_WIDTH,
+                              marginRight: CARD_SPACING,
+                            }}
+                          >
+                            <Animated.View
+                              style={{
+                                backgroundColor: pkg.bgColor,
+                                padding: 24,
+                                transform: [{ scale }],
+                                minHeight: CARD_HEIGHT,
+                                borderRadius: 24,
+                                shadowColor: pkg.bgColor,
+                                shadowOffset: { width: 0, height: 12 },
+                                shadowOpacity: 0.25,
+                                shadowRadius: 16,
+                                elevation: 8,
+                              }}
+                            >
+                              {/* Icon */}
+                              <View
+                                style={{
+                                  alignItems: "center",
+                                  marginBottom: 16,
+                                }}
+                              >
+                                <View
+                                  style={{
+                                    backgroundColor: "rgba(255,255,255,0.2)",
+                                    borderRadius: 50,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <pkg.icon
+                                    size={ICON_SIZE}
+                                    color="white"
+                                    weight="fill"
+                                  />
+                                </View>
+                              </View>
+
+                              {/* Price */}
+                              <View
+                                style={{
+                                  alignItems: "center",
+                                  marginBottom: 20,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    color: "white",
+                                    fontSize: 36,
+                                    fontFamily: "Urbanist-Bold",
+                                    marginBottom: 4,
+                                  }}
+                                >
+                                  {formatPrice(pkg.price)} FCFA
+                                </Text>
+                                <Text
+                                  style={{
+                                    color: "rgba(255,255,255,0.9)",
+                                    fontSize: 18,
+                                    fontFamily: "Urbanist-SemiBold",
+                                    textTransform: "uppercase",
+                                    letterSpacing: 1,
+                                  }}
+                                >
+                                  {pkg.name}
+                                </Text>
+                              </View>
+
+                              {/* Features */}
+                              <View style={{ marginBottom: 24, gap: 12 }}>
+                                {pkg.features.map(
+                                  (feature: string, idx: number) => (
+                                    <View
+                                      key={idx}
+                                      style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      <View
+                                        style={{
+                                          backgroundColor:
+                                            "rgba(255,255,255,0.2)",
+                                          borderRadius: 12,
+                                          padding: 4,
+                                          marginRight: 12,
+                                        }}
+                                      >
+                                        <CheckIcon
+                                          size={14}
+                                          color="white"
+                                          weight="bold"
+                                        />
+                                      </View>
+                                      <Text
+                                        style={{
+                                          color: "white",
+                                          fontSize: 15,
+                                          fontFamily: "Urbanist-Medium",
+                                          flex: 1,
+                                        }}
+                                      >
+                                        {feature}
+                                      </Text>
+                                    </View>
+                                  )
+                                )}
+                              </View>
+
+                              {/* CTA Button */}
+                              <View
+                                style={{
+                                  backgroundColor: "white",
+                                  borderRadius: 16,
+                                  paddingVertical: 16,
+                                  marginTop: "auto",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    color: pkg.bgColor,
+                                    fontFamily: "Urbanist-Bold",
+                                    fontSize: 16,
+                                  }}
+                                >
+                                  Commander
+                                </Text>
+                              </View>
+                            </Animated.View>
+                          </TouchableOpacity>
+                        );
+                      }}
+                    />
+
+                    {/* Pagination Dots */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        marginTop: 24,
+                        gap: 8,
+                      }}
+                    >
+                      {packages.map((_, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          onPress={() => {
+                            flatListRef.current?.scrollToIndex({
+                              index,
+                              animated: true,
+                            });
+                            setCurrentCardIndex(index);
+                          }}
+                        >
+                          <View
+                            style={{
+                              height: 8,
+                              width: index === currentCardIndex ? 24 : 8,
+                              borderRadius: 4,
+                              backgroundColor:
+                                index === currentCardIndex
+                                  ? tokens.colors.roogo.primary[500]
+                                  : "#E5E7EB",
+                            }}
+                          />
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                </>
+              )}
 
               {/* Why Choose Us */}
               <View style={{ paddingHorizontal: 24, paddingBottom: 24 }}>
@@ -609,7 +838,7 @@ export default function PhotographyScreen() {
                     {
                       icon: LightningIcon,
                       title: "Livraison rapide",
-                      desc: "Vos photos retouchées en 24-48h maximum pour une mise en ligne rapide",
+                      desc: "Vos photos retouchées en 72h pour une mise en ligne rapide",
                       color: "#A855F7",
                       bg: "#F3E8FF",
                     },
@@ -744,7 +973,7 @@ export default function PhotographyScreen() {
                   marginBottom: 8,
                 }}
               >
-                Demande de service photo
+                Commander l&apos;amélioration
               </Text>
               <Text
                 style={{
@@ -754,7 +983,10 @@ export default function PhotographyScreen() {
                   marginBottom: 32,
                 }}
               >
-                Remplissez les informations pour votre propriété
+                Propriété:{" "}
+                <Text style={{ color: tokens.colors.roogo.neutral[900] }}>
+                  {selectedProperty?.title}
+                </Text>
               </Text>
 
               {/* Selected Package Info */}
@@ -776,7 +1008,7 @@ export default function PhotographyScreen() {
                     marginBottom: 4,
                   }}
                 >
-                  Forfait sélectionné
+                  Pack sélectionné
                 </Text>
                 <Text
                   style={{
@@ -789,9 +1021,8 @@ export default function PhotographyScreen() {
                   {" - "}
                   <Text style={{ color: tokens.colors.roogo.primary[500] }}>
                     {formatPrice(
-                      packages
-                        .find((pkg) => pkg.id === selectedPackage)
-                        ?.price.replace(/\./g, "") || ""
+                      packages.find((pkg) => pkg.id === selectedPackage)
+                        ?.price || 0
                     )}{" "}
                     FCFA
                   </Text>
@@ -800,77 +1031,7 @@ export default function PhotographyScreen() {
 
               <View style={{ gap: 20 }}>
                 <OutlinedField
-                  label="Adresse de la propriété *"
-                  value={formData.propertyAddress}
-                  onChangeText={(v: string) =>
-                    handleInputChange("propertyAddress", v)
-                  }
-                  placeholder="Ex: Rue 12.45, Secteur 15"
-                />
-
-                <OutlinedField
-                  label="Quartier *"
-                  value={formData.quartier}
-                  onChangeText={(v: string) => handleInputChange("quartier", v)}
-                  placeholder="Ex: Koulouba, Zone du bois"
-                />
-
-                <View>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontFamily: "Urbanist-Bold",
-                      color: tokens.colors.roogo.neutral[900],
-                      marginBottom: 8,
-                      marginLeft: 4,
-                    }}
-                  >
-                    Ville *
-                  </Text>
-                  <View
-                    style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
-                  >
-                    {cities.map((city) => (
-                      <ChipSelectable
-                        key={city}
-                        label={city}
-                        selected={formData.city === city}
-                        onPress={() => handleInputChange("city", city)}
-                      />
-                    ))}
-                  </View>
-                </View>
-
-                <View>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontFamily: "Urbanist-Bold",
-                      color: tokens.colors.roogo.neutral[900],
-                      marginBottom: 8,
-                      marginLeft: 4,
-                    }}
-                  >
-                    Type de propriété *
-                  </Text>
-                  <View
-                    style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
-                  >
-                    {propertyTypes.map((type) => (
-                      <ChipSelectable
-                        key={type.id}
-                        label={type.label}
-                        selected={formData.propertyType === type.id}
-                        onPress={() =>
-                          handleInputChange("propertyType", type.id)
-                        }
-                      />
-                    ))}
-                  </View>
-                </View>
-
-                <OutlinedField
-                  label="Téléphone de contact *"
+                  label="Numéro de contact *"
                   value={formData.contactPhone}
                   onChangeText={(v: string) =>
                     handleInputChange("contactPhone", v)
@@ -879,22 +1040,36 @@ export default function PhotographyScreen() {
                   keyboardType="phone-pad"
                 />
 
-                <OutlinedField
-                  label="Date préférée (optionnel)"
-                  value={formData.preferredDate}
-                  onChangeText={(v: string) =>
-                    handleInputChange("preferredDate", v)
-                  }
-                  placeholder="Ex: Lundi 25 Octobre"
-                />
+                {(selectedPackage === "extra_photos" ||
+                  selectedPackage === "video" ||
+                  selectedPackage === "3d_env") && (
+                  <OutlinedField
+                    label="Date souhaitée pour la séance (optionnel)"
+                    value={formData.preferredDate}
+                    onChangeText={(v: string) =>
+                      handleInputChange("preferredDate", v)
+                    }
+                    placeholder="Ex: Lundi prochain matin"
+                  />
+                )}
 
                 <OutlinedField
-                  label="Notes additionnelles (optionnel)"
+                  label={
+                    selectedPackage === "boost" ||
+                    selectedPackage === "extra_slots"
+                      ? "Notes additionnelles (optionnel)"
+                      : "Notes pour l'équipe (optionnel)"
+                  }
                   value={formData.additionalNotes}
                   onChangeText={(v: string) =>
                     handleInputChange("additionalNotes", v)
                   }
-                  placeholder="Informations supplémentaires..."
+                  placeholder={
+                    selectedPackage === "boost" ||
+                    selectedPackage === "extra_slots"
+                      ? "Précisez vos besoins particuliers..."
+                      : "Ex: Code portail, meilleur moment de la journée..."
+                  }
                   multiline
                   numberOfLines={4}
                 />
@@ -902,9 +1077,8 @@ export default function PhotographyScreen() {
 
               <View style={{ marginTop: 32 }}>
                 <PrimaryButton
-                  title="Payer et Envoyer"
+                  title="Confirmer et Payer"
                   onPress={handleSubmit}
-                  loading={loading}
                 />
               </View>
             </View>

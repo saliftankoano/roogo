@@ -429,8 +429,11 @@ export async function fetchPropertiesWithFilters(
 
 /**
  * Fetch all properties belonging to a specific agent (user)
+ * Queries by clerk_id instead of user UUID
  */
-export async function fetchUserProperties(userId: string): Promise<Property[]> {
+export async function fetchUserProperties(
+  clerkId: string
+): Promise<Property[]> {
   try {
     const { data: properties, error } = await supabase
       .from("properties")
@@ -450,16 +453,17 @@ export async function fetchUserProperties(userId: string): Promise<Property[]> {
             icon
           )
         ),
-        users:agent_id (
+        users:users!agent_id!inner (
           id,
           full_name,
           avatar_url,
           phone,
-          email
+          email,
+          clerk_id
         )
       `
       )
-      .eq("agent_id", userId)
+      .eq("users.clerk_id", clerkId)
       .order("created_at", { ascending: false });
 
     if (error) {

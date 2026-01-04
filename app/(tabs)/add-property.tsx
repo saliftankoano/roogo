@@ -42,6 +42,7 @@ export default function AddPropertyScreen() {
       "3d_env": 25000,
       extra_photos: 10000,
       boost: 7000,
+      open_house: 3000,
     };
     return selectedAddOns.reduce((sum, id) => sum + (prices[id] || 0), 0);
   };

@@ -371,13 +371,13 @@ export default function TabLayout() {
           }}
         />
 
-        {/* Photography - Show for owners, hide for others */}
+        {/* Upgrades/Boosts - Show for owners, hide for others */}
         <Tabs.Screen
           name="photography"
           options={{
-            title: "Photos",
+            title: "Boosts",
             tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={CameraIcon} focused={focused} size={24} />
+              <TabIcon Icon={RocketIcon} focused={focused} size={24} />
             ),
             href: isOwner ? undefined : null,
           }}

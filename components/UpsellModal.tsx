@@ -17,6 +17,7 @@ import {
   CubeIcon,
   CheckCircleIcon,
   LightningIcon,
+  CalendarIcon,
 } from "phosphor-react-native";
 import { tokens } from "../theme/tokens";
 import { PrimaryButton } from "./PrimaryButton";
@@ -65,6 +66,13 @@ const ADD_ONS: AddOn[] = [
     description: "Votre annonce en tête de liste pendant 7 jours.",
     price: 7000,
     icon: LightningIcon,
+  },
+  {
+    id: "open_house",
+    name: "+1 Session Visite",
+    description: "Une session de visite groupée (1h) gérée par Roogo.",
+    price: 3000,
+    icon: CalendarIcon,
   },
 ];
 
