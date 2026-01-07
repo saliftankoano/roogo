@@ -47,6 +47,8 @@ export const listingSchema = z.object({
     .array(z.enum(getInterdictionIds() as [string, ...string[]]))
     .optional(),
   tier_id: z.enum(["essentiel", "standard", "premium"]).optional(),
+  payment_id: z.string().optional(),
+  transaction_id: z.string().optional(),
 });
 
 export type ListingDraft = z.infer<typeof listingSchema>;

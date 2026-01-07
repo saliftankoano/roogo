@@ -56,6 +56,8 @@ ADD COLUMN IF NOT EXISTS photo_limit INTEGER,
 ADD COLUMN IF NOT EXISTS video_included BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS has_premium_badge BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS photos_are_professional BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS transaction_id UUID,
+ADD COLUMN IF NOT EXISTS payment_id TEXT, -- Store the deposit_id/reference from payment provider
 ADD COLUMN IF NOT EXISTS closed_at TIMESTAMP WITH TIME ZONE,
 ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITH TIME ZONE;
 
@@ -76,6 +78,18 @@ CREATE TABLE IF NOT EXISTS transactions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_transactions_property_id ON transactions(property_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_deposit_id ON transactions(deposit_id);
+
+-- Add foreign key back to properties for the specific transaction that paid for it
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'properties_transaction_id_fkey') THEN
+        ALTER TABLE properties ADD CONSTRAINT properties_transaction_id_fkey FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE SET NULL;
+    END IF;
+END $$;
 
 -- 5. Create applications table
 CREATE TABLE IF NOT EXISTS applications (

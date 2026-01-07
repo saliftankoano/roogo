@@ -3,7 +3,7 @@ import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { useFonts } from "expo-font";
 import { Slot, SplashScreen } from "expo-router";
 import { useEffect } from "react";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import "../global.css";
@@ -26,9 +26,20 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Don't render anything until fonts are loaded
+  // Show loading indicator while fonts load
   if (!fontsLoaded && !fontError) {
-    return null;
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#FFFFFF",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="#C96A2E" />
+      </View>
+    );
   }
 
   return (

@@ -1,12 +1,12 @@
 import { useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import {
   SortDescendingIcon,
   CalendarIcon,
   TagIcon,
   UsersIcon,
 } from "phosphor-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -55,24 +55,29 @@ export default function MyPropertiesScreen() {
   const { isOwner } = useUserType();
   const [refreshing, setRefreshing] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start false to prevent initial blank flash
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"price" | "date" | "views">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const scrollY = useRef(new Animated.Value(0)).current;
   const sortRotation = useRef(new Animated.Value(1)).current; // Start at 1 (180deg) for Descending/Down order
+  const hasLoadedOnce = useRef(false); // Track if we've loaded data at least once
 
   const loadProperties = useCallback(async () => {
     if (!user) return;
 
     try {
-      setLoading(true);
+      // Only show loading spinner on first load, not on refocus
+      if (!hasLoadedOnce.current) {
+        setLoading(true);
+      }
       if (user && user.id) {
         // Fetch properties for this user using clerk_id
         console.log("Fetching properties for Clerk user:", user.id);
         const fetchedProperties = await fetchUserProperties(user.id);
         console.log(`Found ${fetchedProperties.length} properties for user`);
         setProperties(fetchedProperties);
+        hasLoadedOnce.current = true;
       }
     } catch (err) {
       console.error("Error loading user properties:", err);
@@ -83,11 +88,14 @@ export default function MyPropertiesScreen() {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (isLoaded && user && isOwner) {
-      loadProperties();
-    }
-  }, [isLoaded, user, isOwner, loadProperties]);
+  // Use useFocusEffect to reload data when tab is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (isLoaded && user && isOwner) {
+        loadProperties();
+      }
+    }, [isLoaded, user, isOwner, loadProperties])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -202,8 +210,12 @@ export default function MyPropertiesScreen() {
     );
   };
 
-  // Show loading state while user data is being fetched
-  if (!isLoaded || (loading && !refreshing)) {
+  // Show loading state ONLY on first load when we have no data yet
+  // After first load, keep showing existing content while refreshing in background
+  // NEVER show loading screen once we've loaded data (hasLoadedOnce prevents blank flash)
+  const showLoadingScreen = !hasLoadedOnce.current && loading && !refreshing;
+
+  if (showLoadingScreen) {
     return (
       <SafeAreaView
         style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}

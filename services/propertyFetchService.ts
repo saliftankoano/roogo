@@ -1,6 +1,5 @@
 import { supabase } from "../lib/supabase";
 import type { Property, PropertyAgent } from "../constants/properties";
-import { normalizeInterdiction } from "../utils/interdictions";
 
 export interface PropertyImage {
   id: string;
@@ -63,13 +62,48 @@ export interface DatabaseProperty {
 /**
  * Transform database property to frontend Property type
  */
-function transformProperty(dbProperty: DatabaseProperty): Property {
+function transformProperty(dbProperty: any): Property {
+  // Try to find images in multiple possible locations
+  // Supabase join often returns them as 'property_images'
+  const rawImages =
+    Array.isArray(dbProperty.images) && dbProperty.images.length > 0
+      ? dbProperty.images
+      : Array.isArray(dbProperty.property_images) &&
+          dbProperty.property_images.length > 0
+        ? dbProperty.property_images
+        : [];
+
   // Get primary image or first image
   const primaryImage =
-    dbProperty.images?.find((img) => img.is_primary) || dbProperty.images?.[0];
+    rawImages.find(
+      (img: any) => img && typeof img === "object" && img.is_primary
+    ) || rawImages[0];
+
+  // Determine the image source
+  let propertyImage: any = null;
+  if (primaryImage) {
+    if (typeof primaryImage === "string") {
+      propertyImage = { uri: primaryImage };
+    } else if (typeof primaryImage === "object") {
+      const imageUrl = primaryImage.url || primaryImage.uri;
+      if (imageUrl) {
+        propertyImage = { uri: imageUrl };
+      }
+    }
+  } else if (dbProperty.image_url || dbProperty.imageUrl) {
+    // Fallback if image is at top level
+    propertyImage = { uri: dbProperty.image_url || dbProperty.imageUrl };
+  }
 
   // Convert all images to format expected by frontend
-  const images = dbProperty.images?.map((img) => ({ uri: img.url })) || [];
+  const images = rawImages.map((img: any) => {
+    if (typeof img === "string") return { uri: img };
+    if (typeof img === "object") {
+      const url = img.url || img.uri;
+      if (url) return { uri: url };
+    }
+    return img;
+  });
 
   // Determine category based on property_type
   const category: "Residential" | "Business" =
@@ -85,62 +119,64 @@ function transformProperty(dbProperty: DatabaseProperty): Property {
   };
 
   // Transform agent if available
-  const agent: PropertyAgent | undefined = dbProperty.agent
+  const dbAgent =
+    dbProperty.agent ||
+    (Array.isArray(dbProperty.users) ? dbProperty.users[0] : dbProperty.users);
+  const agent: PropertyAgent | undefined = dbAgent
     ? {
-        name: dbProperty.agent.full_name || "Agent",
-        agency: "Agency", // You may want to add agency to users table
-        avatar: dbProperty.agent.avatar_url
-          ? { uri: dbProperty.agent.avatar_url }
-          : require("../assets/images/white_villa.jpg"),
-        phone: dbProperty.agent.phone || undefined,
-        email: dbProperty.agent.email || undefined,
+        name: dbAgent.full_name || "Agent",
+        agency: "Agency",
+        avatar: dbAgent.avatar_url
+          ? { uri: dbAgent.avatar_url }
+          : require("../assets/images/icon.png"),
+        phone: dbAgent.phone || undefined,
+        email: dbAgent.email || undefined,
       }
     : undefined;
 
   // Convert UUID to a stable numeric ID for frontend compatibility
-  // Using first 8 characters of UUID (without dashes) converted to number
-  const numericId = parseInt(
-    dbProperty.id.replace(/-/g, "").substring(0, 8),
-    16
-  );
+  const numericId =
+    dbProperty.id && typeof dbProperty.id === "string"
+      ? parseInt(dbProperty.id.replace(/-/g, "").substring(0, 8), 16)
+      : dbProperty.id || Math.floor(Math.random() * 1000000);
 
   return {
     id: numericId,
-    uuid: dbProperty.id, // Store original UUID for API calls
-    title: dbProperty.title,
-    location: `${dbProperty.quartier}, ${dbProperty.city}`,
-    address: dbProperty.address,
-    price: dbProperty.price.toString(),
+    uuid: dbProperty.id,
+    title: dbProperty.title || "Sans titre",
+    location: dbProperty.quartier
+      ? `${dbProperty.quartier}, ${dbProperty.city || "Ouagadougou"}`
+      : dbProperty.location || "Ouagadougou",
+    address: dbProperty.address || "",
+    price: (dbProperty.price || 0).toString(),
     bedrooms: dbProperty.bedrooms || 0,
     bathrooms: dbProperty.bathrooms || 0,
-    area: dbProperty.area?.toString() || "0",
+    area: (dbProperty.area || 0).toString(),
     parking: dbProperty.parking_spaces || 0,
-    period: dbProperty.period === "month" ? "Mois" : undefined,
-    image: primaryImage
-      ? { uri: primaryImage.url }
-      : require("../assets/images/white_villa.jpg"),
+    period:
+      dbProperty.period === "month" || dbProperty.period === "Mois"
+        ? "Mois"
+        : undefined,
+    image: propertyImage,
     images: images.length > 0 ? images : undefined,
     category,
-    isSponsored: false, // You can add a sponsored field to the database if needed
-    status: dbProperty.status,
-    propertyType: propertyTypeMap[dbProperty.property_type] || "Résidence",
+    isSponsored: !!dbProperty.isSponsored,
+    status: dbProperty.status || "en_attente",
+    propertyType:
+      propertyTypeMap[dbProperty.property_type] ||
+      dbProperty.propertyType ||
+      "Résidence",
     description: dbProperty.description || "",
-    amenities: dbProperty.amenities?.map((a) => a.name) || [],
+    amenities:
+      dbProperty.amenities?.map((a: any) =>
+        typeof a === "string" ? a : a.name || ""
+      ) || [],
     agent,
-    deposit: dbProperty.caution_mois || undefined,
-    prohibitions:
-      dbProperty.interdictions?.map((int) => normalizeInterdiction(int)) ||
-      undefined,
+    deposit: dbProperty.caution_mois || dbProperty.deposit,
+    prohibitions: dbProperty.interdictions || dbProperty.prohibitions,
     slots_filled: dbProperty.slots_filled || 0,
     slot_limit: dbProperty.slot_limit || 0,
     created_at: dbProperty.created_at,
-    openHouseSlots: dbProperty.open_house_slots?.map((s: any) => ({
-      id: s.id,
-      date: s.date,
-      startTime: s.start_time,
-      endTime: s.end_time,
-      capacity: s.capacity,
-    })),
   };
 }
 
@@ -453,7 +489,7 @@ export async function fetchUserProperties(
             icon
           )
         ),
-        users:users!agent_id!inner (
+        users:agent_id!inner (
           id,
           full_name,
           avatar_url,
@@ -475,13 +511,30 @@ export async function fetchUserProperties(
       return [];
     }
 
+    // DIAGNOSTIC LOG for all properties
+    if (properties && properties.length > 0) {
+      console.log(
+        `DEBUG [fetchUserProperties] Image check for ${properties.length} properties:`
+      );
+      properties.forEach((p: any) => {
+        console.log(
+          `- [${p.title}] status: ${p.status}, image_count: ${p.property_images?.length || 0}`
+        );
+      });
+    }
+
     // Transform the data structure
     return properties.map((prop: any) => {
+      // Flatten images array
       const images = prop.property_images || [];
+
+      // Flatten amenities array
       const amenities =
         prop.property_amenities
           ?.map((pa: any) => pa.amenities)
           .filter(Boolean) || [];
+
+      // Get agent info (aliased as 'users' in query)
       const agent = Array.isArray(prop.users) ? prop.users[0] : prop.users;
 
       return transformProperty({

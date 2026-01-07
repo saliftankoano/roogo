@@ -8,13 +8,13 @@ import { router, Tabs, usePathname } from "expo-router";
 import {
   HouseIcon,
   HeartIcon,
-  CameraIcon,
+  RocketIcon,
   PlusIcon,
   UserIcon,
   BuildingsIcon,
   SignInIcon,
 } from "phosphor-react-native";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -130,6 +130,32 @@ export default function TabLayout() {
   const isDetailsPage = pathname.includes("/details");
   const { isOwner, isRenter, isGuest, isLoaded } = useUserType();
 
+  // Track if we've ever loaded successfully to prevent blank flash on tab switches
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+
+  // Cache user type to prevent tab bar jumping when auth state briefly changes
+  const cachedUserTypeRef = useRef<{
+    isOwner: boolean;
+    isRenter: boolean;
+    isGuest: boolean;
+  } | null>(null);
+
+  // Only update cached values when auth is fully loaded
+  if (isLoaded && !cachedUserTypeRef.current) {
+    cachedUserTypeRef.current = { isOwner, isRenter, isGuest };
+  }
+
+  // Use cached values if available, otherwise use current values
+  const stableIsOwner = cachedUserTypeRef.current?.isOwner ?? isOwner;
+  const stableIsRenter = cachedUserTypeRef.current?.isRenter ?? isRenter;
+  const stableIsGuest = cachedUserTypeRef.current?.isGuest ?? isGuest;
+
+  useEffect(() => {
+    if (isLoaded && !hasLoadedOnce) {
+      setHasLoadedOnce(true);
+    }
+  }, [isLoaded, hasLoadedOnce]);
+
   const commonTabBarStyle = {
     backgroundColor: "rgba(255, 255, 255, 0.98)", // High opacity, slight translucency
     position: "absolute" as const,
@@ -183,7 +209,7 @@ export default function TabLayout() {
           pointerEvents="none"
         />
 
-        {isGuest ? (
+        {stableIsGuest ? (
           <View
             style={{
               backgroundColor: "rgba(255, 255, 255, 0.98)",
@@ -227,7 +253,7 @@ export default function TabLayout() {
                 }
               };
 
-              if (route.name === "profile" && isGuest) {
+              if (route.name === "profile" && stableIsGuest) {
                 return (
                   <TouchableOpacity
                     key={route.key}
@@ -320,8 +346,9 @@ export default function TabLayout() {
     headerShown: false,
   };
 
-  // Show loading state while auth is being determined
-  if (!isLoaded) {
+  // Show loading state ONLY on very first load, never on tab switches
+  // Once loaded, never show loading again to prevent blank flash
+  if (!isLoaded && !hasLoadedOnce) {
     return (
       <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
         <View
@@ -337,14 +364,16 @@ export default function TabLayout() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <Tabs
         screenOptions={{
           ...commonScreenOptions,
-          // Add smooth transitions
           tabBarHideOnKeyboard: true,
           headerShown: false,
-          animation: "shift",
+          animation: "none", // Disable animation to prevent blank flash during transition
+          lazy: false, // Pre-load all tabs to prevent blank states on first visit
+          freezeOnBlur: false, // Don't freeze screens when switching tabs
+          sceneStyle: { backgroundColor: "#FFFFFF" }, // Ensure screens have background
         }}
         tabBar={(props) => <CustomTabBar {...props} />}
       >
@@ -367,7 +396,7 @@ export default function TabLayout() {
             tabBarIcon: ({ focused }) => (
               <TabIcon Icon={HeartIcon} focused={focused} size={24} />
             ),
-            href: isRenter ? undefined : null,
+            href: stableIsRenter ? undefined : null,
           }}
         />
 
@@ -379,7 +408,7 @@ export default function TabLayout() {
             tabBarIcon: ({ focused }) => (
               <TabIcon Icon={RocketIcon} focused={focused} size={24} />
             ),
-            href: isOwner ? undefined : null,
+            href: stableIsOwner ? undefined : null,
           }}
         />
 
@@ -389,7 +418,7 @@ export default function TabLayout() {
           options={{
             title: "",
             tabBarIcon: () => null,
-            tabBarButton: isOwner
+            tabBarButton: stableIsOwner
               ? (props) => (
                   <View
                     style={{ alignItems: "center", justifyContent: "center" }}
@@ -418,7 +447,7 @@ export default function TabLayout() {
             tabBarIcon: ({ focused }) => (
               <TabIcon Icon={BuildingsIcon} focused={focused} size={24} />
             ),
-            href: isOwner ? undefined : null,
+            href: stableIsOwner ? undefined : null,
           }}
         />
 
@@ -430,7 +459,7 @@ export default function TabLayout() {
             tabBarIcon: ({ focused }) => (
               <TabIcon Icon={UserIcon} focused={focused} size={24} />
             ),
-            href: isGuest ? null : undefined, // Hide from tab bar for guests (handled in CustomTabBar)
+            href: stableIsGuest ? null : undefined, // Hide from tab bar for guests (handled in CustomTabBar)
           }}
         />
       </Tabs>

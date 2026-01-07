@@ -1,7 +1,7 @@
 import { tokens } from "../../../theme/tokens";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { MapPin, SlidersHorizontal } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useRef } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -46,33 +46,42 @@ export default function HomeScreen() {
   >("All");
   const [filters, setFilters] = useState<FiltersState>(INITIAL_FILTERS);
   const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start false to prevent initial blank flash
   const [error, setError] = useState<string | null>(null);
   // const [searchQuery, setSearchQuery] = useState("");
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
 
-  // Fetch properties from Supabase on mount
-  useEffect(() => {
-    const loadProperties = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const fetchedProperties = await fetchActiveProperties();
-        setProperties(fetchedProperties);
-      } catch (err) {
-        console.error("Error loading properties:", err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Erreur lors du chargement des propriétés"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Track if we've loaded data at least once to prevent blank flash on return
+  const hasLoadedOnce = useRef(false);
 
-    loadProperties();
-  }, []);
+  // Fetch properties from Supabase on focus
+  useFocusEffect(
+    useCallback(() => {
+      const loadProperties = async () => {
+        try {
+          // Only show loading on first load, not on refocus
+          if (!hasLoadedOnce.current) {
+            setLoading(true);
+          }
+          setError(null);
+          const fetchedProperties = await fetchActiveProperties();
+          setProperties(fetchedProperties);
+          hasLoadedOnce.current = true;
+        } catch (err) {
+          console.error("Error loading properties:", err);
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Erreur lors du chargement des propriétés"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadProperties();
+    }, [])
+  );
 
   const updateFilter = (key: keyof FiltersState, value: string | number) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -153,7 +162,8 @@ export default function HomeScreen() {
       });
   }, [selectedCategory, filters, properties]);
 
-  if (loading) {
+  // Only show loading on first load, never after we've loaded data once
+  if (loading && !hasLoadedOnce.current) {
     return (
       <View
         style={{ flex: 1, backgroundColor: "#FFFFFF", paddingTop: insets.top }}

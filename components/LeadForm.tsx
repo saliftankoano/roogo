@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { submitLead, type LeadData } from "../api/leads";
 import type { Property } from "../constants/properties";
-import { tokens } from "../theme/tokens";
 
 interface LeadFormProps {
   property: Property;

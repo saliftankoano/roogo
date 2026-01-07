@@ -207,7 +207,7 @@ export default function AddPropertyScreen() {
   };
 
   // Called after payment is successful
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = async (depositId?: string) => {
     setShowPaymentModal(false);
     setIsSubmitting(true);
     setSubmissionSuccess(false);
@@ -218,9 +218,12 @@ export default function AddPropertyScreen() {
       const token = await getToken();
       if (!token) throw new Error("Authentication failed");
 
-      // Submit to backend API
+      // Submit to backend API with the payment reference
       const submissionResult = await submitProperty(
-        formData as ListingDraft,
+        {
+          ...(formData as ListingDraft),
+          payment_id: depositId,
+        },
         token,
         (status) => setSubmissionStatus(status)
       );
