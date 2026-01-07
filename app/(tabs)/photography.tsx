@@ -28,7 +28,7 @@ import {
   MapPinIcon,
   PlusIcon,
   UsersIcon,
-  RocketIcon,
+  RocketLaunchIcon as RocketIcon,
   CalendarIcon,
 } from "phosphor-react-native";
 import { useUser } from "@clerk/clerk-expo";

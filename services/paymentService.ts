@@ -2,7 +2,7 @@ import { useAuth } from "@clerk/clerk-expo";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-export type TransactionType = "listing_submission" | "photography";
+export type TransactionType = "listing_submission" | "photography" | "property_lock";
 export type PaymentProvider = "ORANGE_MONEY" | "MOOV_MONEY";
 
 export interface InitiatePaymentResponse {

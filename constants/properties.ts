@@ -12,6 +12,7 @@ export type PropertyAgent = {
   avatar: ImageSourcePropType;
   phone?: string;
   email?: string;
+  user_type?: string;
 };
 
 export type Property = {
@@ -47,6 +48,8 @@ export type Property = {
     endTime: string;
     capacity: number;
   }[];
+  published_at?: string;
+  is_locked?: boolean;
 };
 
 export const properties: Property[] = [

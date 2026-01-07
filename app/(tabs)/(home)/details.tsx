@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -19,8 +19,12 @@ import {
   TreeIcon,
   WarningCircleIcon,
   WifiHighIcon,
+  LockIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  XIcon,
 } from "phosphor-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -32,6 +36,7 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AgentCard from "../../../components/AgentCard";
@@ -51,6 +56,62 @@ import {
   bookOpenHouseSlot,
 } from "../../../services/applicationService";
 import { OpenHousePickerModal } from "../../../components/OpenHousePickerModal";
+import { PaymentModal } from "../../../components/PaymentModal";
+
+// --- Lock Confirmation Modal ---
+interface LockModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  fee: number;
+}
+
+const LockModal: React.FC<LockModalProps> = ({ visible, onClose, onConfirm, fee }) => {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View className="flex-1 bg-black/50 justify-center items-center px-6">
+        <View className="bg-white rounded-[32px] w-full p-8">
+          <View className="bg-roogo-primary-50 w-16 h-16 rounded-full items-center justify-center self-center mb-6">
+            <LockIcon size={32} color={tokens.colors.roogo.primary[500]} weight="fill" />
+          </View>
+          
+          <Text className="text-2xl font-urbanist-bold text-roogo-neutral-900 text-center mb-2">
+            Réserver ce bien
+          </Text>
+          <Text className="text-roogo-neutral-500 font-urbanist text-center mb-8">
+            Sécurisez ce bien immédiatement en payant les frais Early Bird.
+          </Text>
+
+          <View className="bg-roogo-neutral-50 rounded-2xl p-4 mb-8">
+            <View className="flex-row justify-between mb-2">
+              <Text className="text-roogo-neutral-500 font-urbanist">Frais de réservation (10%)</Text>
+              <Text className="text-roogo-neutral-900 font-urbanist-bold">{formatPrice(fee)} XOF</Text>
+            </View>
+            <View className="h-[1px] bg-roogo-neutral-100 my-2" />
+            <Text className="text-[10px] text-roogo-neutral-400 font-urbanist italic">
+              *Ces frais sont versés à Roogo pour le service de verrouillage. Le loyer sera payé séparément au propriétaire.
+            </Text>
+          </View>
+
+          <View className="flex-row gap-3">
+            <TouchableOpacity 
+              onPress={onClose}
+              className="flex-1 bg-roogo-neutral-100 py-4 rounded-2xl items-center"
+            >
+              <Text className="text-roogo-neutral-900 font-urbanist-bold">Annuler</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={onConfirm}
+              className="flex-[2] bg-roogo-primary-500 py-4 rounded-2xl items-center shadow-lg shadow-roogo-primary-500/30"
+            >
+              <Text className="text-white font-urbanist-bold">Payer {formatPrice(fee)} XOF</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
 
 export default function PropertyDetailsScreen() {
   const router = useRouter();
@@ -60,6 +121,7 @@ export default function PropertyDetailsScreen() {
   const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
   const [authPromptVisible, setAuthPromptVisible] = useState(false);
   const { user } = useUser();
+  const { getToken } = useAuth();
   const isAuthenticated = !!user;
 
   const [property, setProperty] = useState<Property | undefined>(undefined);
@@ -67,6 +129,78 @@ export default function PropertyDetailsScreen() {
   const [isApplying, setIsApplying] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+
+  // --- Early Bird Logic ---
+  const [isLockModalVisible, setIsLockModalVisible] = useState(false);
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  const earlyBirdWindow = useMemo(() => {
+    if (!property?.published_at) return null;
+    const publishedDate = new Date(property.published_at);
+    const endDate = new Date(publishedDate.getTime() + 48 * 60 * 60 * 1000);
+    return endDate;
+  }, [property?.published_at]);
+
+  const isEarlyBirdActive = useMemo(() => {
+    if (!earlyBirdWindow || property?.status !== "en_ligne") return false;
+    return new Date() < earlyBirdWindow;
+  }, [earlyBirdWindow, property?.status]);
+
+  const lockFee = useMemo(() => {
+    if (!property?.price) return 10000;
+    const rent = Number(property.price);
+    return Math.max(rent * 0.1, 10000);
+  }, [property?.price]);
+
+  useEffect(() => {
+    if (!earlyBirdWindow || !isEarlyBirdActive) return;
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = earlyBirdWindow.getTime() - now;
+
+      if (distance < 0) {
+        clearInterval(timer);
+        setTimeLeft("Terminé");
+        return;
+      }
+
+      const hours = Math.floor(distance / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [earlyBirdWindow, isEarlyBirdActive]);
+
+  const handleLockPress = () => {
+    if (!isAuthenticated) {
+      setAuthPromptVisible(true);
+      return;
+    }
+    setIsLockModalVisible(true);
+  };
+
+  const onLockConfirm = () => {
+    setIsLockModalVisible(false);
+    setIsPaymentModalVisible(true);
+  };
+
+  const onLockSuccess = () => {
+    setIsPaymentModalVisible(false);
+    // Optimistically update property status or fetch again
+    if (property) {
+      setProperty({ ...property, status: "locked", is_locked: true });
+    }
+    Alert.alert(
+      "🎉 Réservé !",
+      "Félicitations, vous avez verrouillé ce bien. Le propriétaire vous contactera sous peu pour la signature du bail.",
+      [{ text: "Super", onPress: () => {} }]
+    );
+  };
 
   const handleApply = async () => {
     if (!isAuthenticated) {
@@ -270,8 +404,19 @@ export default function PropertyDetailsScreen() {
               bottom: 48,
               right: 24,
               zIndex: 10,
+              alignItems: 'flex-end',
+              gap: 8
             }}
           >
+            {isEarlyBirdActive && timeLeft && (
+              <View className="bg-roogo-primary-500 px-4 py-2 rounded-full flex-row items-center border border-white/20 shadow-lg shadow-roogo-primary-500/20">
+                <ClockIcon size={14} color="white" weight="bold" />
+                <Text className="ml-2 text-white text-xs font-urbanist-bold uppercase tracking-wider">
+                  Expire dans : {timeLeft}
+                </Text>
+              </View>
+            )}
+
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
@@ -458,37 +603,99 @@ export default function PropertyDetailsScreen() {
       </ScrollView>
 
       {/* Floating Contact Footer */}
-      <View className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 bg-white border-t border-roogo-neutral-100 flex-row gap-3">
-        {!property.agent && (
-          <TouchableOpacity
-            onPress={() => setIsContactSheetVisible(true)}
-            className="flex-1 bg-roogo-neutral-100 py-4 rounded-2xl items-center justify-center"
-          >
-            <Text className="text-roogo-neutral-900 font-urbanist-bold text-base">
-              Contacter
-            </Text>
-          </TouchableOpacity>
+      <View className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 bg-white border-t border-roogo-neutral-100">
+        {property.status === "locked" ? (
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <PrimaryButton
+                title="Ce bien est réservé"
+                disabled={true}
+              />
+            </View>
+          </View>
+        ) : isEarlyBirdActive ? (
+          <View className="flex-row gap-3">
+            {!property.agent && (
+              <TouchableOpacity
+                onPress={() => setIsContactSheetVisible(true)}
+                className="flex-1 bg-roogo-neutral-100 py-4 rounded-2xl items-center justify-center"
+              >
+                <Text className="text-roogo-neutral-900 font-urbanist-bold text-base">
+                  Contacter
+                </Text>
+              </TouchableOpacity>
+            )}
+            <View className="flex-[2]">
+              <PrimaryButton
+                title={`🔒 Réserver - ${formatPrice(lockFee)} XOF`}
+                onPress={handleLockPress}
+              />
+            </View>
+          </View>
+        ) : (
+          <View>
+            <View className="flex-row gap-3 mb-3">
+              {!property.agent && (
+                <TouchableOpacity
+                  onPress={() => setIsContactSheetVisible(true)}
+                  className="flex-1 bg-roogo-neutral-100 py-4 rounded-2xl items-center justify-center"
+                >
+                  <Text className="text-roogo-neutral-900 font-urbanist-bold text-base">
+                    Contacter
+                  </Text>
+                </TouchableOpacity>
+              )}
+              <View className="flex-[2]">
+                <PrimaryButton
+                  title={
+                    hasApplied
+                      ? "Réserver une visite"
+                      : (property.slots_filled ?? 0) >= (property.slot_limit ?? 1)
+                        ? "Plus de places"
+                        : "Postuler gratuitement"
+                  }
+                  onPress={hasApplied ? () => setShowPicker(true) : handleApply}
+                  loading={isApplying}
+                  disabled={
+                    !hasApplied &&
+                    (property.slots_filled ?? 0) >= (property.slot_limit ?? 1)
+                  }
+                />
+              </View>
+            </View>
+            {/* Show disabled Early Bird button if expired to show it was an option */}
+            {!isEarlyBirdActive && property.published_at && property.status === 'en_ligne' && (
+              <TouchableOpacity 
+                disabled={true}
+                className="w-full bg-roogo-neutral-100 py-3 rounded-2xl items-center opacity-60 flex-row justify-center gap-2"
+              >
+                <LockIcon size={16} color={tokens.colors.roogo.neutral[400]} />
+                <Text className="text-roogo-neutral-400 font-urbanist-bold text-sm">
+                  Early Bird terminé
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
-        <View className="flex-[2]">
-          <PrimaryButton
-            title={
-              hasApplied
-                ? "Réserver une visite"
-                : (property.slots_filled ?? 0) >= (property.slot_limit ?? 1)
-                  ? "Plus de places"
-                  : "Postuler gratuitement"
-            }
-            onPress={hasApplied ? () => setShowPicker(true) : handleApply}
-            loading={isApplying}
-            disabled={
-              !hasApplied &&
-              (property.slots_filled ?? 0) >= (property.slot_limit ?? 1)
-            }
-          />
-        </View>
       </View>
 
       {/* Modals */}
+      <LockModal 
+        visible={isLockModalVisible}
+        onClose={() => setIsLockModalVisible(false)}
+        onConfirm={onLockConfirm}
+        fee={lockFee}
+      />
+
+      <PaymentModal
+        visible={isPaymentModalVisible}
+        onClose={() => setIsPaymentModalVisible(false)}
+        onSuccess={onLockSuccess}
+        amount={lockFee}
+        description={`Réservation Early Bird: ${property.address}`}
+        transactionType="property_lock"
+        propertyId={property.uuid}
+      />
       <ContactSheet
         visible={isContactSheetVisible}
         onClose={() => setIsContactSheetVisible(false)}

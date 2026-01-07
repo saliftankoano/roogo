@@ -8,7 +8,7 @@ import { router, Tabs, usePathname } from "expo-router";
 import {
   HouseIcon,
   HeartIcon,
-  CameraIcon,
+  RocketLaunchIcon as RocketIcon,
   PlusIcon,
   UserIcon,
   BuildingsIcon,

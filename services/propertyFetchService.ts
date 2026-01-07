@@ -23,7 +23,7 @@ export interface DatabaseProperty {
   price: number;
   listing_type: "louer" | "vendre";
   property_type: "villa" | "appartement" | "maison" | "terrain" | "commercial";
-  status: "en_attente" | "en_ligne" | "expired";
+  status: "en_attente" | "en_ligne" | "expired" | "locked";
   bedrooms: number | null;
   bathrooms: number | null;
   area: number | null;
@@ -38,6 +38,7 @@ export interface DatabaseProperty {
   interdictions: string[] | null;
   slots_filled: number | null;
   slot_limit: number | null;
+  published_at: string | null;
   created_at: string;
   updated_at: string;
   views_count: number;
@@ -57,6 +58,7 @@ export interface DatabaseProperty {
     avatar_url: string | null;
     phone: string | null;
     email: string | null;
+    user_type: string | null;
   };
 }
 
@@ -94,6 +96,7 @@ function transformProperty(dbProperty: DatabaseProperty): Property {
           : require("../assets/images/white_villa.jpg"),
         phone: dbProperty.agent.phone || undefined,
         email: dbProperty.agent.email || undefined,
+        user_type: dbProperty.agent.user_type || undefined,
       }
     : undefined;
 
@@ -141,6 +144,8 @@ function transformProperty(dbProperty: DatabaseProperty): Property {
       endTime: s.end_time,
       capacity: s.capacity,
     })),
+    published_at: dbProperty.published_at || undefined,
+    is_locked: dbProperty.status === "locked",
   };
 }
 
@@ -174,7 +179,8 @@ export async function fetchActiveProperties(): Promise<Property[]> {
           full_name,
           avatar_url,
           phone,
-          email
+          email,
+          user_type
         )
       `
       )
@@ -256,7 +262,8 @@ export async function fetchPropertyById(
           full_name,
           avatar_url,
           phone,
-          email
+          email,
+          user_type
         ),
         open_house_slots (
           id,
@@ -346,7 +353,8 @@ export async function fetchPropertiesWithFilters(
           full_name,
           avatar_url,
           phone,
-          email
+          email,
+          user_type
         )
       `
       )

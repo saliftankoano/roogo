@@ -59,10 +59,82 @@ Pour maximiser l'adoption et l'engagement des utilisateurs cherchant un logement
 Le système utilise l'urgence pour motiver les chercheurs et assurer une rotation rapide des biens.
 \begin{enumerate}
     \item \textbf{Phase d'Attente :} L'annonce est créée avec des photos temporaires du propriétaire (\texttt{en\_attente}).
-    \item \textbf{Mise en Ligne :} Le staff Roogo remplace les photos par des clichés professionnels (\texttt{en\_ligne}).
+    \item \textbf{Mise en Ligne :} Le staff Roogo remplace les photos par des clichés professionnels (\texttt{en\_ligne}). La fenêtre Early Bird de 48h démarre.
+    \item \textbf{Verrouillage (optionnel) :} Si un utilisateur réserve pendant la fenêtre Early Bird, l'annonce passe en statut \texttt{locked} et est retirée du marché.
+    \item \textbf{Candidatures Ouvertes :} Après 48h sans réservation, le processus classique de candidature s'ouvre.
     \item \textbf{Clôture Automatique :} Dès que le quota de slots d'applications du pack est atteint, l'annonce passe en statut \texttt{closing}.
     \item \textbf{Expiration :} L'annonce reste visible 3 jours après avoir été complète pour générer de l'intérêt futur, puis passe en \texttt{expired}.
 \end{enumerate}
+
+\subsection{Diagramme des Statuts}
+\begin{verbatim}
+en_attente → en_ligne → [locked]     → (hors plateforme)
+                     ↓
+                  (48h passées)
+                     ↓
+                  candidatures → closing → expired
+\end{verbatim}
+
+\section{Réservation Anticipée (Early Bird)}
+Ce modèle permet aux chercheurs sérieux de sécuriser un bien immédiatement après sa mise en ligne, avant que les candidatures classiques ne soient ouvertes.
+
+\subsection{Principe}
+Durant les \textbf{48 premières heures} suivant la mise en ligne d'une annonce, un utilisateur peut payer des frais de réservation pour \textbf{verrouiller} le bien. Une fois verrouillé :
+\begin{itemize}
+    \item Le bien est retiré du marché (statut \texttt{locked})
+    \item Les autres utilisateurs ne peuvent plus postuler
+    \item Le propriétaire est mis en contact direct avec l'utilisateur réservant
+    \item Le paiement du loyer et la signature du bail se font hors plateforme
+\end{itemize}
+
+\subsection{Fenêtre Early Bird (48h)}
+\begin{enumerate}
+    \item \textbf{H0 - H48 :} Bouton ``Réserver'' visible avec compte à rebours
+    \item \textbf{H48+ :} Bouton ``Réserver'' disparaît, processus de candidature classique s'ouvre
+\end{enumerate}
+
+Un compte à rebours dynamique dans l'application crée de l'urgence et encourage les utilisateurs à agir rapidement.
+
+\subsection{Tarification Early Bird}
+Les frais de réservation sont calculés en pourcentage du loyer mensuel :
+
+\medskip
+\textbf{Formule :} \\
+\text{Frais de Réservation} = 10\% \times \text{Loyer Mensuel}
+
+\medskip
+Avec un \textbf{minimum de 10 000 XOF} pour garantir la rentabilité sur les petits loyers.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcr}
+\toprule
+\textbf{Loyer Mensuel} & \textbf{Calcul} & \textbf{Frais Early Bird} \\
+\midrule
+50 000 XOF & 10\% = 5K (< min) & 10 000 XOF \\
+100 000 XOF & 10\% & 10 000 XOF \\
+150 000 XOF & 10\% & 15 000 XOF \\
+250 000 XOF & 10\% & 25 000 XOF \\
+500 000 XOF & 10\% & 50 000 XOF \\
+\bottomrule
+\end{tabular}
+\caption{Exemples de tarification Early Bird (10\% du loyer, min 10K)}
+\end{table}
+
+\subsection{Politique de Remboursement}
+\begin{itemize}
+    \item \textbf{Annulation par le locataire :} Aucun remboursement (filtre les indécis)
+    \item \textbf{Rejet par le propriétaire (sous 48h) :} Remboursement de 50\%
+    \item \textbf{Défaut de contact du propriétaire (72h+) :} Remboursement intégral
+\end{itemize}
+
+\subsection{Avantages Stratégiques}
+\begin{itemize}
+    \item \textbf{Nouveau flux de revenus :} Monétisation côté demande sans toucher au modèle gratuit de base
+    \item \textbf{Rotation accélérée :} Les biens se louent plus vite, satisfaction propriétaire augmentée
+    \item \textbf{Engagement utilisateur :} Le compte à rebours incite à l'ouverture quotidienne de l'app
+    \item \textbf{Filtre qualité :} Seuls les locataires sérieux paient, réduisant le travail de tri pour les propriétaires
+\end{itemize}
 
 \section{Options de Personnalisation (Add-ons)}
 \begin{itemize}

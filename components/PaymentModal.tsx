@@ -9,6 +9,7 @@ import {
   Alert,
   StyleSheet,
   Pressable,
+  Keyboard,
   Animated,
 } from "react-native";
 import { XIcon, CheckCircleIcon } from "phosphor-react-native";
@@ -332,7 +333,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <Pressable style={styles.container} onPress={Keyboard.dismiss}>
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
@@ -493,7 +494,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             </>
           )}
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 };

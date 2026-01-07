@@ -7,6 +7,29 @@ type AgentCardProps = {
 };
 
 export default function AgentCard({ agent, onContactPress }: AgentCardProps) {
+  const isOwner = agent.user_type === "owner";
+
+  if (isOwner) {
+    return (
+      <View className="flex-row items-center bg-roogo-neutral-100/50 rounded-3xl p-5 border border-roogo-neutral-100">
+        <View className="w-14 h-14 rounded-full bg-roogo-neutral-200 items-center justify-center">
+          <Text className="text-xl font-urbanist-bold text-roogo-neutral-400">
+            P
+          </Text>
+        </View>
+
+        <View className="flex-1 ml-4">
+          <Text className="text-lg font-urbanist-bold text-roogo-neutral-900">
+            Particulier
+          </Text>
+          <Text className="text-sm font-urbanist-medium text-roogo-neutral-500">
+            Propriétaire vérifié
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-row items-center bg-white rounded-full p-4 border border-gray-100">
       <Image

@@ -4,6 +4,7 @@ import {
   Alert,
   BackHandler,
   KeyboardAvoidingView,
+  Keyboard,
   Linking,
   Modal,
   Platform,
@@ -119,16 +120,24 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
     });
   };
 
+  const isOwner = property.agent?.user_type === "owner";
+
   // Reset when opening
   useEffect(() => {
     if (visible) {
-      setCurrentStep("options");
+      if (isOwner) {
+        setCurrentStep("lead-form");
+      } else {
+        setCurrentStep("options");
+      }
       logAnalytics("contact_sheet_opened");
     }
-  }, [visible, logAnalytics]);
+  }, [visible, logAnalytics, isOwner]);
 
   const handleClose = () => {
-    setCurrentStep("options");
+    if (!isOwner) {
+      setCurrentStep("options");
+    }
     onClose();
   };
 
@@ -152,7 +161,10 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
           justifyContent: "flex-end",
         }}
         activeOpacity={1}
-        onPress={handleClose}
+        onPress={() => {
+          Keyboard.dismiss();
+          handleClose();
+        }}
       >
         <TouchableOpacity
           style={{
@@ -167,7 +179,7 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
             maxHeight: leadFormSheetHeight,
           }}
           activeOpacity={1}
-          onPress={(e) => e.stopPropagation()}
+          onPress={() => Keyboard.dismiss()}
         >
           <SafeAreaView
             className="flex-1"
@@ -194,7 +206,9 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
                   <Text className="text-2xl font-bold text-gray-900">
                     {currentStep === "options"
                       ? "Contacter l'agent"
-                      : "Envoyer une demande"}
+                      : isOwner
+                        ? "Envoyer un message"
+                        : "Envoyer une demande"}
                   </Text>
                   <TouchableOpacity
                     onPress={handleClose}

@@ -10,6 +10,8 @@ import {
   Animated,
   Easing,
   PanResponder,
+  Keyboard,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { tokens } from "../theme/tokens";
@@ -539,229 +541,235 @@ export default function FilterModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView className="flex-1 bg-white">
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-6 py-4 border-b border-roogo-neutral-100">
-          <TouchableOpacity onPress={onReset} className="px-2">
-            <Text className="text-roogo-neutral-500 font-urbanist font-semibold">
-              Réinitialiser
+      <Pressable className="flex-1" onPress={Keyboard.dismiss}>
+        <SafeAreaView className="flex-1 bg-white">
+          {/* Header */}
+          <View className="flex-row items-center justify-between px-6 py-4 border-b border-roogo-neutral-100">
+            <TouchableOpacity onPress={onReset} className="px-2">
+              <Text className="text-roogo-neutral-500 font-urbanist font-semibold">
+                Réinitialiser
+              </Text>
+            </TouchableOpacity>
+            <Text className="text-lg font-bold text-roogo-neutral-900 font-urbanist">
+              Filtres
             </Text>
-          </TouchableOpacity>
-          <Text className="text-lg font-bold text-roogo-neutral-900 font-urbanist">
-            Filtres
-          </Text>
-          <TouchableOpacity onPress={onClose} className="p-2">
-            <X size={24} color={tokens.colors.roogo.neutral[900]} />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          className="flex-1 px-6 py-6"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Neighborhood Chips */}
-          <FilterSection title="Quartier">
-            <View className="flex-row flex-wrap">
-              {NEIGHBORHOODS.map((neighborhood) => (
-                <TouchableOpacity
-                  key={neighborhood}
-                  onPress={() => onFilterChange("neighborhood", neighborhood)}
-                  className={`px-5 py-2 rounded-full mr-2 mb-2 border ${
-                    filters.neighborhood === neighborhood
-                      ? "bg-roogo-neutral-900 border-roogo-neutral-900"
-                      : "bg-white border-roogo-neutral-200"
-                  }`}
-                >
-                  <Text
-                    className={`font-semibold font-urbanist ${
-                      filters.neighborhood === neighborhood
-                        ? "text-white"
-                        : "text-roogo-neutral-700"
-                    }`}
-                  >
-                    {neighborhood === "Tous" ? "Tout" : neighborhood}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </FilterSection>
-
-          {/* Price Histogram & Inputs */}
-          <FilterSection title="Budget (CFA)">
-            <View>
-              {/* Histogram */}
-              <View className="flex-row items-end h-24 mb-4">
-                {HISTOGRAM_DATA.map((h, i) => {
-                  const barPrice = (i / HISTOGRAM_DATA.length) * MAX_PRICE;
-                  const isActive =
-                    barPrice >= localMinPrice && barPrice <= localMaxPrice;
-                  return (
-                    <HistogramBar
-                      key={i}
-                      heightPercent={h}
-                      index={i}
-                      isActive={isActive}
-                    />
-                  );
-                })}
-              </View>
-
-              {/* Custom Dual Range Slider */}
-              <View className="mb-4 px-1">
-                <DualRangeSlider
-                  minValue={localMinPrice}
-                  maxValue={localMaxPrice}
-                  min={MIN_PRICE}
-                  max={MAX_PRICE}
-                  step={STEP}
-                  onMinChange={handleMinPriceChange}
-                  onMaxChange={handleMaxPriceChange}
-                />
-              </View>
-
-              {/* Price Inputs */}
-              <View className="flex-row justify-between gap-4">
-                <View className="flex-1">
-                  <Text className="text-xs text-roogo-neutral-500 font-urbanist mb-1">
-                    Minimum
-                  </Text>
-                  <View
-                    style={{
-                      backgroundColor: tokens.colors.roogo.neutral[100],
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: tokens.colors.border,
-                    }}
-                  >
-                    <TextInput
-                      style={{
-                        paddingHorizontal: 12,
-                        paddingVertical: 10,
-                        fontSize: 16,
-                        fontWeight: "600",
-                        color: tokens.colors.roogo.neutral[900],
-                      }}
-                      value={formatPrice(localMinPrice)}
-                      onChangeText={handleMinTextChange}
-                      onBlur={handleMinTextSubmit}
-                      keyboardType="numeric"
-                    />
-                  </View>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-xs text-roogo-neutral-500 font-urbanist mb-1 text-right">
-                    Maximum
-                  </Text>
-                  <View
-                    style={{
-                      backgroundColor: tokens.colors.roogo.neutral[100],
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: tokens.colors.border,
-                    }}
-                  >
-                    <TextInput
-                      style={{
-                        paddingHorizontal: 12,
-                        paddingVertical: 10,
-                        fontSize: 16,
-                        fontWeight: "600",
-                        color: tokens.colors.roogo.neutral[900],
-                        textAlign: "right",
-                      }}
-                      value={formatPrice(localMaxPrice)}
-                      onChangeText={handleMaxTextChange}
-                      onBlur={handleMaxTextSubmit}
-                      keyboardType="numeric"
-                    />
-                  </View>
-                </View>
-              </View>
-            </View>
-          </FilterSection>
-
-          {/* Layout: Surface (Split) */}
-          <FilterSection title="Surface (m²)">
-            <View className="flex-row gap-4">
-              <FilterDropdown
-                dropdownKey="minArea"
-                value={filters.minArea}
-                options={[0, ...SURFACE_OPTIONS.filter((v) => v > 0)]}
-                onSelect={(val) => onFilterChange("minArea", val)}
-                placeholder="Min"
-              />
-              <FilterDropdown
-                dropdownKey="maxArea"
-                value={filters.maxArea}
-                options={[0, ...SURFACE_OPTIONS.filter((v) => v > 0)]}
-                onSelect={(val) => onFilterChange("maxArea", val)}
-                placeholder="Max"
-              />
-            </View>
-          </FilterSection>
-
-          {/* Layout: Bed & Bath (Alternating Row) */}
-          <View className="flex-row gap-4 mb-8">
-            <View className="flex-1">
-              <FilterSection title="Chambres">
-                <FilterDropdown
-                  dropdownKey="bedrooms"
-                  value={filters.bedrooms}
-                  options={BEDROOM_OPTIONS}
-                  onSelect={(val) => onFilterChange("bedrooms", val || "Tous")}
-                  placeholder="Indifférent"
-                />
-              </FilterSection>
-            </View>
-            <View className="flex-1">
-              <FilterSection title="Bains">
-                <FilterDropdown
-                  dropdownKey="bathrooms"
-                  value={filters.bathrooms}
-                  options={BATHROOM_OPTIONS}
-                  onSelect={(val) => onFilterChange("bathrooms", val || "Tous")}
-                  placeholder="Indifférent"
-                />
-              </FilterSection>
-            </View>
+            <TouchableOpacity onPress={onClose} className="p-2">
+              <X size={24} color={tokens.colors.roogo.neutral[900]} />
+            </TouchableOpacity>
           </View>
 
-          {/* Layout: Parking (Full Width) */}
-          <FilterSection title="Parking">
-            <FilterDropdown
-              dropdownKey="parking"
-              value={filters.parking}
-              options={PARKING_OPTIONS}
-              onSelect={(val) => onFilterChange("parking", val || "Tous")}
-              placeholder="Indifférent"
-            />
-          </FilterSection>
-
-          {/* Extra space at bottom for last dropdown to expand fully */}
-          <View className="h-72" />
-        </ScrollView>
-
-        {/* Bottom Action */}
-        <View
-          className="p-6 bg-white border-t border-roogo-neutral-100"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 10,
-          }}
-        >
-          <TouchableOpacity
-            onPress={onClose}
-            className="bg-roogo-primary-500 w-full py-4 rounded-full items-center shadow-lg shadow-roogo-primary-500/30"
+          <ScrollView
+            className="flex-1 px-6 py-6"
+            showsVerticalScrollIndicator={false}
           >
-            <Text className="text-white font-bold font-urbanist text-lg">
-              Voir {resultsCount} résultats
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+            {/* Neighborhood Chips */}
+            <FilterSection title="Quartier">
+              <View className="flex-row flex-wrap">
+                {NEIGHBORHOODS.map((neighborhood) => (
+                  <TouchableOpacity
+                    key={neighborhood}
+                    onPress={() => onFilterChange("neighborhood", neighborhood)}
+                    className={`px-5 py-2 rounded-full mr-2 mb-2 border ${
+                      filters.neighborhood === neighborhood
+                        ? "bg-roogo-neutral-900 border-roogo-neutral-900"
+                        : "bg-white border-roogo-neutral-200"
+                    }`}
+                  >
+                    <Text
+                      className={`font-semibold font-urbanist ${
+                        filters.neighborhood === neighborhood
+                          ? "text-white"
+                          : "text-roogo-neutral-700"
+                      }`}
+                    >
+                      {neighborhood === "Tous" ? "Tout" : neighborhood}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </FilterSection>
+
+            {/* Price Histogram & Inputs */}
+            <FilterSection title="Budget (CFA)">
+              <View>
+                {/* Histogram */}
+                <View className="flex-row items-end h-24 mb-4">
+                  {HISTOGRAM_DATA.map((h, i) => {
+                    const barPrice = (i / HISTOGRAM_DATA.length) * MAX_PRICE;
+                    const isActive =
+                      barPrice >= localMinPrice && barPrice <= localMaxPrice;
+                    return (
+                      <HistogramBar
+                        key={i}
+                        heightPercent={h}
+                        index={i}
+                        isActive={isActive}
+                      />
+                    );
+                  })}
+                </View>
+
+                {/* Custom Dual Range Slider */}
+                <View className="mb-4 px-1">
+                  <DualRangeSlider
+                    minValue={localMinPrice}
+                    maxValue={localMaxPrice}
+                    min={MIN_PRICE}
+                    max={MAX_PRICE}
+                    step={STEP}
+                    onMinChange={handleMinPriceChange}
+                    onMaxChange={handleMaxPriceChange}
+                  />
+                </View>
+
+                {/* Price Inputs */}
+                <View className="flex-row justify-between gap-4">
+                  <View className="flex-1">
+                    <Text className="text-xs text-roogo-neutral-500 font-urbanist mb-1">
+                      Minimum
+                    </Text>
+                    <View
+                      style={{
+                        backgroundColor: tokens.colors.roogo.neutral[100],
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: tokens.colors.border,
+                      }}
+                    >
+                      <TextInput
+                        style={{
+                          paddingHorizontal: 12,
+                          paddingVertical: 10,
+                          fontSize: 16,
+                          fontWeight: "600",
+                          color: tokens.colors.roogo.neutral[900],
+                        }}
+                        value={formatPrice(localMinPrice)}
+                        onChangeText={handleMinTextChange}
+                        onBlur={handleMinTextSubmit}
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-xs text-roogo-neutral-500 font-urbanist mb-1 text-right">
+                      Maximum
+                    </Text>
+                    <View
+                      style={{
+                        backgroundColor: tokens.colors.roogo.neutral[100],
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: tokens.colors.border,
+                      }}
+                    >
+                      <TextInput
+                        style={{
+                          paddingHorizontal: 12,
+                          paddingVertical: 10,
+                          fontSize: 16,
+                          fontWeight: "600",
+                          color: tokens.colors.roogo.neutral[900],
+                          textAlign: "right",
+                        }}
+                        value={formatPrice(localMaxPrice)}
+                        onChangeText={handleMaxTextChange}
+                        onBlur={handleMaxTextSubmit}
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </FilterSection>
+
+            {/* Layout: Surface (Split) */}
+            <FilterSection title="Surface (m²)">
+              <View className="flex-row gap-4">
+                <FilterDropdown
+                  dropdownKey="minArea"
+                  value={filters.minArea}
+                  options={[0, ...SURFACE_OPTIONS.filter((v) => v > 0)]}
+                  onSelect={(val) => onFilterChange("minArea", val)}
+                  placeholder="Min"
+                />
+                <FilterDropdown
+                  dropdownKey="maxArea"
+                  value={filters.maxArea}
+                  options={[0, ...SURFACE_OPTIONS.filter((v) => v > 0)]}
+                  onSelect={(val) => onFilterChange("maxArea", val)}
+                  placeholder="Max"
+                />
+              </View>
+            </FilterSection>
+
+            {/* Layout: Bed & Bath (Alternating Row) */}
+            <View className="flex-row gap-4 mb-8">
+              <View className="flex-1">
+                <FilterSection title="Chambres">
+                  <FilterDropdown
+                    dropdownKey="bedrooms"
+                    value={filters.bedrooms}
+                    options={BEDROOM_OPTIONS}
+                    onSelect={(val) =>
+                      onFilterChange("bedrooms", val || "Tous")
+                    }
+                    placeholder="Indifférent"
+                  />
+                </FilterSection>
+              </View>
+              <View className="flex-1">
+                <FilterSection title="Bains">
+                  <FilterDropdown
+                    dropdownKey="bathrooms"
+                    value={filters.bathrooms}
+                    options={BATHROOM_OPTIONS}
+                    onSelect={(val) =>
+                      onFilterChange("bathrooms", val || "Tous")
+                    }
+                    placeholder="Indifférent"
+                  />
+                </FilterSection>
+              </View>
+            </View>
+
+            {/* Layout: Parking (Full Width) */}
+            <FilterSection title="Parking">
+              <FilterDropdown
+                dropdownKey="parking"
+                value={filters.parking}
+                options={PARKING_OPTIONS}
+                onSelect={(val) => onFilterChange("parking", val || "Tous")}
+                placeholder="Indifférent"
+              />
+            </FilterSection>
+
+            {/* Extra space at bottom for last dropdown to expand fully */}
+            <View className="h-72" />
+          </ScrollView>
+
+          {/* Bottom Action */}
+          <View
+            className="p-6 bg-white border-t border-roogo-neutral-100"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.05,
+              shadowRadius: 8,
+              elevation: 10,
+            }}
+          >
+            <TouchableOpacity
+              onPress={onClose}
+              className="bg-roogo-primary-500 w-full py-4 rounded-full items-center shadow-lg shadow-roogo-primary-500/30"
+            >
+              <Text className="text-white font-bold font-urbanist text-lg">
+                Voir {resultsCount} résultats
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </Pressable>
     </Modal>
   );
 }
