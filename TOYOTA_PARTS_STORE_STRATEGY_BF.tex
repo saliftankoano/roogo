@@ -4,6 +4,7 @@
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{ragged2e}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
 \usepackage{xcolor}
@@ -12,6 +13,12 @@
 
 \titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
 \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+
+\newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{5pt}
+\setlength{\LTpre}{4pt}
+\setlength{\LTpost}{4pt}
 
 \newcommand{\company}{\textbf{[Store Name]}}
 \newcommand{\city}{\textbf{[City, Burkina Faso]}}
@@ -48,7 +55,8 @@ Owner: \owner{} \hspace{1em}|\hspace{1em} Contact: \contact{}
 
 \section{What to Stock: High Demand + Often Low Supply}
 \subsection{Top 12 ``Must Stock First'' (Fast Movers)}
-\begin{longtable}{@{}p{0.30\textwidth}p{0.33\textwidth}p{0.30\textwidth}@{}}
+{\small
+\begin{longtable}{@{}P{0.27\textwidth}P{0.36\textwidth}P{0.31\textwidth}@{}}
 \toprule
 \textbf{Category / Part} & \textbf{Why it moves} & \textbf{Notes (Quality \& Packaging)}\\
 \midrule
@@ -67,6 +75,7 @@ Alternators \& starters & Heat/dust kills electricals & Consider new + rebuilt e
 Air/oil/fuel filters (quality) & Dust + fuel quality = constant replacement & Sell as service kits\\
 \bottomrule
 \end{longtable}
+}
 
 \subsection{Next Wave (High Margin / High Pain)}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
@@ -150,7 +159,8 @@ Air/oil/fuel filters (quality) & Dust + fuel quality = constant replacement & Se
 \end{itemize}
 
 \section{Risks \& Mitigations}
-\begin{longtable}{@{}p{0.25\textwidth}p{0.37\textwidth}p{0.33\textwidth}@{}}
+{\small
+\begin{longtable}{@{}P{0.24\textwidth}P{0.38\textwidth}P{0.32\textwidth}@{}}
 \toprule
 \textbf{Risk} & \textbf{Impact} & \textbf{Mitigation} \\
 \midrule
@@ -162,6 +172,7 @@ Cash tied in inventory & Slow growth & 80/20 SKUs + order-on-request for rare it
 Counterfeit branded parts & Warranty disputes & Source from verified suppliers; keep documentation \\
 \bottomrule
 \end{longtable}
+}
 
 \section{30-Day Launch Checklist}
 \begin{enumerate}[leftmargin=*,itemsep=0.25em]

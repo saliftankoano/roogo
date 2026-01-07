@@ -35,7 +35,8 @@ function PushNotificationHandler() {
         return;
       }
 
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
       if (existingStatus !== "granted") {
         const { status } = await Notifications.requestPermissionsAsync();
@@ -49,11 +50,11 @@ function PushNotificationHandler() {
       const projectId =
         Constants?.expoConfig?.extra?.eas?.projectId ??
         Constants?.easConfig?.projectId;
-      
+
       if (!projectId) {
         console.warn(
           "Push Notifications: EAS Project ID not found in app.json. " +
-          "Please run 'eas project:init' or add 'extra.eas.projectId' to your app.json."
+            "Please run 'eas project:init' or add 'extra.eas.projectId' to your app.json."
         );
         return;
       }
@@ -67,7 +68,7 @@ function PushNotificationHandler() {
         try {
           const clerkToken = await getToken();
           const API_URL = process.env.EXPO_PUBLIC_API_URL;
-          
+
           await fetch(`${API_URL}/api/push-tokens`, {
             method: "POST",
             headers: {
