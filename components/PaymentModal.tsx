@@ -23,7 +23,7 @@ import {
 interface PaymentModalProps {
   visible: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (depositId?: string) => void;
   amount: number;
   description: string;
   transactionType: TransactionType;
@@ -203,7 +203,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
             // Wait 2 seconds before closing for user acknowledgment
             setTimeout(() => {
-              onSuccess();
+              onSuccess(depositId ?? undefined);
             }, 2000);
           } else if (
             actualStatus === "FAILED" ||
@@ -307,7 +307,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
         // Wait 2 seconds before closing for user acknowledgment
         setTimeout(() => {
-          onSuccess();
+          onSuccess((result.depositId || depositId) ?? undefined);
         }, 2000);
         return;
       }

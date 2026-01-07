@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AuthPromptModal from "../../components/AuthPromptModal";
@@ -9,6 +9,13 @@ import PropertyCard from "../../components/PropertyCard";
 export default function FavorisScreen() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
+  const hasRenderedOnce = useRef(false);
+
+  // Track that we've rendered content at least once
+  if (isLoaded) {
+    hasRenderedOnce.current = true;
+  }
+
   const [favoriteProperties, setFavoriteProperties] = useState([
     {
       id: 1,
@@ -55,7 +62,8 @@ export default function FavorisScreen() {
     setFavoriteProperties((prev) => prev.filter((p) => p.id !== propertyId));
   };
 
-  if (!isLoaded) {
+  // Only show loading on first render, never on tab switches
+  if (!isLoaded && !hasRenderedOnce.current) {
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 justify-center items-center">

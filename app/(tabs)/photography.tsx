@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   Alert,
   Animated,
@@ -159,7 +160,8 @@ export default function PhotographyScreen() {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
     null
   );
-  const [loadingProperties, setLoadingProperties] = useState(true);
+  const [loadingProperties, setLoadingProperties] = useState(false);
+  const hasLoadedOnce = useRef(false);
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -267,9 +269,13 @@ export default function PhotographyScreen() {
   const loadProperties = useCallback(async () => {
     if (!user?.id) return;
     try {
-      setLoadingProperties(true);
+      // Only show loading on first load
+      if (!hasLoadedOnce.current) {
+        setLoadingProperties(true);
+      }
       const props = await fetchUserProperties(user.id);
       setUserProperties(props);
+      hasLoadedOnce.current = true;
     } catch (error) {
       console.error("Error loading user properties:", error);
     } finally {
@@ -277,11 +283,14 @@ export default function PhotographyScreen() {
     }
   }, [user?.id]);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadProperties();
-    }
-  }, [user?.id, loadProperties]);
+  // Use useFocusEffect to reload when tab is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.id) {
+        loadProperties();
+      }
+    }, [user?.id, loadProperties])
+  );
 
   const handlePackageSelect = (packageId: string) => {
     if (!selectedPropertyId) {
@@ -431,7 +440,7 @@ export default function PhotographyScreen() {
                   1. Sélectionnez une propriété
                 </Text>
 
-                {loadingProperties ? (
+                {loadingProperties && !hasLoadedOnce.current ? (
                   <ActivityIndicator
                     color={tokens.colors.roogo.primary[500]}
                     style={{ marginVertical: 20 }}
@@ -1094,6 +1103,7 @@ export default function PhotographyScreen() {
         amount={paymentAmount}
         description={paymentDescription}
         transactionType="photography"
+        propertyId={selectedPropertyId || undefined}
       />
     </AgentOnly>
   );

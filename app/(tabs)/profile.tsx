@@ -1,5 +1,5 @@
 import { useClerk, useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import {
   CaretRightIcon,
   GearIcon,
@@ -10,8 +10,15 @@ import {
   SignOutIcon,
   UserCircleIcon,
 } from "phosphor-react-native";
-import { useEffect, useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import UserTypeSelection from "../../components/UserTypeSelection";
 import { useUserType } from "../../hooks/useUserType";
@@ -22,6 +29,31 @@ export default function ProfileScreen() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
+  const hasRenderedOnce = useRef(false);
+  const cachedUserRef = useRef<typeof user>(null);
+
+  // Force re-render counter - used to ensure content paints on focus
+  const [, forceRender] = useReducer((x) => x + 1, 0);
+
+  // Cache user data when available, and track that we've rendered
+  if (isLoaded && user) {
+    hasRenderedOnce.current = true;
+    cachedUserRef.current = user;
+  }
+
+  // Use cached user if current user is temporarily null (happens during tab switches)
+  const displayUser = user || cachedUserRef.current;
+
+  // Force a re-render when screen focuses to ensure content paints
+  useFocusEffect(
+    useCallback(() => {
+      // Small delay to let the navigation animation complete, then force re-render
+      const timer = setTimeout(() => {
+        forceRender();
+      }, 50);
+      return () => clearTimeout(timer);
+    }, [])
+  );
 
   useEffect(() => {
     // Show user type selection if user is authenticated but doesn't have a type
@@ -58,8 +90,9 @@ export default function ProfileScreen() {
     }
   };
 
-  // Show loading state while user data is being fetched
-  if (!isLoaded) {
+  // Show loading state ONLY on first load, not on tab switches
+  // Once we've rendered content, keep showing it to prevent blank flash
+  if (!isLoaded && !hasRenderedOnce.current) {
     return (
       <SafeAreaView
         style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
@@ -82,28 +115,49 @@ export default function ProfileScreen() {
     );
   }
 
-  // Show error state if no user data
-  if (!user) {
-    // Redirect to sign-in if not authenticated
+  // Only redirect/show loading if we have NO user data at all (not even cached)
+  if (!displayUser) {
+    // If we've never rendered and no user, redirect to sign-in
+    if (!hasRenderedOnce.current) {
+      router.replace("/(auth)/sign-in");
+      return (
+        <SafeAreaView
+          style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+          edges={["top"]}
+        >
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                color: tokens.colors.roogo.neutral[500],
+                fontFamily: "Urbanist-Medium",
+              }}
+            >
+              Redirection...
+            </Text>
+          </View>
+        </SafeAreaView>
+      );
+    }
+    // If we've rendered before but now have no user/cache, user truly signed out
     router.replace("/(auth)/sign-in");
+    // Show loading indicator while redirecting
     return (
       <SafeAreaView
-        style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+        style={{
+          flex: 1,
+          backgroundColor: "#FFFFFF",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
         edges={["top"]}
       >
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text
-            style={{
-              fontSize: 16,
-              color: tokens.colors.roogo.neutral[500],
-              fontFamily: "Urbanist-Medium",
-            }}
-          >
-            Redirection...
-          </Text>
-        </View>
+        <ActivityIndicator
+          size="large"
+          color={tokens.colors.roogo.primary[500]}
+        />
       </SafeAreaView>
     );
   }
@@ -136,12 +190,15 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
+      style={{ flex: 1, backgroundColor: "#FFFFFF" }}
       edges={["top"]}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        style={{ backgroundColor: tokens.colors.roogo.neutral[100] }}
+        contentContainerStyle={{
+          paddingBottom: 120,
+        }}
       >
         {/* Profile Header with Avatar - Design Kept */}
         <View
@@ -159,29 +216,75 @@ export default function ProfileScreen() {
           }}
         >
           <View
-            style={{ alignItems: "center", paddingTop: 24, paddingBottom: 24 }}
+            style={{
+              alignItems: "center",
+              paddingTop: 24,
+              paddingBottom: 24,
+            }}
           >
-            <View
-              style={{
-                width: 112,
-                height: 112,
-                borderRadius: 56,
-                marginBottom: 20,
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 3,
-                borderColor: "#E48C26",
-                backgroundColor: "#FFF5EB",
-              }}
-            >
-              <Image
-                source={
-                  user?.imageUrl
-                    ? { uri: user.imageUrl }
-                    : require("../../assets/images/icon.png")
-                }
-                style={{ width: 96, height: 96, borderRadius: 48 }}
-              />
+            <View style={{ position: "relative" }}>
+              <View
+                style={{
+                  width: 112,
+                  height: 112,
+                  borderRadius: 56,
+                  marginBottom: 20,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 3,
+                  borderColor: "#E48C26",
+                  backgroundColor: "#FFF5EB",
+                }}
+              >
+                <Image
+                  source={
+                    displayUser?.imageUrl
+                      ? { uri: displayUser.imageUrl }
+                      : require("../../assets/images/icon.png")
+                  }
+                  style={{ width: 96, height: 96, borderRadius: 48 }}
+                />
+              </View>
+              {userType && (
+                <View
+                  style={{
+                    position: "absolute",
+                    bottom: 8,
+                    alignSelf: "center",
+                    backgroundColor: isOwner
+                      ? tokens.colors.roogo.primary[500]
+                      : tokens.colors.roogo.neutral[900],
+                    paddingHorizontal: 16,
+                    paddingVertical: 6,
+                    borderRadius: 20,
+                    borderWidth: 3,
+                    borderColor: "#FFFFFF",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 5,
+                    zIndex: 20,
+                    minWidth: 110,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#FFFFFF",
+                      fontSize: 10,
+                      fontFamily: "Urbanist-Bold",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                      textAlign: "center",
+                    }}
+                    numberOfLines={1}
+                  >
+                    {isOwner ? "Propriétaire" : "Locataire"}
+                  </Text>
+                </View>
+              )}
             </View>
             <Text
               style={{
@@ -191,7 +294,7 @@ export default function ProfileScreen() {
                 marginBottom: 6,
               }}
             >
-              {user?.fullName || user?.firstName || "Utilisateur"}
+              {displayUser?.fullName || displayUser?.firstName || "Utilisateur"}
             </Text>
             <Text
               style={{
@@ -201,7 +304,7 @@ export default function ProfileScreen() {
                 marginBottom: 16,
               }}
             >
-              {user?.primaryEmailAddress?.emailAddress ||
+              {displayUser?.primaryEmailAddress?.emailAddress ||
                 "Email non disponible"}
             </Text>
             <View
@@ -226,7 +329,8 @@ export default function ProfileScreen() {
                 }}
               >
                 {String(
-                  user?.unsafeMetadata?.location || "Ouagadougou, Burkina Faso"
+                  displayUser?.unsafeMetadata?.location ||
+                    "Ouagadougou, Burkina Faso"
                 )}
               </Text>
             </View>

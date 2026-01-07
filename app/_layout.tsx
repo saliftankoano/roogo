@@ -3,7 +3,7 @@ import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { useFonts } from "expo-font";
 import { Slot, SplashScreen } from "expo-router";
 import { useEffect } from "react";
-import { View, Platform } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
@@ -18,6 +18,8 @@ SplashScreen.preventAutoHideAsync();
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -84,7 +86,7 @@ function PushNotificationHandler() {
     }
 
     registerForPushNotificationsAsync();
-  }, [isSignedIn]);
+  }, [isSignedIn, getToken]);
 
   return null;
 }
@@ -104,9 +106,20 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Don't render anything until fonts are loaded
+  // Show loading indicator while fonts load
   if (!fontsLoaded && !fontError) {
-    return null;
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#FFFFFF",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="#C96A2E" />
+      </View>
+    );
   }
 
   return (

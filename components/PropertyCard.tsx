@@ -1,6 +1,7 @@
 import { tokens } from "../theme/tokens";
 import { formatPrice } from "../utils/formatting";
 import { useUser } from "@clerk/clerk-expo";
+import { useUserType } from "../hooks/useUserType";
 import {
   Bath,
   BedDouble,
@@ -68,10 +69,14 @@ export default function PropertyCard({
   );
   const [authPromptVisible, setAuthPromptVisible] = useState(false);
   const { user } = useUser();
+  const { isOwner } = useUserType();
   const isAuthenticated = !!user;
   const isFavorite = propIsFavorite ?? localIsFavorite;
   const dividerAnimation = useRef(new Animated.Value(0)).current;
   const heartScale = useRef(new Animated.Value(1)).current;
+
+  // Owners shouldn't see or use the favorite feature
+  const shouldShowFavorite = showFavorite && !isOwner;
 
   const handleFavoritePress = () => {
     if (!isAuthenticated) {
@@ -127,8 +132,20 @@ export default function PropertyCard({
       {/* Image Section */}
       <View className="relative">
         <Image
-          source={property.image}
-          className="w-full h-[240px]"
+          source={
+            property.image &&
+            typeof property.image === "object" &&
+            property.image.uri
+              ? { uri: property.image.uri }
+              : typeof property.image === "number"
+                ? property.image
+                : typeof property.image === "string"
+                  ? { uri: property.image }
+                  : {
+                      uri: "https://via.placeholder.com/400x300?text=Pas+d%27image",
+                    }
+          }
+          className="w-full h-[240px] bg-roogo-neutral-100"
           resizeMode="cover"
         />
         {/* Floating Category Tag */}
@@ -144,7 +161,7 @@ export default function PropertyCard({
           </Text>
         </View>
         {/* Heart Icon */}
-        {showFavorite && (
+        {shouldShowFavorite && (
           <TouchableOpacity
             className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2.5 rounded-full shadow-sm"
             onPress={handleFavoritePress}
