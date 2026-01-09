@@ -9,7 +9,7 @@ interface AgentOnlyProps {
 }
 
 export default function AgentOnly({ children, fallback }: AgentOnlyProps) {
-  const { isOwner, isLoaded } = useUserType();
+  const { isOwner, isAgent, isLoaded } = useUserType();
 
   // Show loading indicator while auth state is loading
   if (!isLoaded) {
@@ -30,12 +30,12 @@ export default function AgentOnly({ children, fallback }: AgentOnlyProps) {
     );
   }
 
-  if (!isOwner) {
+  if (!isOwner && !isAgent) {
     return (
       fallback || (
         <View className="flex-1 items-center justify-center p-6 bg-white">
           <Text className="text-figma-grey-600 text-center font-urbanist">
-            Cette fonctionnalité est réservée aux propriétaires
+            Cette fonctionnalité est réservée aux agents et propriétaires
           </Text>
         </View>
       )

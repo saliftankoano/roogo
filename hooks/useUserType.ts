@@ -1,7 +1,7 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useMemo } from "react";
 
-export type UserType = "owner" | "renter" | null;
+export type UserType = "owner" | "renter" | "agent" | null;
 
 export function useUserType() {
   const { user, isLoaded } = useUser();
@@ -11,7 +11,11 @@ export function useUserType() {
     const metadataType = user.unsafeMetadata?.userType;
 
     // Only return valid types
-    if (metadataType === "owner" || metadataType === "renter") {
+    if (
+      metadataType === "owner" ||
+      metadataType === "renter" ||
+      metadataType === "agent"
+    ) {
       return metadataType as UserType;
     }
 
@@ -21,6 +25,7 @@ export function useUserType() {
   const isAuthenticated = !!user && isLoaded;
   const isOwner = userType === "owner";
   const isRenter = userType === "renter";
+  const isAgent = userType === "agent";
   const isGuest = !isAuthenticated;
 
   return {
@@ -28,11 +33,12 @@ export function useUserType() {
     isAuthenticated,
     isOwner,
     isRenter,
+    isAgent,
     isGuest,
     hasUserType: !!userType,
     isLoaded, // Export isLoaded for loading checks
     // Legacy support - will be removed in future
-    isAgent: isOwner,
+    isAgentLegacy: isOwner,
     isBuyerRenter: isRenter,
   };
 }

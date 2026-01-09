@@ -1,24 +1,40 @@
 \documentclass[11pt]{article}
 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
 \usepackage[a4paper,margin=1in]{geometry}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{ragged2e}
 \usepackage{enumitem}
-\usepackage[hidelinks]{hyperref}
-\usepackage{xcolor}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage[table]{xcolor}
 \usepackage{titlesec}
 \usepackage{microtype}
 
-\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
-\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\definecolor{Accent}{HTML}{0E7490}      % teal
+\definecolor{AccentLight}{HTML}{E6F6F8} % very light teal
+\definecolor{TextMuted}{HTML}{334155}   % slate-ish
+
+\hypersetup{
+  linkcolor=Accent,
+  urlcolor=Accent,
+  citecolor=Accent
+}
+
+\titleformat{\section}{\large\bfseries\color{Accent}}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{Accent}}{\thesubsection}{0.5em}{}
 
 \newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{5pt}
 \setlength{\LTpre}{4pt}
 \setlength{\LTpost}{4pt}
+
+\newcommand{\thead}[1]{\textcolor{Accent}{\textbf{#1}}}
 
 \newcommand{\company}{\textbf{[Store Name]}}
 \newcommand{\city}{\textbf{[City, Burkina Faso]}}
@@ -29,162 +45,251 @@
 \begin{document}
 
 \begin{center}
-{\LARGE \textbf{Toyota Parts Store Strategy (Burkina Faso)}}\\[0.4em]
+{\LARGE \textbf{Strat\'egie d'un magasin de pi\`eces Toyota \& Lexus (Burkina Faso)}}\\[-0.1em]
+\textcolor{Accent}{\rule{0.86\textwidth}{1.2pt}}\\[0.55em]
 {\large \company{} \hspace{1em}|\hspace{1em} \city{} \hspace{1em}|\hspace{1em} \dateofdoc{}}\\[0.2em]
-Owner: \owner{} \hspace{1em}|\hspace{1em} Contact: \contact{}
+Propri\'etaire : \owner{} \hspace{1em}|\hspace{1em} Contact : \contact{}
 \end{center}
 
 \vspace{0.6em}
 
-\section{Positioning (Simple \& Strong)}
-\textbf{Niche: Toyota-only} parts focused on \textbf{high-demand consumables and chronic-failure components} for Burkina Faso road/heat/dust conditions.
+\section{Positionnement (simple \& solide)}
+\textbf{Niche : Toyota \& Lexus} avec un focus sur des \textbf{consommables \`a forte rotation} et des \textbf{pi\`eces \`a pannes r\'ecurrentes} adapt\'ees aux conditions (routes, chaleur, poussi\`ere) du Burkina Faso.
 
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item \textbf{Why Toyota}: dominant market share, large installed base, easy customer targeting, repeat buyers (mechanics, fleets).
-  \item \textbf{Winning edge}: dependable availability of the parts people need \emph{this week}, plus correct fitment guidance.
-  \item \textbf{Primary customers}: garages/mechanics (B2B), fleet owners (taxis, deliveries, NGOs), and walk-in owners.
+  \item \textbf{Pourquoi Toyota \& Lexus} : parc important, forte demande, clients r\'ecurrents (garages, flottes) + recherche de qualit\'e (Lexus).
+  \item \textbf{Avantage gagnant} : disponibilit\'e r\'eelle des pi\`eces dont les gens ont besoin \emph{tout de suite}, + aide au bon choix (compatibilit\'e).
+  \item \textbf{Clients prioritaires} : garages/m\'ecaniciens (B2B), flottes (taxis, livraison, ONG), et particuliers.
 \end{itemize}
 
-\section{Target Models (Start Here)}
+\section{Mod\`eles cibles (d\'emarrage)}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item \textbf{Hilux} (workhorse pickups; suspension, cooling, brakes, drivetrain)
-  \item \textbf{Land Cruiser} (70/80/100 series; heavy-duty suspension, cooling, drivetrain)
-  \item \textbf{Hiace} (commercial vans; brakes, cooling, steering, electrical)
-  \item \textbf{Corolla / Camry} (high volume; ignition, suspension, brakes, sensors)
+  \item \textbf{Toyota Hilux} (pick-up; suspension, refroidissement, freins, transmission)
+  \item \textbf{Toyota Land Cruiser} (s\'eries 70/80/100; suspension lourde, refroidissement, transmission)
+  \item \textbf{Toyota Hiace} (utilitaire; freins, refroidissement, direction, \'electricit\'e)
+  \item \textbf{Toyota Corolla / Camry} (gros volumes; allumage, suspension, freins, capteurs)
+  \item \textbf{Lexus RX / GX / LX} (forte demande; pi\`eces plus ch\`eres \& souvent rares)
 \end{itemize}
 
-\section{What to Stock: High Demand + Often Low Supply}
-\subsection{Top 12 ``Must Stock First'' (Fast Movers)}
+\section{Quoi stocker : forte demande + souvent faible disponibilit\'e}
+\subsection{Top 12 \`a stocker en premier (forte rotation)}
 {\small
-\begin{longtable}{@{}P{0.27\textwidth}P{0.36\textwidth}P{0.31\textwidth}@{}}
+\begin{longtable}{@{}P{0.20\textwidth}P{0.22\textwidth}P{0.26\textwidth}P{0.26\textwidth}@{}}
 \toprule
-\textbf{Category / Part} & \textbf{Why it moves} & \textbf{Notes (Quality \& Packaging)}\\
+\rowcolor{AccentLight}
+\thead{Nom EN} & \thead{Nom FR} & \thead{Pourquoi \c{c}a part vite} & \thead{Notes (qualit\'e \& vente)}\\
 \midrule
 \endhead
-Shock absorbers & Bad roads destroy shocks quickly & Stock reputable brands; offer front/rear sets\\
-Ball joints & Constant wear; safety-critical & Keep left/right; include dust boots\\
-Tie rod ends (inner/outer) & Steering play is common & Bundle with alignment recommendation\\
-Stabilizer links \& bushings & Cheap, frequent failure & High turnover; easy upsell\\
-Brake pads (front/rear) & Consumable with repeat demand & Offer ``budget'' and ``premium'' tiers\\
-Brake discs/rotors & Warping from heat/heavy loads & Keep popular diameters per model\\
-Wheel bearings \& hub kits & Dust/water ruins bearings & Stock seals + grease\\
-Radiators & Heat + rough repairs cause leaks & Offer aluminum + improved-core options\\
-Water pumps & Failure leads to overheating & Bundle with belt/thermostat\\
-Thermostats \& caps & Small part, big symptom & Very cheap; keep many units\\
-Alternators \& starters & Heat/dust kills electricals & Consider new + rebuilt exchange\\
-Air/oil/fuel filters (quality) & Dust + fuel quality = constant replacement & Sell as service kits\\
+Shock absorbers & Amortisseurs & Routes ab\^im\'ees = remplacement fr\'equent & Proposer avant/arri\`ere; qualit\'e prioritaire\\
+Ball joints & Rotules (suspension) & Usure rapide, pi\`ece s\'ecurit\'e & Gauche/droite; soufflets inclus\\
+Tie rod ends (inner/outer) & Embouts de biellettes (int./ext.) & Jeu de direction tr\`es courant & Recommander parall\'elisme\\
+Stabilizer links \& bushings & Biellettes \& silentblocs (barre stab.) & Faible co\^ut, casse fr\'equente & Tr\`es forte rotation\\
+Brake pads (front/rear) & Plaquettes de frein (AV/AR) & Consommable, demande continue & Gamme \og \'eco \fg{} + \og premium \fg{}\\
+Brake discs/rotors & Disques/rotors de frein & Voilage (chaleur/charge) & Stocker diam\`etres populaires\\
+Wheel bearings \& hub kits & Roulements de roue \& kits de moyeu & Poussi\`ere/eau = usure & Ajouter joints + graisse\\
+Radiators & Radiateurs & Chaleur + r\'eparations provisoires & Options renforc\'ees si dispo\\
+Water pumps & Pompes \`a eau & Panne = surchauffe & Vendre en kit avec thermostat\\
+Thermostats \& caps & Thermostats \& bouchons (radiateur) & Petite pi\`ece, gros impact & Faible prix; stock en volume\\
+Alternators \& starters & Alternateurs \& d\'emarreurs & Poussi\`ere/chaleur = pannes & Neuf + \'echange standard\\
+Air/oil/fuel filters (quality) & Filtres air/huile/carburant (qualit\'e) & Poussi\`ere + carburant = fr\'equence & Packs \og vidange \fg{} / entretien\\
 \bottomrule
 \end{longtable}
 }
 
-\subsection{Next Wave (High Margin / High Pain)}
+\subsection{Deuxi\`eme vague (marges fortes / grosse douleur client)}
+{\small
+\begin{longtable}{@{}P{0.27\textwidth}P{0.30\textwidth}P{0.37\textwidth}@{}}
+\toprule
+\rowcolor{AccentLight}
+\thead{Nom EN} & \thead{Nom FR} & \thead{Remarques} \\
+\midrule
+\endhead
+Timing belt kits (belt + tensioner + idler) & Kits courroie de distribution (avec galets) & Vendre en kit; parfois avec pompe \`a eau \\
+Engine mounts & Supports moteur & R\'eduit vibrations; usure avec la chaleur \\
+Fuel pumps / injectors & Pompes \`a carburant / injecteurs & Carburant sale; pr\'eciser conditions de garantie \\
+CV joints / driveshaft components & Joints homocin\'etiques / transmission & Fort sur Hilux/LC/Hiace; aussi SUV Lexus \\
+Cooling sensors + fan clutch / fans & Capteurs de refroidissement + embrayage ventilateur & Surchauffe fr\'equente; pr\'evoir plusieurs r\'ef\'erences \\
+Ignition coils + spark plugs & Bobines d'allumage + bougies & Gros volume Corolla/Camry; aussi Lexus \\
+ABS / wheel speed sensors & Capteurs ABS / vitesse de roue & Poussi\`ere + c\^ables ab\^im\'es \\
+\bottomrule
+\end{longtable}
+}
+
+\subsection{Carrosserie / confort (cash rapide, faible complexit\'e)}
+{\small
+\begin{longtable}{@{}P{0.32\textwidth}P{0.32\textwidth}P{0.32\textwidth}@{}}
+\toprule
+\rowcolor{AccentLight}
+\thead{Nom EN} & \thead{Nom FR} & \thead{Remarque} \\
+\midrule
+\endhead
+Side mirrors & R\'etroviseurs & Casse fr\'equente en circulation \\
+Headlight assemblies / tail lights & Phares avant / feux arri\`ere & UV + accidents; fort volume \\
+Door handles (interior/exterior) & Poign\'ees de porte (int./ext.) & Plastiques fragiles; chaleur \\
+Window switches & Commandes de vitres & Tr\`es demand\'e sur v\'ehicules anciens \\
+Wiper motors & Moteurs d'essuie-glace & Poussi\`ere + humidit\'e \\
+\bottomrule
+\end{longtable}
+}
+\noindent Ces pi\`eces se vendent tr\`es bien si vous garantissez \textbf{la bonne compatibilit\'e} et \textbf{du stock imm\'ediat}.
+
+\section{Plan d'approvisionnement (Alibaba, bien fait)}
+\subsection{R\`egle \#1 : jamais de gros volume \`a l'aveugle}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item \textbf{Timing belt kits} (belt + tensioner + idler; optionally water pump)
-  \item \textbf{Engine mounts} (rubber degrades in heat; reduces vibration complaints)
-  \item \textbf{Fuel pumps / injectors} (dirty fuel; offer diagnostics + warranty terms)
-  \item \textbf{CV joints / driveshaft components} (Hilux/Land Cruiser/Hiace)
-  \item \textbf{Cooling sensors} (coolant temp sensor, fan switch), \textbf{fan clutch} / electric fan assemblies
-  \item \textbf{Ignition coils} + spark plugs (Corolla/Camry high volume)
-  \item \textbf{ABS / wheel speed sensors} (dust and cable damage)
+  \item \textbf{\'Echantillons d'abord} : commander 2--5 unit\'es par r\'ef\'erence critique.
+  \item \textbf{Test avec des garages partenaires} : montage sur vrais v\'ehicules; retour en 2--4 semaines.
+  \item \textbf{Puis achat en volume} : constituer une liste courte de fournisseurs fiables.
 \end{itemize}
 
-\subsection{Body/Convenience (Fast Cash, Low Complexity)}
+\subsection{Checklist de s\'election des fournisseurs}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item Mirrors, headlights/tail lights, door handles, window switches, wiper motors
-  \item These sell well when you have \textbf{correct fitment} and \textbf{stock on hand}
+  \item \textbf{Sp\'ecialisation} : Toyota/Lexus aftermarket (pas uniquement \og trading \fg{})
+  \item \textbf{R\'egularit\'e} : m\^eme usine, r\'ef\'erences stables, emballage coh\'erent
+  \item \textbf{Documents} : factures, contr\^ole qualit\'e, conditions de garantie claires
+  \item \textbf{MOQ flexible} : cartons mixtes (plusieurs r\'ef\'erences) au d\'emarrage
 \end{itemize}
 
-\section{Sourcing Plan (Alibaba Done Right)}
-\subsection{Rule \#1: No blind bulk orders}
+\subsection{Gammes qualit\'e (prot\'eger la r\'eputation)}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item \textbf{Sample first}: order 2--5 units of each critical SKU.
-  \item \textbf{Test with partner garages}: install on real cars; collect feedback in 2--4 weeks.
-  \item \textbf{Only then buy bulk}: build a short list of trusted suppliers.
+  \item \textbf{Gamme A (recommand\'ee)} : moins de retours, prix plus \'elev\'e, id\'eal garages/flottes
+  \item \textbf{Gamme B (valeur)} : moins ch\`ere mais acceptable; transparence obligatoire
+  \item \'Eviter l'ultra-bon-march\'e pour les pi\`eces de s\'ecurit\'e (freins, direction).
 \end{itemize}
 
-\subsection{Supplier selection checklist}
+\section{Strat\'egie de stock (peu de risque cash, forte disponibilit\'e)}
+\subsection{La m\'ethode 80/20}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item \textbf{Specialization}: supplier focuses on Toyota aftermarket parts (not general trading only)
-  \item \textbf{Consistency}: same factory, stable part numbers, repeatable packaging
-  \item \textbf{Documentation}: invoices, QC reports, clear warranty terms
-  \item \textbf{MOQ flexibility}: accept mixed-SKU cartons for early-stage inventory
+  \item D\'emarrer avec une liste courte qui couvre \textbf{la plupart des besoins hebdomadaires}.
+  \item Noter \textbf{chaque demande non servie} : c'est votre feuille de route d'extension.
 \end{itemize}
 
-\subsection{Quality tiers (avoid reputation damage)}
+\subsection{Stock en deux paniers}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item \textbf{Tier A (recommended)}: fewer returns, higher price, best for mechanics/fleets
-  \item \textbf{Tier B (value)}: lower price, still acceptable; be transparent
-  \item Avoid ultra-cheap parts for safety-critical items (brakes, steering).
+  \item \textbf{\`A stocker en permanence} (forte rotation) : filtres, plaquettes, biellettes, silentblocs, roulements courants, thermostats.
+  \item \textbf{Sur commande} (lent/cher) : injecteurs, calculateurs, capteurs rares, pi\`eces de carrosserie sp\'ecifiques.
 \end{itemize}
 
-\section{Inventory Strategy (Low Cash Risk, High Availability)}
-\subsection{The 80/20 method}
+\subsection{Contr\^ole de compatibilit\'e (\'evite les erreurs)}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item Start with a focused list that covers \textbf{most weekly needs}.
-  \item Track \textbf{every request you cannot fill}; that list becomes your expansion roadmap.
+  \item Collecter : mod\`ele + ann\'ee + code moteur (si possible) + photo de l'ancienne pi\`ece + VIN (si dispo).
+  \item Ranger par \textbf{familles de plateformes} (ex. Hilux Vigo, Corolla E120/E140, etc.).
 \end{itemize}
 
-\subsection{Two-bucket stocking}
+\section{Go-to-market (comment gagner localement)}
+\subsection{Distribution \og garage d'abord \fg{}}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item \textbf{Always-stock} (fast movers): filters, pads, links, bushings, common bearings, thermostats.
-  \item \textbf{Order-on-request} (slow movers/expensive): injectors, ECUs, rare sensors, specific body trims.
+  \item Nouer des relations avec \textbf{10--30 garages}. Prix pro + livraison rapide.
+  \item Catalogue WhatsApp : photos, prix, et statut \og en stock \fg{} mis \`a jour chaque semaine.
+  \item Proposer \textbf{livraison le jour-m\^eme / J+1} en ville (marge premium).
 \end{itemize}
 
-\subsection{Fitment control (prevents wrong-part losses)}
+\subsection{Packs qui se vendent (upsell simple)}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item Collect: model + year + engine code (when possible) + photo of old part + VIN (when available).
-  \item Label shelves by \textbf{platform codes} (e.g., Hilux Vigo era, Corolla E120/E140, etc.).
+  \item \textbf{Pack entretien} : filtres air + huile + carburant (avec recommandation d'huile).
+  \item \textbf{Pack refroidissement} : bouchon + thermostat + durites (+ liquide si vendu).
+  \item \textbf{Pack train avant} : rotules + biellettes + stabilisateurs (rappel parall\'elisme).
 \end{itemize}
 
-\section{Go-to-Market (How You Win Locally)}
-\subsection{Mechanic-first distribution}
+\section{Prix \& garantie (la confiance = clients r\'ecurrents)}
 \begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item Build relationships with \textbf{10--30 garages}. Offer trade pricing and quick delivery.
-  \item Create a WhatsApp catalog: photos, prices, and ``in stock'' status updated weekly.
-  \item Offer \textbf{same-day / next-day delivery} inside the city for premium pricing.
+  \item \textbf{Deux niveaux de prix} : \og Valeur \fg{} vs \og Recommand\'e \fg{}.
+  \item R\`egles de garantie simples (ex. \textbf{montage par m\'ecanicien}, \textbf{pas de casse}, ticket obligatoire).
+  \item Suivre les retours par fournisseur pour prot\'eger la tr\'esorerie et la r\'eputation.
 \end{itemize}
 
-\subsection{Bundles that sell (simple upsells)}
-\begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item \textbf{Service kits}: air + oil + fuel filters; add oil grade recommendations.
-  \item \textbf{Cooling kit}: radiator cap + thermostat + hoses + coolant (if sold).
-  \item \textbf{Front-end kit}: ball joints + tie rods + stabilizer links (plus alignment reminder).
-\end{itemize}
-
-\section{Pricing \& Warranty (Trust = Repeat Customers)}
-\begin{itemize}[leftmargin=*,itemsep=0.25em]
-  \item Use \textbf{two-tier pricing}: Value vs Recommended.
-  \item Publish clear warranty rules (e.g., \textbf{installation by mechanic}, \textbf{no physical damage}, keep receipt).
-  \item Track returns by supplier to protect your cash and reputation.
-\end{itemize}
-
-\section{Risks \& Mitigations}
+\section{Risques \& r\'eponses}
 {\small
 \begin{longtable}{@{}P{0.24\textwidth}P{0.38\textwidth}P{0.32\textwidth}@{}}
 \toprule
-\textbf{Risk} & \textbf{Impact} & \textbf{Mitigation} \\
+\rowcolor{AccentLight}
+\thead{Risque} & \thead{Impact} & \thead{Mesure} \\
 \midrule
 \endhead
-Low-quality imports & Returns, reputation loss & Samples + garage testing; Tier A focus for safety parts \\
-Wrong fitment & Dead stock & Fitment checklist + photos + part-number mapping \\
-Long shipping time & Stockouts & Reorder points + best-seller safety stock \\
-Cash tied in inventory & Slow growth & 80/20 SKUs + order-on-request for rare items \\
-Counterfeit branded parts & Warranty disputes & Source from verified suppliers; keep documentation \\
+Qualit\'e faible & Retours, perte de confiance & \'Echantillons + tests garages; Gamme A sur s\'ecurit\'e \\
+Mauvaise compatibilit\'e & Stock mort & Checklist compatibilit\'e + photos + r\'ef\'erences \\
+Transit long & Ruptures & Seuils de r\'eappro + stock de s\'ecurit\'e sur best-sellers \\
+Cash immobilis\'e & Croissance lente & 80/20 + sur commande pour rare/cher \\
+Contrefa\c{c}on & Litiges garantie & Fournisseurs v\'erifi\'es + documents \\
 \bottomrule
 \end{longtable}
 }
 
-\section{30-Day Launch Checklist}
+\section{Budget de d\'emarrage (1,5--2M XOF)}
+\textbf{Mod\`ele ultra-lean} : \`a ce budget, pas d'import Alibaba direct (MOQ + fret mangent tout). On s'approvisionne \textbf{localement} (grossistes Ouaga), on d\'emarre en \textbf{kiosque/march\'e}, et on op\`ere \textbf{WhatsApp-first}.
+
+\subsection{R\'epartition du budget (exemple 1,5M XOF)}
+{\small
+\begin{longtable}{@{}P{0.50\textwidth}P{0.20\textwidth}@{}}
+\toprule
+\rowcolor{AccentLight}
+\thead{Poste} & \thead{Montant (XOF)} \\
+\midrule
+\endhead
+Stock initial (approvisionnement local) & 900\,000 \\
+Salaire staff (2 mois \`a 100k/mois) & 200\,000 \\
+Emplacement march\'e / kiosque (2 mois) & 100\,000 \\
+T\'el\'ephone, data, WhatsApp Business & 50\,000 \\
+Transport / livraison (moto, carburant) & 100\,000 \\
+Signal\'etique, \'etiquettes, sacs & 50\,000 \\
+R\'eserve / impr\'evu & 100\,000 \\
+\midrule
+\textbf{TOTAL} & \textbf{1\,500\,000} \\
+\bottomrule
+\end{longtable}
+}
+\noindent\textit{Pour 2M XOF : ajouter 400--500k de stock suppl\'ementaire.}
+
+\subsection{Allocation stock initiale (\texttildelow900k--1,3M XOF)}
+Se limiter \`a \textbf{5--7 r\'ef\'erences} les plus rapides :
+{\small
+\begin{longtable}{@{}P{0.32\textwidth}P{0.32\textwidth}P{0.08\textwidth}P{0.10\textwidth}P{0.10\textwidth}@{}}
+\toprule
+\rowcolor{AccentLight}
+\thead{Nom EN} & \thead{Nom FR} & \thead{Qt\'e} & \thead{P.U.} & \thead{Total} \\
+\midrule
+\endhead
+Oil filters & Filtres \`a huile & 30 & 3k & 90k \\
+Air filters & Filtres \`a air & 20 & 5k & 100k \\
+Fuel filters & Filtres carburant & 15 & 4k & 60k \\
+Brake pads (front) & Plaquettes frein AV & 10 & 15k & 150k \\
+Stabilizer links & Biellettes stabilisateur & 15 & 8k & 120k \\
+Ball joints & Rotules & 10 & 12k & 120k \\
+Tie rod ends & Embouts de biellettes & 10 & 10k & 100k \\
+Thermostats & Thermostats & 10 & 6k & 60k \\
+Radiator caps & Bouchons radiateur & 15 & 3k & 45k \\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Sous-total stock}} & \textbf{\texttildelow845k} \\
+\bottomrule
+\end{longtable}
+}
+\noindent Garder 50--100k pour achats opportunistes (alternateur, pompe \`a eau si bon prix local).
+
+\subsection{Plan de croissance}
 \begin{enumerate}[leftmargin=*,itemsep=0.25em]
-  \item Choose 2--4 target Toyota models and lock the initial SKU list (Top 12 + service kits).
-  \item Identify 3--5 suppliers per category; order samples; test with partner garages.
-  \item Create a simple WhatsApp catalog and mechanic price sheet.
-  \item Set delivery plan (motorbike courier) and a returns/warranty policy.
-  \item Open with ``always-stock'' items and add new SKUs weekly based on requests.
+  \item \textbf{Mois 1--2} : vendre le stock initial; r\'einvestir 100\% du b\'en\'efice brut en r\'eappro.
+  \item \textbf{Mois 3+} : une fois le cash-flow positif, regrouper les fonds pour une premi\`ere commande \'echantillon Alibaba (2--5 unit\'es/SKU) afin de tester la qualit\'e.
+  \item \textbf{Mois 6+} : si les \'echantillons passent, faire une premi\`ere importation en volume (\texttildelow3--5M XOF) financ\'ee par les b\'en\'efices accumul\'es.
+\end{enumerate}
+
+\subsection{Facteurs cl\'es de succ\`es \`a ce budget}
+\begin{itemize}[leftmargin=*,itemsep=0.25em]
+  \item \textbf{Catalogue WhatsApp} mis \`a jour quotidiennement (photos + prix + \og en stock \fg{}).
+  \item \textbf{Relations avec 3--5 garages} qui ach\`etent chaque semaine.
+  \item \textbf{Suivre chaque demande non satisfaite} : c'est votre liste de r\'eappro.
+  \item \textbf{Z\'ero stock mort} : ne r\'eapprovisionner que ce qui s'est vendu les 2 derni\`eres semaines.
+\end{itemize}
+
+\section{Checklist de lancement (30 jours)}
+\begin{enumerate}[leftmargin=*,itemsep=0.25em]
+  \item Choisir 2--4 mod\`eles Toyota + 1--2 mod\`eles Lexus et figer la liste initiale (Top 12 + packs entretien).
+  \item Identifier 3--5 fournisseurs par cat\'egorie; commander des \'echantillons; tester avec garages partenaires.
+  \item Cr\'eer un catalogue WhatsApp + une grille prix \og pro \fg{} (m\'ecaniciens).
+  \item Mettre en place la livraison (moto) + politique retours/garantie.
+  \item Ouvrir avec les \og always-stock \fg{} et ajouter des r\'ef\'erences chaque semaine selon les demandes.
 \end{enumerate}
 
 \vspace{0.6em}
-\noindent\textit{Note: This plan is designed for a lean launch. The main goal is to become the \textbf{most reliable Toyota parts source} in \city{} for mechanics and fleets.}
+\noindent\textit{Note : ce plan vise un d\'emarrage \og lean \fg{}. L'objectif est de devenir la source \textbf{la plus fiable en pi\`eces Toyota \& Lexus} \`a \city{} pour les garages et les flottes.}
 
 \end{document}
 

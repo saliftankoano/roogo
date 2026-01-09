@@ -128,7 +128,7 @@ const AddPropertyButton = ({ onPress }: { onPress?: () => void }) => (
 export default function TabLayout() {
   const pathname = usePathname();
   const isDetailsPage = pathname.includes("/details");
-  const { isOwner, isRenter, isGuest, isLoaded } = useUserType();
+  const { isOwner, isAgent, isRenter, isGuest, isLoaded } = useUserType();
 
   // Track if we've ever loaded successfully to prevent blank flash on tab switches
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
@@ -136,19 +136,23 @@ export default function TabLayout() {
   // Cache user type to prevent tab bar jumping when auth state briefly changes
   const cachedUserTypeRef = useRef<{
     isOwner: boolean;
+    isAgent: boolean;
     isRenter: boolean;
     isGuest: boolean;
   } | null>(null);
 
   // Only update cached values when auth is fully loaded
   if (isLoaded && !cachedUserTypeRef.current) {
-    cachedUserTypeRef.current = { isOwner, isRenter, isGuest };
+    cachedUserTypeRef.current = { isOwner, isAgent, isRenter, isGuest };
   }
 
   // Use cached values if available, otherwise use current values
   const stableIsOwner = cachedUserTypeRef.current?.isOwner ?? isOwner;
+  const stableIsAgent = cachedUserTypeRef.current?.isAgent ?? isAgent;
   const stableIsRenter = cachedUserTypeRef.current?.isRenter ?? isRenter;
   const stableIsGuest = cachedUserTypeRef.current?.isGuest ?? isGuest;
+
+  const isOwnerOrAgent = stableIsOwner || stableIsAgent;
 
   useEffect(() => {
     if (isLoaded && !hasLoadedOnce) {
@@ -408,7 +412,7 @@ export default function TabLayout() {
             tabBarIcon: ({ focused }) => (
               <TabIcon Icon={RocketIcon} focused={focused} size={24} />
             ),
-            href: stableIsOwner ? undefined : null,
+            href: isOwnerOrAgent ? undefined : null,
           }}
         />
 
@@ -418,7 +422,7 @@ export default function TabLayout() {
           options={{
             title: "",
             tabBarIcon: () => null,
-            tabBarButton: stableIsOwner
+            tabBarButton: isOwnerOrAgent
               ? (props) => (
                   <View
                     style={{ alignItems: "center", justifyContent: "center" }}
@@ -447,7 +451,7 @@ export default function TabLayout() {
             tabBarIcon: ({ focused }) => (
               <TabIcon Icon={BuildingsIcon} focused={focused} size={24} />
             ),
-            href: stableIsOwner ? undefined : null,
+            href: isOwnerOrAgent ? undefined : null,
           }}
         />
 

@@ -163,7 +163,7 @@ export default function ProfileScreen() {
   }
 
   const menuItems = [
-    isOwner
+    userType === "owner" || userType === "agent"
       ? {
           label: "Mes propriétés",
           icon: HouseIcon,
@@ -251,9 +251,10 @@ export default function ProfileScreen() {
                     position: "absolute",
                     bottom: 8,
                     alignSelf: "center",
-                    backgroundColor: isOwner
-                      ? tokens.colors.roogo.primary[500]
-                      : tokens.colors.roogo.neutral[900],
+                    backgroundColor:
+                      userType === "owner" || userType === "agent"
+                        ? tokens.colors.roogo.primary[500]
+                        : tokens.colors.roogo.neutral[900],
                     paddingHorizontal: 16,
                     paddingVertical: 6,
                     borderRadius: 20,
@@ -281,7 +282,11 @@ export default function ProfileScreen() {
                     }}
                     numberOfLines={1}
                   >
-                    {isOwner ? "Propriétaire" : "Locataire"}
+                    {userType === "owner"
+                      ? "Propriétaire"
+                      : userType === "agent"
+                        ? "Agent"
+                        : "Locataire"}
                   </Text>
                 </View>
               )}
@@ -345,7 +350,7 @@ export default function ProfileScreen() {
                 gap: 12,
               }}
             >
-              {isOwner ? (
+              {userType === "owner" || userType === "agent" ? (
                 <>
                   {[
                     { label: "Propriétés", value: "7" },

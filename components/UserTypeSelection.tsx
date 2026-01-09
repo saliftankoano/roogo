@@ -73,7 +73,7 @@ export default function UserTypeSelection({
 
             {/* Renter Option */}
             <TouchableOpacity
-              className={`border-2 rounded-2xl p-5 ${
+              className={`border-2 rounded-2xl p-5 mb-4 ${
                 selectedUserType === "renter"
                   ? "border-figma-primary bg-figma-primary/10"
                   : "border-figma-border bg-white"
@@ -99,6 +99,41 @@ export default function UserTypeSelection({
                   </Text>
                 </View>
                 {selectedUserType === "renter" && (
+                  <MaterialIcons
+                    name="check-circle"
+                    size={24}
+                    color="#FF6B35"
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
+
+            {/* Agent Option */}
+            <TouchableOpacity
+              className={`border-2 rounded-2xl p-5 ${
+                selectedUserType === "agent"
+                  ? "border-figma-primary bg-figma-primary/10"
+                  : "border-figma-border bg-white"
+              }`}
+              onPress={() => setSelectedUserType("agent")}
+            >
+              <View className="flex-row items-center">
+                <View className="mr-4">
+                  <MaterialIcons
+                    name="business-center"
+                    size={32}
+                    color={selectedUserType === "agent" ? "#FF6B35" : "#9E9E9E"}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-lg font-bold text-figma-grey-900 font-urbanist">
+                    Agent Immobilier
+                  </Text>
+                  <Text className="text-sm text-figma-grey-600 font-urbanist mt-1">
+                    Je suis un professionnel
+                  </Text>
+                </View>
+                {selectedUserType === "agent" && (
                   <MaterialIcons
                     name="check-circle"
                     size={24}
