@@ -1,4 +1,4 @@
-import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useClerk, useUser, useAuth } from "@clerk/clerk-expo";
 import { router, useFocusEffect } from "expo-router";
 import {
   CaretRightIcon,
@@ -25,6 +25,7 @@ import { useUserType } from "../../hooks/useUserType";
 import {
   getUserByClerkId,
   getUserStats,
+  updateClerkMetadata,
   type UserStats,
 } from "../../services/userService";
 import { tokens } from "../../theme/tokens";
@@ -32,6 +33,7 @@ import { tokens } from "../../theme/tokens";
 export default function ProfileScreen() {
   const { hasUserType, userType } = useUserType();
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const { signOut } = useClerk();
   const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
   const hasRenderedOnce = useRef(false);
@@ -117,14 +119,18 @@ export default function ProfileScreen() {
   const handlePostUserTypeSelection = async (selectedUserType: string) => {
     try {
       if (user) {
-        await user.update({
-          unsafeMetadata: {
-            ...user.unsafeMetadata,
+        const token = await getToken();
+        if (token) {
+          const success = await updateClerkMetadata(token, {
             userType: selectedUserType,
-          },
-        });
-        // Reload user to get updated metadata
-        await user.reload();
+          });
+          if (success) {
+            // Reload user to get updated metadata
+            await user.reload();
+          } else {
+            throw new Error("Failed to update user type via API");
+          }
+        }
       }
       setShowUserTypeSelection(false);
     } catch (error) {
@@ -243,7 +249,7 @@ export default function ProfileScreen() {
           paddingBottom: 120,
         }}
       >
-        {/* Profile Header with Avatar - Design Kept */}
+        {/* Profile Header with Avatar */}
         <View
           style={{
             backgroundColor: "#FFFFFF",
@@ -378,14 +384,14 @@ export default function ProfileScreen() {
               >
                 {String(
                   supabaseLocation ||
-                    displayUser?.unsafeMetadata?.location ||
+                    displayUser?.publicMetadata?.location ||
                     "Ouagadougou, Burkina Faso"
                 )}
               </Text>
             </View>
           </View>
 
-          {/* Stats Section - Revamped */}
+          {/* Stats Section */}
           {(userType === "owner" || userType === "agent") && (
             <View style={{ paddingHorizontal: 24 }}>
               <View
@@ -442,7 +448,7 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        {/* Menu Items - Revamped */}
+        {/* Menu Items */}
         <View style={{ paddingHorizontal: 24, paddingTop: 24, gap: 16 }}>
           <Text
             style={{

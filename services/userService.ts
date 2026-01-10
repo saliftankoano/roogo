@@ -4,7 +4,7 @@ export interface UserStats {
   propertiesCount: number;
   viewsCount: number;
   pendingCount: number;
-  favoritesCount: number; // For buyers: their saved favorites. For agents: favorites received on their listings
+  favoritesCount: number;
   rating: number;
   reviewsCount: number;
 }
@@ -46,6 +46,44 @@ export async function getUserByClerkId(
 }
 
 /**
+ * Update Clerk user metadata via backend API
+ */
+export async function updateClerkMetadata(
+  clerkToken: string,
+  metadata: {
+    userType?: string;
+    companyName?: string;
+    facebookUrl?: string;
+    location?: string;
+    sex?: string;
+    dateOfBirth?: string;
+  }
+): Promise<boolean> {
+  try {
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL || "https://roogo-backend.vercel.app";
+    const response = await fetch(`${apiUrl}/api/clerk/users/me/metadata`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${clerkToken}`,
+      },
+      body: JSON.stringify(metadata),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Failed to update Clerk metadata:", errorData);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error updating Clerk metadata:", error);
+    return false;
+  }
+}
+
+/**
  * Get user statistics based on user type
  */
 export async function getUserStats(
@@ -57,13 +95,12 @@ export async function getUserStats(
     viewsCount: 0,
     pendingCount: 0,
     favoritesCount: 0,
-    rating: 0, // Placeholder
-    reviewsCount: 0, // Placeholder
+    rating: 0,
+    reviewsCount: 0,
   };
 
   try {
     if (userType === "owner" || userType === "agent") {
-      // Fetch properties stats
       const { data: properties, error } = await supabase
         .from("properties")
         .select("id, views_count, status")
@@ -79,7 +116,6 @@ export async function getUserStats(
           (p) => p.status === "en_attente"
         ).length;
 
-        // Get total favorites received on all their properties
         if (properties.length > 0) {
           const propertyIds = properties.map((p) => p.id);
           const { count: favCount } = await supabase
@@ -91,7 +127,6 @@ export async function getUserStats(
         }
       }
     } else {
-      // Fetch favorites count for regular users
       const { count, error } = await supabase
         .from("favorites")
         .select("*", { count: "exact", head: true })
@@ -101,9 +136,8 @@ export async function getUserStats(
         stats.favoritesCount = count;
       }
 
-      // Note and Avis are placeholders for now as tables don't exist
-      stats.rating = 4.8; // Hardcoded placeholder
-      stats.reviewsCount = 12; // Hardcoded placeholder
+      stats.rating = 4.8;
+      stats.reviewsCount = 12;
     }
 
     return stats;

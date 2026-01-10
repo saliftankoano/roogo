@@ -1,4 +1,4 @@
-import { useSignIn, useSSO, useUser } from "@clerk/clerk-expo";
+import { useSignIn, useSSO, useUser, useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import * as AuthSession from "expo-auth-session";
 import { Image } from "expo-image";
@@ -15,6 +15,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import UserTypeSelection from "../../components/UserTypeSelection";
+import { updateClerkMetadata } from "../../services/userService";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -22,6 +23,7 @@ export default function SignInScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { startSSOFlow } = useSSO();
   const { user } = useUser();
+  const { getToken } = useAuth();
   const router = useRouter();
   const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
 
@@ -39,8 +41,8 @@ export default function SignInScreen() {
   // Watch for user object availability after sign-in
   useEffect(() => {
     if (user && isLoaded) {
-      // If user doesn't have a userType, show selection modal
-      if (!user.unsafeMetadata?.userType) {
+      // If user doesn't have a userType in publicMetadata, show selection modal
+      if (!user.publicMetadata?.userType) {
         setShowUserTypeSelection(true);
       } else {
         // User has a type, redirect to home
@@ -62,7 +64,6 @@ export default function SignInScreen() {
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
         console.log("Sign in successful");
-        // Navigation will be handled by useEffect when user object updates
       } else {
         console.error(JSON.stringify(signInAttempt, null, 2));
       }
@@ -76,14 +77,18 @@ export default function SignInScreen() {
   ) => {
     try {
       if (user) {
-        await user.update({
-          unsafeMetadata: {
-            ...user.unsafeMetadata,
+        const token = await getToken();
+        if (token) {
+          const success = await updateClerkMetadata(token, {
             userType: selectedUserType,
-          },
-        });
-        // Reload user to get updated metadata
-        await user.reload();
+          });
+          if (success) {
+            // Reload user to get updated metadata
+            await user.reload();
+          } else {
+            throw new Error("Failed to update user type via API");
+          }
+        }
       }
       setShowUserTypeSelection(false);
       router.replace("/(tabs)/(home)");
@@ -98,14 +103,13 @@ export default function SignInScreen() {
   ) {
     try {
       const redirectUrl = AuthSession.makeRedirectUri({ scheme: "roogo" });
-      const { createdSessionId, setActive } = await startSSOFlow({
+      const { createdSessionId, setActive: setOAuthActive } = await startSSOFlow({
         strategy,
         redirectUrl,
       });
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
+      if (createdSessionId && setOAuthActive) {
+        await setOAuthActive({ session: createdSessionId });
         console.log("OAuth sign in successful");
-        // Navigation will be handled by useEffect when user object updates
       }
     } catch (e) {
       console.error(e);

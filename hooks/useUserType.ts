@@ -1,20 +1,24 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useMemo } from "react";
 
-export type UserType = "owner" | "renter" | "agent" | null;
+export type UserType = "owner" | "renter" | "agent" | "staff" | null;
 
 export function useUserType() {
   const { user, isLoaded } = useUser();
 
   const userType = useMemo(() => {
     if (!user || !isLoaded) return null;
-    const metadataType = user.unsafeMetadata?.userType;
+    
+    // Check publicMetadata (secure). 
+    // We stop looking at unsafeMetadata as part of the migration to secure fields.
+    const metadataType = user.publicMetadata?.userType as string;
 
     // Only return valid types
     if (
       metadataType === "owner" ||
       metadataType === "renter" ||
-      metadataType === "agent"
+      metadataType === "agent" ||
+      metadataType === "staff"
     ) {
       return metadataType as UserType;
     }
@@ -26,6 +30,7 @@ export function useUserType() {
   const isOwner = userType === "owner";
   const isRenter = userType === "renter";
   const isAgent = userType === "agent";
+  const isStaff = userType === "staff";
   const isGuest = !isAuthenticated;
 
   return {
@@ -34,11 +39,9 @@ export function useUserType() {
     isOwner,
     isRenter,
     isAgent,
+    isStaff,
     isGuest,
     hasUserType: !!userType,
-    isLoaded, // Export isLoaded for loading checks
-    // Legacy support - will be removed in future
-    isAgentLegacy: isOwner,
-    isBuyerRenter: isRenter,
+    isLoaded,
   };
 }

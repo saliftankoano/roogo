@@ -101,8 +101,6 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
     ? `${formatPrice(formData.prixMensuel)} CFA`
     : "";
 
-  const category = formData.type === "commercial" ? "Business" : "Residential";
-
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
       {/* Header */}

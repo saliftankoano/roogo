@@ -19,6 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserType } from "../hooks/useUserType";
 import { Button } from "../components/ui/Button";
 import { MaterialIcons } from "@expo/vector-icons";
+import { updateClerkMetadata } from "../services/userService";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -66,41 +67,6 @@ export default function OnboardingScreen() {
     }
   }, [isLoaded, isTypeLoaded, isSignedIn, userType, step]);
 
-  // Sync user data to private metadata via backend
-  const syncToPrivateMetadata = async (data: {
-    userType?: string;
-    companyName?: string;
-    facebookUrl?: string;
-  }) => {
-    try {
-      const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL;
-      if (!apiBaseUrl) return;
-
-      const token = await getToken();
-      if (!token) return;
-
-      const url = `${apiBaseUrl.replace(/\/$/, "")}/api/clerk/users/me/metadata`;
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          privateMetadata: data,
-        }),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        console.warn("Failed to sync private metadata:", text);
-      }
-    } catch (error) {
-      console.error("Error syncing private metadata:", error);
-    }
-  };
-
   const transitionTo = (nextStep: number) => {
     Animated.timing(fadeAnim, {
       toValue: 0,
@@ -134,32 +100,27 @@ export default function OnboardingScreen() {
     try {
       setIsSubmitting(true);
 
-      // Build metadata
-      const unsafeMetadata: any = {
-        ...user.unsafeMetadata,
-        userType: type,
-      };
-
-      if (type === "agent" && agentData) {
-        if (agentData.companyName)
-          unsafeMetadata.companyName = agentData.companyName;
-        if (agentData.facebookUrl)
-          unsafeMetadata.facebookUrl = agentData.facebookUrl;
+      const token = await getToken();
+      if (!token) {
+        throw new Error("No auth token available");
       }
 
-      // Update Clerk metadata
-      await user.update({ unsafeMetadata });
-      await user.reload();
-
-      // Sync to backend
-      const syncData: any = { userType: type };
+      // Securely update metadata via backend API
+      const metadata: any = { userType: type };
       if (type === "agent" && agentData) {
-        if (agentData.companyName) syncData.companyName = agentData.companyName;
-        if (agentData.facebookUrl) syncData.facebookUrl = agentData.facebookUrl;
+        if (agentData.companyName) metadata.companyName = agentData.companyName;
+        if (agentData.facebookUrl) metadata.facebookUrl = agentData.facebookUrl;
       }
-      await syncToPrivateMetadata(syncData);
 
-      router.replace("/(tabs)/(home)");
+      const success = await updateClerkMetadata(token, metadata);
+      
+      if (success) {
+        // Reload user to get updated publicMetadata
+        await user.reload();
+        router.replace("/(tabs)/(home)");
+      } else {
+        throw new Error("Failed to update metadata via API");
+      }
     } catch (error) {
       console.error("Error completing onboarding:", error);
       setIsSubmitting(false);
@@ -241,7 +202,6 @@ export default function OnboardingScreen() {
           <SafeAreaView className="flex-1 px-8 pt-20">
             {/* Step 2: User Type Selection */}
             <View className="mb-12">
-              {/* No back button here since this is now mandatory post-signup step */}
               <Text className="text-3xl font-black text-figma-grey-900 font-urbanist mb-3">
                 Choisissez votre profil
               </Text>
