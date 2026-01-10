@@ -1,4 +1,4 @@
-import { X } from "lucide-react-native";
+import { XIcon } from "phosphor-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
@@ -132,7 +132,7 @@ export default function PhotoGallery({
               }}
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
-              <X size={24} color="white" strokeWidth={2.5} />
+              <XIcon size={24} color="white" weight="bold" />
             </Pressable>
 
             {/* Photo Counter */}

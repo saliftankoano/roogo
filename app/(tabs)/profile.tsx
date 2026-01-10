@@ -22,15 +22,32 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import UserTypeSelection from "../../components/UserTypeSelection";
 import { useUserType } from "../../hooks/useUserType";
+import {
+  getUserByClerkId,
+  getUserStats,
+  type UserStats,
+} from "../../services/userService";
 import { tokens } from "../../theme/tokens";
 
 export default function ProfileScreen() {
-  const { isOwner, hasUserType, userType } = useUserType();
+  const { hasUserType, userType } = useUserType();
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
   const hasRenderedOnce = useRef(false);
   const cachedUserRef = useRef<typeof user>(null);
+
+  // State for dynamic data
+  const [stats, setStats] = useState<UserStats>({
+    propertiesCount: 0,
+    viewsCount: 0,
+    pendingCount: 0,
+    favoritesCount: 0,
+    rating: 0,
+    reviewsCount: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [supabaseLocation, setSupabaseLocation] = useState<string | null>(null);
 
   // Force re-render counter - used to ensure content paints on focus
   const [, forceRender] = useReducer((x) => x + 1, 0);
@@ -44,15 +61,41 @@ export default function ProfileScreen() {
   // Use cached user if current user is temporarily null (happens during tab switches)
   const displayUser = user || cachedUserRef.current;
 
+  // Fetch stats and user profile
+  const fetchUserProfileData = useCallback(async () => {
+    if (!displayUser?.id || !userType) return;
+
+    try {
+      setLoadingStats(true);
+      // 1. Get Supabase user ID from Clerk ID
+      const supabaseUser = await getUserByClerkId(displayUser.id);
+
+      if (supabaseUser) {
+        setSupabaseLocation(supabaseUser.location);
+
+        // 2. Get stats using Supabase ID
+        const userStats = await getUserStats(supabaseUser.id, userType);
+        setStats(userStats);
+      }
+    } catch (error) {
+      console.error("Error fetching profile data:", error);
+    } finally {
+      setLoadingStats(false);
+    }
+  }, [displayUser?.id, userType]);
+
   // Force a re-render when screen focuses to ensure content paints
   useFocusEffect(
     useCallback(() => {
+      // Fetch fresh data on focus
+      fetchUserProfileData();
+
       // Small delay to let the navigation animation complete, then force re-render
       const timer = setTimeout(() => {
         forceRender();
       }, 50);
       return () => clearTimeout(timer);
-    }, [])
+    }, [fetchUserProfileData])
   );
 
   useEffect(() => {
@@ -334,7 +377,8 @@ export default function ProfileScreen() {
                 }}
               >
                 {String(
-                  displayUser?.unsafeMetadata?.location ||
+                  supabaseLocation ||
+                    displayUser?.unsafeMetadata?.location ||
                     "Ouagadougou, Burkina Faso"
                 )}
               </Text>
@@ -342,95 +386,60 @@ export default function ProfileScreen() {
           </View>
 
           {/* Stats Section - Revamped */}
-          <View style={{ paddingHorizontal: 24 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              {userType === "owner" || userType === "agent" ? (
-                <>
-                  {[
-                    { label: "Propriétés", value: "7" },
-                    { label: "Vues", value: "128" },
-                    { label: "En attente", value: "2" },
-                  ].map((stat, idx) => (
-                    <View
-                      key={idx}
+          {(userType === "owner" || userType === "agent") && (
+            <View style={{ paddingHorizontal: 24 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  gap: 12,
+                }}
+              >
+                {[
+                  {
+                    label: "Propriétés",
+                    value: stats.propertiesCount.toString(),
+                  },
+                  { label: "Vues", value: stats.viewsCount.toString() },
+                  {
+                    label: "En attente",
+                    value: stats.pendingCount.toString(),
+                  },
+                ].map((stat, idx) => (
+                  <View
+                    key={idx}
+                    style={{
+                      flex: 1,
+                      backgroundColor: tokens.colors.roogo.neutral[100],
+                      borderRadius: 16,
+                      padding: 16,
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
                       style={{
-                        flex: 1,
-                        backgroundColor: tokens.colors.roogo.neutral[100],
-                        borderRadius: 16,
-                        padding: 16,
-                        alignItems: "center",
+                        fontSize: 20,
+                        fontFamily: "Urbanist-Bold",
+                        color: tokens.colors.roogo.primary[500],
+                        marginBottom: 4,
                       }}
                     >
-                      <Text
-                        style={{
-                          fontSize: 20,
-                          fontFamily: "Urbanist-Bold",
-                          color: tokens.colors.roogo.primary[500],
-                          marginBottom: 4,
-                        }}
-                      >
-                        {stat.value}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          fontFamily: "Urbanist-Medium",
-                          color: tokens.colors.roogo.neutral[500],
-                        }}
-                      >
-                        {stat.label}
-                      </Text>
-                    </View>
-                  ))}
-                </>
-              ) : (
-                <>
-                  {[
-                    { label: "Favoris", value: "6" },
-                    { label: "Note", value: "4.8" },
-                    { label: "Avis", value: "12" },
-                  ].map((stat, idx) => (
-                    <View
-                      key={idx}
+                      {loadingStats ? "-" : stat.value}
+                    </Text>
+                    <Text
                       style={{
-                        flex: 1,
-                        backgroundColor: tokens.colors.roogo.neutral[100],
-                        borderRadius: 16,
-                        padding: 16,
-                        alignItems: "center",
+                        fontSize: 12,
+                        fontFamily: "Urbanist-Medium",
+                        color: tokens.colors.roogo.neutral[500],
                       }}
                     >
-                      <Text
-                        style={{
-                          fontSize: 20,
-                          fontFamily: "Urbanist-Bold",
-                          color: tokens.colors.roogo.primary[500],
-                          marginBottom: 4,
-                        }}
-                      >
-                        {stat.value}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          fontFamily: "Urbanist-Medium",
-                          color: tokens.colors.roogo.neutral[500],
-                        }}
-                      >
-                        {stat.label}
-                      </Text>
-                    </View>
-                  ))}
-                </>
-              )}
+                      {stat.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
+          )}
         </View>
 
         {/* Menu Items - Revamped */}

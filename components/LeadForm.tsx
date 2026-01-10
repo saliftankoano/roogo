@@ -1,4 +1,8 @@
-import { AlertCircle, CheckCircle, Phone } from "lucide-react-native";
+import {
+  WarningCircleIcon,
+  CheckCircleIcon,
+  PhoneIcon,
+} from "phosphor-react-native";
 import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -144,7 +148,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
       <View className="px-6 pb-8">
         <View className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
           <View className="flex-row items-center">
-            <CheckCircle size={20} color="#059669" />
+            <CheckCircleIcon size={20} color="#059669" />
             <Text className="text-green-800 font-medium ml-2">
               Demande envoyée avec succès !
             </Text>
@@ -179,7 +183,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
       <View className="px-6 pb-8">
         <View className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
           <View className="flex-row items-center">
-            <AlertCircle size={20} color="#DC2626" />
+            <WarningCircleIcon size={20} color="#DC2626" />
             <Text className="text-red-800 font-medium ml-2">
               Erreur lors de l&apos;envoi
             </Text>
@@ -197,7 +201,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
       {!isOnline && (
         <View className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
           <View className="flex-row items-center">
-            <AlertCircle size={20} color="#DC2626" />
+            <WarningCircleIcon size={20} color="#DC2626" />
             <Text className="text-red-800 font-medium ml-2">
               Connexion requise
             </Text>
@@ -239,7 +243,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
           Numéro de téléphone *
         </Text>
         <View className="flex-row items-center border border-gray-200 rounded-xl px-4 py-3 bg-gray-50">
-          <Phone size={20} color="#6B7280" className="mr-3" />
+          <PhoneIcon size={20} color="#6B7280" />
           <TextInput
             value={formData.phone}
             onChangeText={(text) =>

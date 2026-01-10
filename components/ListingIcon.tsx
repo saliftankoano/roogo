@@ -1,4 +1,4 @@
-import { Bath, BedDouble, Ruler } from "lucide-react-native";
+import { BathtubIcon, BedIcon, RulerIcon } from "phosphor-react-native";
 
 type IconType = "bedroom" | "bathroom" | "measure";
 
@@ -15,10 +15,10 @@ export default function ListingIcon({
 }: ListingIconProps) {
   switch (type) {
     case "bedroom":
-      return <BedDouble size={size} color={color} />;
+      return <BedIcon size={size} color={color} />;
     case "bathroom":
-      return <Bath size={size} color={color} />;
+      return <BathtubIcon size={size} color={color} />;
     case "measure":
-      return <Ruler size={size} color={color} />;
+      return <RulerIcon size={size} color={color} />;
   }
 }

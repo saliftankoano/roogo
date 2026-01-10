@@ -52,7 +52,7 @@ if (
 
 export default function MyPropertiesScreen() {
   const { user, isLoaded } = useUser();
-  const { isOwner } = useUserType();
+  const { isOwner, isAgent } = useUserType();
   const [refreshing, setRefreshing] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false); // Start false to prevent initial blank flash
@@ -91,10 +91,10 @@ export default function MyPropertiesScreen() {
   // Use useFocusEffect to reload data when tab is focused
   useFocusEffect(
     useCallback(() => {
-      if (isLoaded && user && isOwner) {
+      if (isLoaded && user && (isOwner || isAgent)) {
         loadProperties();
       }
-    }, [isLoaded, user, isOwner, loadProperties])
+    }, [isLoaded, user, isOwner, isAgent, loadProperties])
   );
 
   const onRefresh = useCallback(() => {
@@ -243,8 +243,8 @@ export default function MyPropertiesScreen() {
     );
   }
 
-  // Redirect non-owners to home
-  if (!isOwner) {
+  // Redirect non-owners/agents to home
+  if (!isOwner && !isAgent) {
     return (
       <SafeAreaView
         style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
@@ -260,7 +260,7 @@ export default function MyPropertiesScreen() {
               fontFamily: "Urbanist-Medium",
             }}
           >
-            Accès réservé aux propriétaires
+            Accès réservé aux propriétaires et agents
           </Text>
         </View>
       </SafeAreaView>

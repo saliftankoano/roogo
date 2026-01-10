@@ -1,4 +1,4 @@
-import { ChevronDown, X } from "lucide-react-native";
+import { CaretDownIcon, XIcon } from "phosphor-react-native";
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Modal,
@@ -469,7 +469,7 @@ export default function FilterModal({
               : value.toString()}
           </Text>
           <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
-            <ChevronDown size={20} color="white" />
+            <CaretDownIcon size={20} color="white" />
           </Animated.View>
         </TouchableOpacity>
 
@@ -554,7 +554,7 @@ export default function FilterModal({
               Filtres
             </Text>
             <TouchableOpacity onPress={onClose} className="p-2">
-              <X size={24} color={tokens.colors.roogo.neutral[900]} />
+              <XIcon size={24} color={tokens.colors.roogo.neutral[900]} />
             </TouchableOpacity>
           </View>
 

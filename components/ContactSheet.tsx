@@ -1,4 +1,4 @@
-import { Send, X } from "lucide-react-native";
+import { PaperPlaneTiltIcon, XIcon } from "phosphor-react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -216,7 +216,7 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
                     accessibilityLabel="Fermer"
                     accessibilityRole="button"
                   >
-                    <X size={18} color="#6B7280" />
+                    <XIcon size={18} color="#6B7280" />
                   </TouchableOpacity>
                 </View>
                 {currentStep === "options" && (
@@ -241,7 +241,7 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
                   >
                     <View className="flex-row items-center">
                       <View className="bg-blue-500 p-3 rounded-lg mr-4">
-                        <Send size={20} color="white" />
+                        <PaperPlaneTiltIcon size={20} color="white" />
                       </View>
                       <View className="flex-1">
                         <Text className="text-base font-semibold text-gray-900 mb-0.5">

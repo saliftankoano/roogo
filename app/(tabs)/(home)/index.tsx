@@ -1,6 +1,6 @@
 import { tokens } from "../../../theme/tokens";
 import { router, useFocusEffect } from "expo-router";
-import { MapPin, SlidersHorizontal } from "lucide-react-native";
+import { MapPinIcon, SlidersHorizontalIcon } from "phosphor-react-native";
 import { useCallback, useMemo, useState, useRef } from "react";
 import {
   ActivityIndicator,
@@ -221,7 +221,7 @@ export default function HomeScreen() {
       {/* Header with Location and Filters */}
       <View className="px-6 pt-2 pb-6 flex-row items-center justify-between">
         <TouchableOpacity className="flex-row items-center bg-white px-4 py-3 rounded-full shadow-sm border border-roogo-neutral-100 flex-1 mr-3">
-          <MapPin size={20} color={tokens.colors.roogo.primary[500]} />
+          <MapPinIcon size={20} color={tokens.colors.roogo.primary[500]} />
           <Text className="ml-3 text-lg font-bold text-roogo-neutral-900 font-urbanist">
             Ouagadougou
           </Text>
@@ -231,7 +231,7 @@ export default function HomeScreen() {
           onPress={() => setFilterModalVisible(true)}
           className="w-12 h-12 bg-roogo-neutral-900 rounded-full items-center justify-center shadow-md"
         >
-          <SlidersHorizontal size={20} color="white" />
+          <SlidersHorizontalIcon size={20} color="white" />
         </TouchableOpacity>
       </View>
 
