@@ -130,21 +130,6 @@ export default function TabLayout() {
   const isDetailsPage = pathname.includes("/details");
   const { isOwner, isAgent, isRenter, isGuest, isLoaded } = useUserType();
 
-  // #region agent log
-  fetch("http://127.0.0.1:7242/ingest/8d4160e4-1a58-4ce5-b197-c68afdfbc381", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      location: "TabLayout.tsx:132",
-      message: "TabLayout state",
-      data: { isLoaded, isGuest, isOwner, isAgent, isRenter },
-      timestamp: Date.now(),
-      sessionId: "debug-session",
-      hypothesisId: "1,3",
-    }),
-  }).catch(() => {});
-  // #endregion
-
   // Track if we've ever loaded successfully to prevent blank flash on tab switches
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
@@ -202,21 +187,6 @@ export default function TabLayout() {
     if (isHidden) {
       return null;
     }
-
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/8d4160e4-1a58-4ce5-b197-c68afdfbc381", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "TabLayout.tsx:CustomTabBar",
-        message: "Rendering TabBar",
-        data: { stableIsGuest },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        hypothesisId: "3",
-      }),
-    }).catch(() => {});
-    // #endregion
 
     return (
       <>

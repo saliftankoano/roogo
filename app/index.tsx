@@ -49,23 +49,6 @@ export default function OnboardingScreen() {
     let isMounted = true;
 
     async function checkAuthStatus() {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7242/ingest/8d4160e4-1a58-4ce5-b197-c68afdfbc381",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            location: "index.tsx:checkAuthStatus",
-            message: "Onboarding check",
-            data: { isLoaded, isTypeLoaded, isSignedIn, userType, step },
-            timestamp: Date.now(),
-            sessionId: "debug-session",
-            hypothesisId: "1,2",
-          }),
-        }
-      ).catch(() => {});
-      // #endregion
       if (isLoaded && isTypeLoaded) {
         if (isSignedIn) {
           if (userType) {
