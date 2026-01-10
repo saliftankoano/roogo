@@ -3,16 +3,16 @@ import { formatPrice } from "../utils/formatting";
 import { useUser } from "@clerk/clerk-expo";
 import { useUserType } from "../hooks/useUserType";
 import {
-  Bath,
-  BedDouble,
-  Eye,
-  Heart,
-  MapPin,
-  Pencil,
-  Ruler,
-  Share2,
-  Trash2,
-} from "lucide-react-native";
+  BathtubIcon,
+  BedIcon,
+  EyeIcon,
+  HeartIcon,
+  MapPinIcon,
+  PencilIcon,
+  RulerIcon,
+  ShareIcon,
+  TrashIcon,
+} from "phosphor-react-native";
 import React, { useRef, useState } from "react";
 import {
   Animated,
@@ -168,15 +168,14 @@ export default function PropertyCard({
             activeOpacity={0.7}
           >
             <Animated.View style={{ transform: [{ scale: heartScale }] }}>
-              <Heart
+              <HeartIcon
                 size={20}
                 color={
                   isFavorite
                     ? tokens.colors.roogo.error
                     : tokens.colors.roogo.neutral[900]
                 }
-                strokeWidth={2.5}
-                fill={isFavorite ? tokens.colors.roogo.error : "transparent"}
+                weight={isFavorite ? "fill" : "regular"}
               />
             </Animated.View>
           </TouchableOpacity>
@@ -192,7 +191,7 @@ export default function PropertyCard({
               {property.title}
             </Text>
             <View className="flex-row items-center mt-1">
-              <MapPin size={14} color={tokens.colors.roogo.neutral[500]} />
+              <MapPinIcon size={14} color={tokens.colors.roogo.neutral[500]} />
               <Text className="ml-1 text-roogo-neutral-500 text-sm font-medium">
                 {property.location}
               </Text>
@@ -209,19 +208,19 @@ export default function PropertyCard({
         {/* Property Features Chips */}
         <View className="flex-row flex-wrap mt-3">
           <View className="flex-row items-center bg-roogo-neutral-100 px-3 py-1.5 rounded-lg mr-3 mb-2">
-            <BedDouble size={16} color={tokens.colors.roogo.neutral[700]} />
+            <BedIcon size={16} color={tokens.colors.roogo.neutral[700]} />
             <Text className="ml-1.5 text-sm font-semibold text-roogo-neutral-700 font-urbanist">
               {property.bedrooms} Beds
             </Text>
           </View>
           <View className="flex-row items-center bg-roogo-neutral-100 px-3 py-1.5 rounded-lg mr-3 mb-2">
-            <Bath size={16} color={tokens.colors.roogo.neutral[700]} />
+            <BathtubIcon size={16} color={tokens.colors.roogo.neutral[700]} />
             <Text className="ml-1.5 text-sm font-semibold text-roogo-neutral-700 font-urbanist">
               {property.bathrooms} Baths
             </Text>
           </View>
           <View className="flex-row items-center bg-roogo-neutral-100 px-3 py-1.5 rounded-lg mb-2">
-            <Ruler size={16} color={tokens.colors.roogo.neutral[700]} />
+            <RulerIcon size={16} color={tokens.colors.roogo.neutral[700]} />
             <Text className="ml-1.5 text-sm font-semibold text-roogo-neutral-700 font-urbanist">
               {property.area} m²
             </Text>
@@ -236,13 +235,13 @@ export default function PropertyCard({
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center space-x-4">
                   <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-lg">
-                    <Eye size={16} color="#6B7280" />
+                    <EyeIcon size={16} color="#6B7280" />
                     <Text className="ml-1.5 text-gray-700 font-medium font-urbanist">
                       {property.views}
                     </Text>
                   </View>
                   <View className="flex-row items-center bg-red-50 px-3 py-1.5 rounded-lg">
-                    <Heart size={16} color="#EF4444" fill="#EF4444" />
+                    <HeartIcon size={16} color="#EF4444" weight="fill" />
                     <Text className="ml-1.5 text-red-700 font-medium font-urbanist">
                       {property.favorites}
                     </Text>
@@ -261,7 +260,7 @@ export default function PropertyCard({
                     }
                   }}
                 >
-                  <Share2 size={18} color="#6B7280" />
+                  <ShareIcon size={18} color="#6B7280" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -276,7 +275,7 @@ export default function PropertyCard({
                   onPress={onDelete}
                   className="flex-1 flex-row items-center justify-center bg-red-50 px-4 py-3 rounded-xl"
                 >
-                  <Trash2 size={18} color="#DC2626" />
+                  <TrashIcon size={18} color="#DC2626" />
                   <Text className="ml-2 text-red-700 font-bold font-urbanist">
                     Supprimer
                   </Text>
@@ -294,7 +293,7 @@ export default function PropertyCard({
                     elevation: 3,
                   }}
                 >
-                  <Pencil size={18} color="white" />
+                  <PencilIcon size={18} color="white" />
                   <Text className="ml-2 text-white font-bold font-urbanist">
                     Modifier
                   </Text>

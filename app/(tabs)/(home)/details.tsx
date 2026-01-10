@@ -20,9 +20,8 @@ import {
   WarningCircleIcon,
   WifiHighIcon,
   LockIcon,
-  ClockIcon,
-  CheckCircleIcon,
   XIcon,
+  CheckCircleIcon,
 } from "phosphor-react-native";
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
@@ -46,9 +45,13 @@ import PhotoGallery from "../../../components/PhotoGallery";
 import { PrimaryButton } from "../../../components/PrimaryButton";
 import type { Property } from "../../../constants/properties";
 import { properties } from "../../../constants/properties";
-import { fetchPropertyById } from "../../../services/propertyFetchService";
+import {
+  fetchPropertyById,
+  incrementPropertyViews,
+} from "../../../services/propertyFetchService";
 import { tokens } from "../../../theme/tokens";
 import { formatPrice } from "../../../utils/formatting";
+import { cn } from "../../../lib/utils";
 import { getInterdictionByLabel } from "../../../utils/interdictions";
 import { SlotMeter } from "../../../components/SlotMeter";
 import {
@@ -66,50 +69,163 @@ interface LockModalProps {
   fee: number;
 }
 
-const LockModal: React.FC<LockModalProps> = ({ visible, onClose, onConfirm, fee }) => {
+const LockModal: React.FC<LockModalProps> = ({
+  visible,
+  onClose,
+  onConfirm,
+  fee,
+}) => {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50 justify-center items-center px-6">
-        <View className="bg-white rounded-[32px] w-full p-8">
-          <View className="bg-roogo-primary-50 w-16 h-16 rounded-full items-center justify-center self-center mb-6">
-            <LockIcon size={32} color={tokens.colors.roogo.primary[500]} weight="fill" />
-          </View>
-          
-          <Text className="text-2xl font-urbanist-bold text-roogo-neutral-900 text-center mb-2">
-            Réserver ce bien
-          </Text>
-          <Text className="text-roogo-neutral-500 font-urbanist text-center mb-8">
-            Sécurisez ce bien immédiatement en payant les frais Early Bird.
-          </Text>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black/60 justify-end">
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={onClose}
+          className="flex-1"
+        />
+        <View className="bg-white rounded-t-[40px] px-8 pt-10 pb-12 shadow-2xl">
+          {/* Close Button */}
+          <TouchableOpacity
+            onPress={onClose}
+            className="absolute right-6 top-6 bg-roogo-neutral-100 p-2 rounded-full z-10"
+          >
+            <XIcon
+              size={20}
+              color={tokens.colors.roogo.neutral[500]}
+              weight="bold"
+            />
+          </TouchableOpacity>
 
-          <View className="bg-roogo-neutral-50 rounded-2xl p-4 mb-8">
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-roogo-neutral-500 font-urbanist">Frais de réservation (10%)</Text>
-              <Text className="text-roogo-neutral-900 font-urbanist-bold">{formatPrice(fee)} XOF</Text>
+          <View className="items-center mb-8">
+            <View className="bg-roogo-primary-50 w-20 h-20 rounded-full items-center justify-center mb-6 overflow-hidden">
+              <LinearGradient
+                colors={[tokens.colors.roogo.primary[50], "#FFF"]}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+              />
+              <LockIcon
+                size={40}
+                color={tokens.colors.roogo.primary[500]}
+                weight="fill"
+              />
             </View>
-            <View className="h-[1px] bg-roogo-neutral-100 my-2" />
-            <Text className="text-[10px] text-roogo-neutral-400 font-urbanist italic">
-              *Ces frais sont versés à Roogo pour le service de verrouillage. Le loyer sera payé séparément au propriétaire.
+
+            <Text className="text-3xl font-urbanist-bold text-roogo-neutral-900 text-center mb-2 px-2">
+              Réserver en Exclusivité
+            </Text>
+            <Text className="text-roogo-neutral-500 font-urbanist-medium text-center px-4 leading-6">
+              Soyez le premier à sécuriser ce bien avant tout le monde. Une
+              opportunité unique pour cette perle rare.
             </Text>
           </View>
 
-          <View className="flex-row gap-3">
-            <TouchableOpacity 
+          <View className="bg-roogo-neutral-50 rounded-[32px] p-6 mb-10 border border-roogo-neutral-100">
+            <View className="flex-row justify-between items-center mb-4">
+              <View>
+                <Text className="text-roogo-neutral-900 font-urbanist-bold text-lg">
+                  Frais Early Bird
+                </Text>
+                <Text className="text-roogo-neutral-400 font-urbanist-medium text-xs">
+                  Priorité exclusive 48h
+                </Text>
+              </View>
+              <Text className="text-roogo-primary-500 font-urbanist-bold text-2xl">
+                {formatPrice(fee)} XOF
+              </Text>
+            </View>
+
+            <View className="h-[1px] bg-roogo-neutral-200 mb-4" />
+
+            <View className="flex-row items-start">
+              <View className="bg-roogo-primary-500/10 p-1.5 rounded-full mr-3 mt-0.5">
+                <ShieldCheckIcon
+                  size={14}
+                  color={tokens.colors.roogo.primary[500]}
+                  weight="bold"
+                />
+              </View>
+              <Text className="flex-1 text-[11px] text-roogo-neutral-500 font-urbanist-medium leading-4">
+                Ces frais sécurisent le retrait immédiat de l&apos;annonce pour
+                vous. Le loyer sera réglé séparément au propriétaire.
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex-row gap-4">
+            <TouchableOpacity
               onPress={onClose}
-              className="flex-1 bg-roogo-neutral-100 py-4 rounded-2xl items-center"
+              className="flex-1 bg-roogo-neutral-100 py-5 rounded-2xl items-center"
             >
-              <Text className="text-roogo-neutral-900 font-urbanist-bold">Annuler</Text>
+              <Text className="text-roogo-neutral-600 font-urbanist-bold text-base">
+                Annuler
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={onConfirm}
-              className="flex-[2] bg-roogo-primary-500 py-4 rounded-2xl items-center shadow-lg shadow-roogo-primary-500/30"
+              activeOpacity={0.9}
+              className="flex-[2] bg-roogo-primary-500 py-5 rounded-2xl items-center shadow-lg shadow-roogo-primary-500/40"
             >
-              <Text className="text-white font-urbanist-bold">Payer {formatPrice(fee)} XOF</Text>
+              <Text className="text-white font-urbanist-bold text-base">
+                Payer {formatPrice(fee)} XOF
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
     </Modal>
+  );
+};
+
+// --- Early Bird Banner ---
+const EarlyBirdBanner = ({
+  timeLeft,
+  fee,
+}: {
+  timeLeft: string;
+  fee: number;
+}) => {
+  return (
+    <View className="bg-roogo-primary-50 border border-roogo-primary-100 rounded-[24px] p-5 mb-8">
+      <View className="flex-row items-center mb-3">
+        <View className="bg-roogo-primary-500/10 p-2 rounded-full mr-3">
+          <LockIcon
+            size={20}
+            color={tokens.colors.roogo.primary[500]}
+            weight="fill"
+          />
+        </View>
+        <Text className="text-lg font-urbanist-bold text-roogo-primary-600">
+          Accès Exclusif Early Bird
+        </Text>
+      </View>
+
+      <View className="h-[1px] bg-roogo-primary-100/50 mb-4" />
+
+      <Text className="text-roogo-neutral-600 font-urbanist text-sm mb-4 leading-5">
+        Réserver ce bien avant l&apos;ouverture des candidatures gratuites.
+        Cette opportunité expire dans :
+      </Text>
+
+      <View className="bg-white/80 py-3 rounded-2xl items-center mb-4">
+        <Text className="text-2xl font-urbanist-bold text-roogo-primary-500 tracking-wider">
+          ⏱️ {timeLeft}
+        </Text>
+      </View>
+
+      <Text className="text-xs text-roogo-primary-400 font-urbanist-medium text-center italic">
+        Seulement {formatPrice(fee)} XOF pour sécuriser votre priorité.
+      </Text>
+    </View>
   );
 };
 
@@ -267,6 +383,9 @@ export default function PropertyDetailsScreen() {
     ).start();
   }, [bounceAnim]);
 
+  // Track if we've already incremented views for this property
+  const hasIncrementedViews = useRef(false);
+
   useEffect(() => {
     const loadProperty = async () => {
       if (!id) {
@@ -282,6 +401,18 @@ export default function PropertyDetailsScreen() {
         if (isUUID) {
           const fetchedProperty = await fetchPropertyById(propertyId);
           setProperty(fetchedProperty || undefined);
+
+          // Increment views if this is a real property and user is not the owner
+          if (fetchedProperty?.uuid && !hasIncrementedViews.current) {
+            const userEmail = user?.primaryEmailAddress?.emailAddress;
+            const isOwner =
+              userEmail && fetchedProperty.agent?.email === userEmail;
+
+            if (!isOwner) {
+              hasIncrementedViews.current = true;
+              incrementPropertyViews(fetchedProperty.uuid);
+            }
+          }
         } else {
           const numericId = parseInt(propertyId, 10);
           if (!Number.isNaN(numericId)) {
@@ -304,7 +435,7 @@ export default function PropertyDetailsScreen() {
     };
 
     loadProperty();
-  }, [id]);
+  }, [id, user?.primaryEmailAddress?.emailAddress]);
 
   if (loading) {
     return (
@@ -373,6 +504,30 @@ export default function PropertyDetailsScreen() {
             />
           </TouchableOpacity>
 
+          {/* Status Badge */}
+          {(property.status === "locked" ||
+            property.status === "finalized") && (
+            <View className="absolute top-28 left-6 z-10">
+              <View
+                className={cn(
+                  "px-4 py-2 rounded-2xl flex-row items-center backdrop-blur-md shadow-lg",
+                  property.status === "locked"
+                    ? "bg-roogo-primary-500/90"
+                    : "bg-green-600/90"
+                )}
+              >
+                {property.status === "locked" ? (
+                  <LockIcon size={16} color="white" weight="fill" />
+                ) : (
+                  <CheckCircleIcon size={16} color="white" weight="fill" />
+                )}
+                <Text className="ml-2 text-white font-urbanist-bold text-sm uppercase tracking-widest">
+                  {property.status === "locked" ? "Réservé" : "Loué"}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {/* Header Actions */}
           <SafeAreaView className="absolute top-0 left-0 right-0 flex-row justify-between items-center px-6">
             <TouchableOpacity
@@ -404,19 +559,10 @@ export default function PropertyDetailsScreen() {
               bottom: 48,
               right: 24,
               zIndex: 10,
-              alignItems: 'flex-end',
-              gap: 8
+              alignItems: "flex-end",
+              gap: 8,
             }}
           >
-            {isEarlyBirdActive && timeLeft && (
-              <View className="bg-roogo-primary-500 px-4 py-2 rounded-full flex-row items-center border border-white/20 shadow-lg shadow-roogo-primary-500/20">
-                <ClockIcon size={14} color="white" weight="bold" />
-                <Text className="ml-2 text-white text-xs font-urbanist-bold uppercase tracking-wider">
-                  Expire dans : {timeLeft}
-                </Text>
-              </View>
-            )}
-
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
@@ -471,8 +617,10 @@ export default function PropertyDetailsScreen() {
           {/* Divider */}
           <View className="h-[1px] bg-roogo-neutral-100 my-6" />
 
-          {/* Slot Meter for Seeker Urgency */}
-          {property.slot_limit ? (
+          {/* Early Bird Banner vs Slot Meter */}
+          {isEarlyBirdActive && timeLeft ? (
+            <EarlyBirdBanner timeLeft={timeLeft} fee={lockFee} />
+          ) : property.slot_limit && property.status === "en_ligne" ? (
             <SlotMeter
               slotsFilled={property.slots_filled || 0}
               slotLimit={property.slot_limit}
@@ -607,10 +755,7 @@ export default function PropertyDetailsScreen() {
         {property.status === "locked" ? (
           <View className="flex-row gap-3">
             <View className="flex-1">
-              <PrimaryButton
-                title="Ce bien est réservé"
-                disabled={true}
-              />
+              <PrimaryButton title="Ce bien est réservé" disabled={true} />
             </View>
           </View>
         ) : isEarlyBirdActive ? (
@@ -650,7 +795,8 @@ export default function PropertyDetailsScreen() {
                   title={
                     hasApplied
                       ? "Réserver une visite"
-                      : (property.slots_filled ?? 0) >= (property.slot_limit ?? 1)
+                      : (property.slots_filled ?? 0) >=
+                          (property.slot_limit ?? 1)
                         ? "Plus de places"
                         : "Postuler gratuitement"
                   }
@@ -664,23 +810,28 @@ export default function PropertyDetailsScreen() {
               </View>
             </View>
             {/* Show disabled Early Bird button if expired to show it was an option */}
-            {!isEarlyBirdActive && property.published_at && property.status === 'en_ligne' && (
-              <TouchableOpacity 
-                disabled={true}
-                className="w-full bg-roogo-neutral-100 py-3 rounded-2xl items-center opacity-60 flex-row justify-center gap-2"
-              >
-                <LockIcon size={16} color={tokens.colors.roogo.neutral[400]} />
-                <Text className="text-roogo-neutral-400 font-urbanist-bold text-sm">
-                  Early Bird terminé
-                </Text>
-              </TouchableOpacity>
-            )}
+            {!isEarlyBirdActive &&
+              property.published_at &&
+              property.status === "en_ligne" && (
+                <TouchableOpacity
+                  disabled={true}
+                  className="w-full bg-roogo-neutral-100 py-3 rounded-2xl items-center opacity-60 flex-row justify-center gap-2"
+                >
+                  <LockIcon
+                    size={16}
+                    color={tokens.colors.roogo.neutral[400]}
+                  />
+                  <Text className="text-roogo-neutral-400 font-urbanist-bold text-sm">
+                    Early Bird terminé
+                  </Text>
+                </TouchableOpacity>
+              )}
           </View>
         )}
       </View>
 
       {/* Modals */}
-      <LockModal 
+      <LockModal
         visible={isLockModalVisible}
         onClose={() => setIsLockModalVisible(false)}
         onConfirm={onLockConfirm}
