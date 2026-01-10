@@ -1,14 +1,11 @@
 import {
-  Bath,
-  BedDouble,
-  ChevronLeft,
-  ChevronDown,
-  ChevronUp,
-  Heart,
-  MapPin,
-  Ruler,
-  Eye,
-} from "lucide-react-native";
+  BedIcon,
+  CaretLeftIcon,
+  CaretDownIcon,
+  CaretUpIcon,
+  MapPinIcon,
+  RulerIcon,
+} from "phosphor-react-native";
 import React, { useState } from "react";
 import {
   Image,
@@ -23,7 +20,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyValueRow } from "@/components/KeyValueRow";
 import { PrimaryButton } from "@/components/PrimaryButton";
-import { Stepper } from "@/components/Stepper";
 import type { ListingDraft } from "@/forms/listingSchema";
 import {
   CITIES,
@@ -115,7 +111,7 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
           onPress={onBack}
           className="mr-4 p-2 -ml-2 rounded-full active:bg-roogo-neutral-100"
         >
-          <ChevronLeft size={28} color={tokens.colors.roogo.neutral[900]} />
+          <CaretLeftIcon size={28} color={tokens.colors.roogo.neutral[900]} />
         </TouchableOpacity>
         <View>
           <Text className="text-xl font-urbanist font-bold text-roogo-neutral-900">
@@ -192,12 +188,12 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
                   {showFullPreview ? "Réduire" : "Vérifier"}
                 </Text>
                 {showFullPreview ? (
-                  <ChevronUp
+                  <CaretUpIcon
                     size={16}
                     color={tokens.colors.roogo.neutral[400]}
                   />
                 ) : (
-                  <ChevronDown
+                  <CaretDownIcon
                     size={16}
                     color={tokens.colors.roogo.neutral[400]}
                   />
@@ -255,7 +251,10 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
                     marginBottom: 16,
                   }}
                 >
-                  <MapPin size={14} color={tokens.colors.roogo.neutral[500]} />
+                  <MapPinIcon
+                    size={14}
+                    color={tokens.colors.roogo.neutral[500]}
+                  />
                   <Text
                     style={{
                       marginLeft: 4,
@@ -276,7 +275,7 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
                     }}
                   >
                     <View className="flex-row items-center gap-1">
-                      <BedDouble
+                      <BedIcon
                         size={14}
                         color={tokens.colors.roogo.neutral[500]}
                       />
@@ -285,7 +284,7 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
                       </Text>
                     </View>
                     <View className="flex-row items-center gap-1">
-                      <Ruler
+                      <RulerIcon
                         size={14}
                         color={tokens.colors.roogo.neutral[500]}
                       />

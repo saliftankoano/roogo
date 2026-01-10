@@ -1,11 +1,11 @@
 import { tokens } from "../theme/tokens";
 import { BlurView } from "expo-blur";
 import {
-  Check,
-  CloudUpload,
-  Home,
-  Image as ImageIcon,
-} from "lucide-react-native";
+  CheckIcon,
+  CloudArrowUpIcon,
+  HouseIcon,
+  ImageIcon,
+} from "phosphor-react-native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 
@@ -125,7 +125,7 @@ export const SubmissionOverlay: React.FC<SubmissionOverlayProps> = ({
             },
           ]}
         >
-          <Check size={48} color="white" strokeWidth={3} />
+          <CheckIcon size={48} color="white" weight="bold" />
         </View>
       );
     }
@@ -134,8 +134,8 @@ export const SubmissionOverlay: React.FC<SubmissionOverlayProps> = ({
       status.includes("photo") || status.includes("Optimisation")
         ? ImageIcon
         : status.includes("Envoi") || status.includes("cloud")
-          ? CloudUpload
-          : Home;
+          ? CloudArrowUpIcon
+          : HouseIcon;
 
     return (
       <View
@@ -144,7 +144,7 @@ export const SubmissionOverlay: React.FC<SubmissionOverlayProps> = ({
           { backgroundColor: tokens.colors.roogo.primary[500] },
         ]}
       >
-        <IconComponent size={40} color="white" />
+        <IconComponent size={40} color="white" weight="regular" />
       </View>
     );
   };

@@ -1,5 +1,4 @@
 import { formatPrice } from "@/utils/formatting";
-import { ChevronLeft } from "lucide-react-native";
 import React from "react";
 import {
   ScrollView,
@@ -18,7 +17,7 @@ import { Stepper } from "@/components/Stepper";
 import type { ListingDraft } from "@/forms/listingSchema";
 import { CITIES, PROPERTY_TYPES } from "@/forms/listingSchema";
 import { tokens } from "@/theme/tokens";
-import { MagicWandIcon } from "phosphor-react-native";
+import { CaretLeftIcon, MagicWandIcon } from "phosphor-react-native";
 
 interface ListingStep1ScreenProps {
   navigation: any;
@@ -108,7 +107,10 @@ export const ListingStep1Screen: React.FC<ListingStep1ScreenProps> = ({
               onPress={() => navigation.goBack()}
               className="mr-4 p-2 -ml-2 rounded-full active:bg-roogo-neutral-100"
             >
-              <ChevronLeft size={28} color={tokens.colors.roogo.neutral[900]} />
+              <CaretLeftIcon
+                size={28}
+                color={tokens.colors.roogo.neutral[900]}
+              />
             </TouchableOpacity>
             <Text className="text-xl font-urbanist font-bold text-roogo-neutral-900">
               Ajouter une propriété

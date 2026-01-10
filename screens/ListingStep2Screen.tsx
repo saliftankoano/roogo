@@ -1,4 +1,3 @@
-import { ChevronLeft } from "lucide-react-native";
 import {
   ArmchairIcon,
   BedIcon,
@@ -9,6 +8,7 @@ import {
   ShowerIcon,
   SunIcon,
   SwimmingPoolIcon,
+  CaretLeftIcon,
   WifiHighIcon,
 } from "phosphor-react-native";
 import React from "react";
@@ -110,7 +110,7 @@ export const ListingStep2Screen: React.FC<ListingStep2ScreenProps> = ({
             onPress={onBack}
             className="mr-4 p-2 -ml-2 rounded-full active:bg-roogo-neutral-100"
           >
-            <ChevronLeft size={28} color={tokens.colors.roogo.neutral[900]} />
+            <CaretLeftIcon size={28} color={tokens.colors.roogo.neutral[900]} />
           </TouchableOpacity>
           <Text className="text-xl font-urbanist font-bold text-roogo-neutral-900">
             Ajouter une propriété

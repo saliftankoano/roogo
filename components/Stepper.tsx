@@ -1,7 +1,6 @@
-import { Check } from "lucide-react-native";
+import { CheckIcon } from "phosphor-react-native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { tokens } from "../theme/tokens";
 
 interface Step {
@@ -102,7 +101,7 @@ const AnimatedStep: React.FC<{
                 backgroundColor: tokens.colors.roogo.success,
               }}
             >
-              <Check size={16} color="#FFFFFF" strokeWidth={3} />
+              <CheckIcon size={16} color="#FFFFFF" weight="bold" />
             </View>
           </View>
         ) : isCurrent ? (

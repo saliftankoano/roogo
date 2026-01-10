@@ -1,5 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import { Camera, X } from "lucide-react-native";
+import { CameraIcon, XIcon } from "phosphor-react-native";
 import React from "react";
 import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import { tokens } from "../theme/tokens";
@@ -132,7 +132,7 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
             marginBottom: 12,
           }}
         >
-          <Camera size={32} color={tokens.colors.roogo.primary[500]} />
+          <CameraIcon size={32} color={tokens.colors.roogo.primary[500]} />
         </View>
         <Text
           style={{
@@ -217,7 +217,7 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
                     borderColor: "#FFFFFF",
                   }}
                 >
-                  <X size={12} color="white" strokeWidth={3} />
+                  <XIcon size={12} color="white" weight="bold" />
                 </TouchableOpacity>
               </View>
             ))}
