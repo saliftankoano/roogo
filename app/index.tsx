@@ -46,26 +46,65 @@ export default function OnboardingScreen() {
 
   // Auth Status Check Logic
   useEffect(() => {
-    if (isLoaded && isTypeLoaded) {
-      if (isSignedIn) {
-        if (userType) {
-          // User is fully signed in and has a type -> Go Home
-          console.log("Redirecting to tabs...");
-          router.replace("/(tabs)/(home)");
-        } else {
-          // User is signed in but has NO type (new signup) -> Show Selection (Step 2)
-          if (step !== 2 && step !== 3) {
-            setStep(2);
-          }
+    let isMounted = true;
+
+    async function checkAuthStatus() {
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7242/ingest/8d4160e4-1a58-4ce5-b197-c68afdfbc381",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            location: "index.tsx:checkAuthStatus",
+            message: "Onboarding check",
+            data: { isLoaded, isTypeLoaded, isSignedIn, userType, step },
+            timestamp: Date.now(),
+            sessionId: "debug-session",
+            hypothesisId: "1,2",
+          }),
         }
-      } else {
-        // Not signed in -> Stay on Step 1 (Welcome)
-        if (step !== 1) {
-          setStep(1);
+      ).catch(() => {});
+      // #endregion
+      if (isLoaded && isTypeLoaded) {
+        if (isSignedIn) {
+          if (userType) {
+            // User is fully signed in and has a type -> Go Home
+            console.log("Redirecting to tabs...");
+            if (isMounted) router.replace("/(tabs)/(home)");
+          } else {
+            // User is signed in but has NO type (new signup or sync issue)
+            // Try one reload to be absolutely sure before showing selection
+            try {
+              if (user && isMounted) {
+                // If we haven't checked recently, reload once
+                // This prevents showing the selection screen if it's just a sync delay
+                await user.reload();
+                // After reload, if userType is now available via publicMetadata,
+                // the next effect run will handle redirection.
+              }
+            } catch (e) {
+              console.error("Error reloading user in onboarding:", e);
+            }
+
+            if (isMounted && step !== 2 && step !== 3) {
+              setStep(2);
+            }
+          }
+        } else {
+          // Not signed in -> Stay on Step 1 (Welcome)
+          if (isMounted && step !== 1) {
+            setStep(1);
+          }
         }
       }
     }
-  }, [isLoaded, isTypeLoaded, isSignedIn, userType, step]);
+
+    checkAuthStatus();
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoaded, isTypeLoaded, isSignedIn, userType, step, user]);
 
   const transitionTo = (nextStep: number) => {
     Animated.timing(fadeAnim, {
@@ -113,7 +152,7 @@ export default function OnboardingScreen() {
       }
 
       const success = await updateClerkMetadata(token, metadata);
-      
+
       if (success) {
         // Reload user to get updated publicMetadata
         await user.reload();

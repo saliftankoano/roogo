@@ -130,35 +130,42 @@ export default function TabLayout() {
   const isDetailsPage = pathname.includes("/details");
   const { isOwner, isAgent, isRenter, isGuest, isLoaded } = useUserType();
 
+  // #region agent log
+  fetch("http://127.0.0.1:7242/ingest/8d4160e4-1a58-4ce5-b197-c68afdfbc381", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      location: "TabLayout.tsx:132",
+      message: "TabLayout state",
+      data: { isLoaded, isGuest, isOwner, isAgent, isRenter },
+      timestamp: Date.now(),
+      sessionId: "debug-session",
+      hypothesisId: "1,3",
+    }),
+  }).catch(() => {});
+  // #endregion
+
   // Track if we've ever loaded successfully to prevent blank flash on tab switches
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
-  // Cache user type to prevent tab bar jumping when auth state briefly changes
-  const cachedUserTypeRef = useRef<{
-    isOwner: boolean;
-    isAgent: boolean;
-    isRenter: boolean;
-    isGuest: boolean;
-  } | null>(null);
+  // Use values from useUserType directly, but we can keep a ref for the very first load
+  // to avoid jumping if needed. However, the current implementation was stuck.
 
-  // Only update cached values when auth is fully loaded
-  if (isLoaded && !cachedUserTypeRef.current) {
-    cachedUserTypeRef.current = { isOwner, isAgent, isRenter, isGuest };
-  }
-
-  // Use cached values if available, otherwise use current values
-  const stableIsOwner = cachedUserTypeRef.current?.isOwner ?? isOwner;
-  const stableIsAgent = cachedUserTypeRef.current?.isAgent ?? isAgent;
-  const stableIsRenter = cachedUserTypeRef.current?.isRenter ?? isRenter;
-  const stableIsGuest = cachedUserTypeRef.current?.isGuest ?? isGuest;
-
-  const isOwnerOrAgent = stableIsOwner || stableIsAgent;
-
+  // Update hasLoadedOnce when isLoaded becomes true
   useEffect(() => {
     if (isLoaded && !hasLoadedOnce) {
       setHasLoadedOnce(true);
     }
   }, [isLoaded, hasLoadedOnce]);
+
+  // Simplify: just use the values from useUserType.
+  // The "jumping" should be handled by the loading state if necessary.
+  const stableIsOwner = isOwner;
+  const stableIsAgent = isAgent;
+  const stableIsRenter = isRenter;
+  const stableIsGuest = isGuest;
+
+  const isOwnerOrAgent = stableIsOwner || stableIsAgent;
 
   const commonTabBarStyle = {
     backgroundColor: "rgba(255, 255, 255, 0.98)", // High opacity, slight translucency
@@ -195,6 +202,21 @@ export default function TabLayout() {
     if (isHidden) {
       return null;
     }
+
+    // #region agent log
+    fetch("http://127.0.0.1:7242/ingest/8d4160e4-1a58-4ce5-b197-c68afdfbc381", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        location: "TabLayout.tsx:CustomTabBar",
+        message: "Rendering TabBar",
+        data: { stableIsGuest },
+        timestamp: Date.now(),
+        sessionId: "debug-session",
+        hypothesisId: "3",
+      }),
+    }).catch(() => {});
+    // #endregion
 
     return (
       <>

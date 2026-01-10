@@ -1,4 +1,4 @@
-import { useUser, useAuth } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -237,7 +237,6 @@ export default function PropertyDetailsScreen() {
   const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
   const [authPromptVisible, setAuthPromptVisible] = useState(false);
   const { user } = useUser();
-  const { getToken } = useAuth();
   const isAuthenticated = !!user;
 
   const [property, setProperty] = useState<Property | undefined>(undefined);
