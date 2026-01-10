@@ -22,7 +22,7 @@ export interface DatabaseProperty {
   price: number;
   listing_type: "louer" | "vendre";
   property_type: "villa" | "appartement" | "maison" | "terrain" | "commercial";
-  status: "en_attente" | "en_ligne" | "expired" | "locked";
+  status: "en_attente" | "en_ligne" | "expired" | "locked" | "finalized";
   bedrooms: number | null;
   bathrooms: number | null;
   area: number | null;
@@ -318,7 +318,7 @@ export async function fetchPropertyById(
       `
       )
       .eq("id", propertyId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching property:", error);
@@ -475,6 +475,32 @@ export async function fetchPropertiesWithFilters(
   } catch (error) {
     console.error("Error in fetchPropertiesWithFilters:", error);
     throw error;
+  }
+}
+
+/**
+ * Fetch all properties belonging to a specific agent (user)
+ * Queries by clerk_id instead of user UUID
+ */
+/**
+ * Increment the views count for a property
+ * Uses an RPC function for atomic increment
+ */
+export async function incrementPropertyViews(
+  propertyId: string
+): Promise<void> {
+  try {
+    const { error } = await supabase.rpc("increment_property_views", {
+      property_uuid: propertyId,
+    });
+
+    if (error) {
+      console.warn("Error incrementing views:", error.message);
+      // Non-critical - views tracking shouldn't break the app
+    }
+  } catch (error) {
+    console.warn("Error in incrementPropertyViews:", error);
+    // Non-critical, don't throw
   }
 }
 
