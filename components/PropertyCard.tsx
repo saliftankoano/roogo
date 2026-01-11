@@ -38,6 +38,7 @@ interface PropertyCardProps {
     period?: string;
     image: any;
     category: "Residential" | "Business";
+    isSponsored?: boolean;
     views?: number;
     favorites?: number;
   };
@@ -122,11 +123,18 @@ export default function PropertyCard({
         isHorizontal ? "mr-4 w-[280px]" : ""
       }`}
       style={{
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-        elevation: 4,
+        shadowColor: property.isSponsored
+          ? tokens.colors.roogo.primary[500]
+          : "#000",
+        shadowOffset: {
+          width: 0,
+          height: property.isSponsored ? 6 : 4,
+        },
+        shadowOpacity: property.isSponsored ? 0.15 : 0.06,
+        shadowRadius: property.isSponsored ? 16 : 12,
+        elevation: property.isSponsored ? 8 : 4,
+        borderWidth: property.isSponsored ? 1.5 : 0,
+        borderColor: tokens.colors.roogo.primary[500],
       }}
     >
       {/* Image Section */}
