@@ -22,6 +22,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PropertyCard from "../../components/PropertyCard";
+import PropertyPreviewModal from "../../components/PropertyPreviewModal";
 import { useUserType } from "../../hooks/useUserType";
 import { tokens } from "../../theme/tokens";
 import { fetchUserProperties } from "../../services/propertyFetchService";
@@ -57,6 +58,9 @@ export default function MyPropertiesScreen() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false); // Start false to prevent initial blank flash
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+  const [selectedPropertyForPreview, setSelectedPropertyForPreview] =
+    useState<Property | null>(null);
   const [sortBy, setSortBy] = useState<"price" | "date" | "views">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -172,6 +176,11 @@ export default function MyPropertiesScreen() {
       pathname: "/(tabs)/add-property",
       params: { id: property.uuid || property.id.toString() },
     });
+  };
+
+  const handlePreview = (property: Property) => {
+    setSelectedPropertyForPreview(property);
+    setIsPreviewVisible(true);
   };
 
   const handleDelete = (propertyId: number | string) => {
@@ -615,6 +624,7 @@ export default function MyPropertiesScreen() {
                         views: property.slots_filled, // Using slots as proxy for engagement in card
                         favorites: 0, // Favorites count not implemented yet
                       }}
+                      onPress={() => handlePreview(property)}
                       showStats={true}
                       showActions={true}
                       showFavorite={false}
@@ -651,6 +661,12 @@ export default function MyPropertiesScreen() {
           </View>
         </Animated.ScrollView>
       </SafeAreaView>
+
+      <PropertyPreviewModal
+        visible={isPreviewVisible}
+        onClose={() => setIsPreviewVisible(false)}
+        property={selectedPropertyForPreview}
+      />
     </View>
   );
 }

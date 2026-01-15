@@ -37,6 +37,8 @@ export interface DatabaseProperty {
   interdictions: string[] | null;
   slots_filled: number | null;
   slot_limit: number | null;
+  is_boosted: boolean | null;
+  boost_expires_at: string | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -163,7 +165,7 @@ function transformProperty(dbProperty: any): Property {
     image: propertyImage,
     images: images.length > 0 ? images : undefined,
     category,
-    isSponsored: !!dbProperty.isSponsored,
+    isSponsored: !!dbProperty.is_boosted,
     status: dbProperty.status || "en_attente",
     propertyType:
       propertyTypeMap[dbProperty.property_type] ||
@@ -246,7 +248,7 @@ export async function fetchActiveProperties(): Promise<Property[]> {
       return [];
     }
 
-    // Transform the data structure
+    // Transform and sort: Sponsored first, then by created_at (already ordered by query)
     const transformedProperties: Property[] = properties.map((prop: any) => {
       // Flatten images array
       const images = prop.property_images || [];
@@ -268,7 +270,11 @@ export async function fetchActiveProperties(): Promise<Property[]> {
       });
     });
 
-    return transformedProperties;
+    return transformedProperties.sort((a, b) => {
+      if (a.isSponsored && !b.isSponsored) return -1;
+      if (!a.isSponsored && b.isSponsored) return 1;
+      return 0;
+    });
   } catch (error) {
     console.error("Error in fetchActiveProperties:", error);
     throw error;
@@ -445,7 +451,7 @@ export async function fetchPropertiesWithFilters(
       return [];
     }
 
-    // Transform the data
+    // Transform and sort: Sponsored first
     const transformedProperties: (Property | null)[] = properties.map(
       (prop: any) => {
         const images = prop.property_images || [];
@@ -471,17 +477,19 @@ export async function fetchPropertiesWithFilters(
       }
     );
 
-    return transformedProperties.filter(Boolean) as Property[];
+    return (transformedProperties.filter(Boolean) as Property[]).sort(
+      (a, b) => {
+        if (a.isSponsored && !b.isSponsored) return -1;
+        if (!a.isSponsored && b.isSponsored) return 1;
+        return 0;
+      }
+    );
   } catch (error) {
     console.error("Error in fetchPropertiesWithFilters:", error);
     throw error;
   }
 }
 
-/**
- * Fetch all properties belonging to a specific agent (user)
- * Queries by clerk_id instead of user UUID
- */
 /**
  * Increment the views count for a property
  * Uses an RPC function for atomic increment
@@ -552,18 +560,6 @@ export async function fetchUserProperties(
       return [];
     }
 
-    // DIAGNOSTIC LOG for all properties
-    if (properties && properties.length > 0) {
-      console.log(
-        `DEBUG [fetchUserProperties] Image check for ${properties.length} properties:`
-      );
-      properties.forEach((p: any) => {
-        console.log(
-          `- [${p.title}] status: ${p.status}, image_count: ${p.property_images?.length || 0}`
-        );
-      });
-    }
-
     // Transform the data structure
     return properties.map((prop: any) => {
       // Flatten images array
@@ -588,5 +584,40 @@ export async function fetchUserProperties(
   } catch (error) {
     console.error("Error in fetchUserProperties:", error);
     throw error;
+  }
+}
+
+/**
+ * Fetch all transactions related to a property via the backend API
+ * This bypasses RLS issues by using the service role on the backend
+ */
+export async function fetchPropertyTransactions(
+  propertyId: string,
+  clerkToken: string
+): Promise<any[]> {
+  const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/payments/property/${propertyId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${clerkToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Failed to fetch property transactions:", response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.transactions || [];
+  } catch (error) {
+    console.error("Error in fetchPropertyTransactions:", error);
+    return [];
   }
 }

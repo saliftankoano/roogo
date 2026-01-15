@@ -41,6 +41,7 @@ import { PrimaryButton } from "../../components/PrimaryButton";
 import { PaymentModal } from "../../components/PaymentModal";
 import { fetchUserProperties } from "../../services/propertyFetchService";
 import type { Property } from "../../constants/properties";
+import { supabase } from "../../lib/supabase"; // Added supabase import
 
 if (Platform.OS === "android") {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -308,10 +309,34 @@ export default function PhotographyScreen() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = async () => {
     setShowPaymentModal(false);
 
     const selectedPkg = packages.find((pkg) => pkg.id === selectedPackage);
+
+    // Boost activation fallback
+    if (selectedPackage === "boost" && selectedPropertyId) {
+      try {
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        await supabase
+          .from("properties")
+          .update({
+            is_boosted: true,
+            boost_expires_at: expiresAt.toISOString(),
+          })
+          .eq("id", selectedPropertyId);
+
+        console.log("✅ Boost activated via client fallback");
+      } catch (error) {
+        console.error(
+          "❌ Failed to activate boost via client fallback:",
+          error
+        );
+      }
+    }
+
     Alert.alert(
       "Paiement reçu !",
       `Votre demande pour le service ${selectedPkg?.name} a été envoyée. Nous vous contacterons bientôt.`
@@ -341,7 +366,7 @@ export default function PhotographyScreen() {
     // Prepare Payment
     setPaymentAmount(selectedPkg.price);
     setPaymentDescription(
-      `${selectedPkg.name.replace(/[^a-zA-Z0-9\s]/g, "")} - Prop ${selectedPropertyId?.substring(0, 8)}`
+      `${selectedPkg.name.replace(/[^a-zA-Z0-9\s]/g, "")} Prop ${selectedPropertyId?.substring(0, 8)}`
     );
     setShowPaymentModal(true);
   };
@@ -1102,7 +1127,7 @@ export default function PhotographyScreen() {
         onSuccess={handlePaymentSuccess}
         amount={paymentAmount}
         description={paymentDescription}
-        transactionType="photography"
+        transactionType={selectedPackage === "boost" ? "boost" : "photography"}
         propertyId={selectedPropertyId || undefined}
       />
     </AgentOnly>

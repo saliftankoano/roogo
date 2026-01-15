@@ -12,6 +12,7 @@ import {
   RulerIcon,
   ShareIcon,
   TrashIcon,
+  LightningIcon,
 } from "phosphor-react-native";
 import React, { useRef, useState } from "react";
 import {
@@ -168,6 +169,19 @@ export default function PropertyCard({
             {property.category === "Residential" ? "Résidentiel" : "Business"}
           </Text>
         </View>
+        {/* Sponsored Badge */}
+        {property.isSponsored && (
+          <View className="absolute top-4 left-36 flex-row items-center bg-white px-3 py-1.5 rounded-full shadow-md border border-roogo-primary-500/30">
+            <LightningIcon
+              size={12}
+              weight="fill"
+              color={tokens.colors.roogo.primary[500]}
+            />
+            <Text className="text-roogo-primary-500 text-[10px] font-black font-urbanist tracking-tighter uppercase ml-1">
+              À LA UNE
+            </Text>
+          </View>
+        )}
         {/* Heart Icon */}
         {shouldShowFavorite && (
           <TouchableOpacity

@@ -49,6 +49,7 @@ export const listingSchema = z.object({
   tier_id: z.enum(["essentiel", "standard", "premium"]).optional(),
   payment_id: z.string().optional(),
   transaction_id: z.string().optional(),
+  add_ons: z.array(z.string()).optional(),
 });
 
 export type ListingDraft = z.infer<typeof listingSchema>;

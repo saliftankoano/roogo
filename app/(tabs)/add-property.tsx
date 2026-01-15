@@ -223,6 +223,7 @@ export default function AddPropertyScreen() {
         {
           ...(formData as ListingDraft),
           payment_id: depositId,
+          add_ons: selectedAddOns,
         },
         token,
         (status) => setSubmissionStatus(status)
