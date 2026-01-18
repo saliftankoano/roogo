@@ -126,7 +126,7 @@ export default function TabLayout() {
   const isOwnerOrAgent = stableIsOwner || stableIsAgent;
 
   const commonTabBarStyle = {
-    backgroundColor: "#FFFFFF", // Pure white for everyone to avoid "stain" look
+    backgroundColor: "#FFFFFF",
     position: "absolute" as const,
     bottom: Platform.OS === "ios" ? 32 : 24,
     left: stableIsRenter ? 80 : 20,
@@ -135,19 +135,14 @@ export default function TabLayout() {
     borderRadius: stableIsRenter ? 32 : 36,
     paddingBottom: 0,
     paddingTop: 0,
-    borderTopWidth: 0,
-    // Reduced shadow aggressiveness, especially for floating bar
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 4, 
+      height: 4,
     },
     shadowOpacity: stableIsRenter ? 0.1 : 0.2,
     shadowRadius: stableIsRenter ? 12 : 16,
     elevation: stableIsRenter ? 8 : 16,
-    // Border for definition
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.05)",
   };
 
   // Custom tab bar to include gradient and guest logic
@@ -164,14 +159,35 @@ export default function TabLayout() {
     const containerStyle = {
       ...commonTabBarStyle,
       flexDirection: "row" as const,
-      justifyContent: "space-between" as const, // Use space-between for better control
+      justifyContent: "space-around" as const,
       alignItems: "center" as const,
-      paddingHorizontal: stableIsRenter ? 24 : 12, // More horizontal breathing room for renters
+      paddingHorizontal: 16,
     };
 
+    const totalHeight = (Platform.OS === "ios" ? 32 : 24) + (stableIsRenter ? 64 : 72) + 8;
+
     return (
-      <>
-        {/* Floating Bar Container */}
+      <View
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: totalHeight,
+        }}
+        pointerEvents="box-none"
+      >
+        {/* Solid background only for the bottom safe area to hide content below the bar */}
+        <View
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: Platform.OS === "ios" ? 40 : 32,
+            backgroundColor: "#FFFFFF",
+          }}
+        />
         <View style={containerStyle as any}>
           {props.state.routes.map((route, index) => {
             const isFocused = props.state.index === index;
@@ -305,7 +321,7 @@ export default function TabLayout() {
             );
           })}
         </View>
-      </>
+      </View>
     );
   };
 
@@ -315,6 +331,10 @@ export default function TabLayout() {
     tabBarStyle: {
       display: isDetailsPage ? "none" : "flex",
       position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: (Platform.OS === "ios" ? 32 : 24) + (stableIsRenter ? 64 : 72) + 8,
       backgroundColor: "transparent",
       borderTopWidth: 0,
       elevation: 0,
@@ -326,7 +346,6 @@ export default function TabLayout() {
       justifyContent: "center",
       alignItems: "center",
       paddingVertical: 0,
-      paddingTop: stableIsRenter ? 0 : 12, // Reduced padding for smaller bar
     },
     // Add smooth transitions
     tabBarHideOnKeyboard: true,
