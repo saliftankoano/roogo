@@ -87,7 +87,13 @@ export default function FavorisScreen() {
           </Text>
           <AuthPromptModal
             visible={true}
-            onClose={() => router.back()}
+            onClose={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/");
+              }
+            }}
             title="Voir vos favoris"
             description="Connectez-vous pour accéder à vos propriétés favorites"
           />

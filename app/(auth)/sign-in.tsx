@@ -121,7 +121,13 @@ export default function SignInScreen() {
       <View className="bg-white flex-1">
         {/* Navigation Header */}
         <View className="flex-row items-center justify-between px-6 mt-16">
-          <TouchableOpacity onPress={() => router.back()} className="p-2">
+          <TouchableOpacity onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/");
+            }
+          }} className="p-2">
             <Ionicons name="arrow-back" size={24} color="#000000" />
           </TouchableOpacity>
         </View>

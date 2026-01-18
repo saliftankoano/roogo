@@ -455,7 +455,13 @@ export default function PropertyDetailsScreen() {
         </Text>
         <PrimaryButton
           title="Retour à l'accueil"
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(tabs)/(home)");
+            }
+          }}
         />
       </View>
     );
@@ -530,7 +536,13 @@ export default function PropertyDetailsScreen() {
           {/* Header Actions */}
           <SafeAreaView className="absolute top-0 left-0 right-0 flex-row justify-between items-center px-6">
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/(tabs)/(home)");
+                }
+              }}
               className="w-10 h-10 rounded-full bg-white/20 items-center justify-center backdrop-blur-md"
             >
               <CaretLeftIcon size={24} color="#FFFFFF" weight="bold" />
