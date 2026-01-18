@@ -2,8 +2,6 @@ import type {
   BottomTabBarProps,
   BottomTabNavigationOptions,
 } from "@react-navigation/bottom-tabs";
-import { BottomTabBar } from "@react-navigation/bottom-tabs";
-import { LinearGradient } from "expo-linear-gradient";
 import { router, Tabs, usePathname } from "expo-router";
 import {
   HouseIcon,
@@ -176,7 +174,6 @@ export default function TabLayout() {
         {/* Floating Bar Container */}
         <View style={containerStyle as any}>
           {props.state.routes.map((route, index) => {
-            const { options } = props.descriptors[route.key];
             const isFocused = props.state.index === index;
             
             // Explicitly filter visibility based on user type
