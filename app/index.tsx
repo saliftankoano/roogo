@@ -1,7 +1,7 @@
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Platform,
   Text,
@@ -25,16 +25,26 @@ WebBrowser.maybeCompleteAuthSession();
 
 const { width, height } = Dimensions.get("window");
 
+// Onboarding steps as explicit state machine
+type OnboardingStep = 1 | 2 | 3;
+
 export default function OnboardingScreen() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { userType, isLoaded: isTypeLoaded } = useUserType();
   const { user } = useUser();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<OnboardingStep>(1);
   const [companyName, setCompanyName] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  
+  // Track if we've already attempted to reload user to prevent infinite loops
+  const hasAttemptedReload = useRef(false);
+  // Track if navigation is in progress to prevent race conditions
+  const isNavigating = useRef(false);
+  // Track the current operation ID to detect stale operations
+  const operationId = useRef(0);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -44,52 +54,65 @@ export default function OnboardingScreen() {
     };
   }, []);
 
-  // Auth Status Check Logic
+  // Auth Status Check Logic - Simplified with explicit guards
   useEffect(() => {
-    let isMounted = true;
+    // Increment operation ID for this effect run
+    const currentOperationId = ++operationId.current;
+    
+    // Guard: Don't run if already navigating
+    if (isNavigating.current) return;
+    
+    // Guard: Wait for both auth and type to load
+    if (!isLoaded || !isTypeLoaded) return;
 
-    async function checkAuthStatus() {
-      if (isLoaded && isTypeLoaded) {
-        if (isSignedIn) {
-          if (userType) {
-            // User is fully signed in and has a type -> Go Home
+    const checkAuthStatus = async () => {
+      // Guard: Check if this operation is still current
+      if (operationId.current !== currentOperationId) return;
+      
+      if (isSignedIn) {
+        if (userType) {
+          // User is fully signed in and has a type -> Go Home
+          // Guard against multiple navigations
+          if (!isNavigating.current) {
+            isNavigating.current = true;
             console.log("Redirecting to tabs...");
-            if (isMounted) router.replace("/(tabs)/(home)");
-          } else {
-            // User is signed in but has NO type (new signup or sync issue)
-            // Try one reload to be absolutely sure before showing selection
+            router.replace("/(tabs)/(home)");
+          }
+        } else {
+          // User is signed in but has NO type (new signup or sync issue)
+          // Try one reload to be absolutely sure before showing selection
+          if (!hasAttemptedReload.current && user) {
+            hasAttemptedReload.current = true;
             try {
-              if (user && isMounted) {
-                // If we haven't checked recently, reload once
-                // This prevents showing the selection screen if it's just a sync delay
-                await user.reload();
-                // After reload, if userType is now available via publicMetadata,
-                // the next effect run will handle redirection.
-              }
+              await user.reload();
+              // After reload, if userType is now available via publicMetadata,
+              // the next effect run will handle redirection.
+              // Don't set step here - let the effect re-run with new data
+              return;
             } catch (e) {
               console.error("Error reloading user in onboarding:", e);
             }
-
-            if (isMounted && step !== 2 && step !== 3) {
-              setStep(2);
-            }
           }
-        } else {
-          // Not signed in -> Stay on Step 1 (Welcome)
-          if (isMounted && step !== 1) {
-            setStep(1);
+          
+          // Guard: Only transition if still on step 1 and operation is current
+          if (operationId.current === currentOperationId && step === 1) {
+            setStep(2);
           }
         }
+      } else {
+        // Not signed in -> Stay on Step 1 (Welcome)
+        // Reset reload flag when user signs out
+        hasAttemptedReload.current = false;
+        if (step !== 1) {
+          setStep(1);
+        }
       }
-    }
+    };
 
     checkAuthStatus();
-    return () => {
-      isMounted = false;
-    };
   }, [isLoaded, isTypeLoaded, isSignedIn, userType, step, user]);
 
-  const transitionTo = (nextStep: number) => {
+  const transitionTo = (nextStep: OnboardingStep) => {
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 200,
@@ -113,11 +136,14 @@ export default function OnboardingScreen() {
     }
   };
 
-  const completeOnboarding = async (
+  const completeOnboarding = useCallback(async (
     type: string,
     agentData?: { companyName?: string; facebookUrl?: string }
   ) => {
     if (!user) return;
+    
+    // Guard against multiple submissions or navigations
+    if (isSubmitting || isNavigating.current) return;
 
     try {
       setIsSubmitting(true);
@@ -128,7 +154,9 @@ export default function OnboardingScreen() {
       }
 
       // Securely update metadata via backend API
-      const metadata: any = { userType: type };
+      const metadata: { userType: string; companyName?: string; facebookUrl?: string } = {
+        userType: type,
+      };
       if (type === "agent" && agentData) {
         if (agentData.companyName) metadata.companyName = agentData.companyName;
         if (agentData.facebookUrl) metadata.facebookUrl = agentData.facebookUrl;
@@ -137,6 +165,10 @@ export default function OnboardingScreen() {
       const success = await updateClerkMetadata(token, metadata);
 
       if (success) {
+        // Guard against race condition during navigation
+        if (isNavigating.current) return;
+        isNavigating.current = true;
+        
         // Reload user to get updated publicMetadata
         await user.reload();
         router.replace("/(tabs)/(home)");
@@ -147,7 +179,7 @@ export default function OnboardingScreen() {
       console.error("Error completing onboarding:", error);
       setIsSubmitting(false);
     }
-  };
+  }, [user, getToken, isSubmitting]);
 
   const handleAgentSubmit = async () => {
     await completeOnboarding("agent", { companyName, facebookUrl });

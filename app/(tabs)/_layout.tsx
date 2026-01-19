@@ -23,6 +23,7 @@ import {
 } from "react-native";
 import { useUserType } from "../../hooks/useUserType";
 import { tokens } from "../../theme/tokens";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 
 const ACTIVE_COLOR = tokens.colors.roogo.primary[500];
 const INACTIVE_COLOR = tokens.colors.roogo.neutral[500];
@@ -370,90 +371,92 @@ export default function TabLayout() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <Tabs
-        screenOptions={{
-          ...commonScreenOptions,
-          tabBarHideOnKeyboard: true,
-          headerShown: false,
-          animation: "none", // Disable animation to prevent blank flash during transition
-          lazy: false, // Pre-load all tabs to prevent blank states on first visit
-          freezeOnBlur: false, // Don't freeze screens when switching tabs
-          sceneStyle: { backgroundColor: "#FFFFFF" }, // Ensure screens have background
-        }}
-        tabBar={(props) => <CustomTabBar {...props} />}
-      >
-        {/* Home - Always visible */}
-        <Tabs.Screen
-          name="(home)"
-          options={{
-            title: "Accueil",
-            tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={HouseIcon} focused={focused} size={24} />
-            ),
+    <ErrorBoundary>
+      <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+        <Tabs
+          screenOptions={{
+            ...commonScreenOptions,
+            tabBarHideOnKeyboard: true,
+            headerShown: false,
+            animation: "none", // Disable animation to prevent blank flash during transition
+            lazy: false, // Pre-load all tabs to prevent blank states on first visit
+            freezeOnBlur: false, // Don't freeze screens when switching tabs
+            sceneStyle: { backgroundColor: "#FFFFFF" }, // Ensure screens have background
           }}
-        />
+          tabBar={(props) => <CustomTabBar {...props} />}
+        >
+          {/* Home - Always visible */}
+          <Tabs.Screen
+            name="(home)"
+            options={{
+              title: "Accueil",
+              tabBarIcon: ({ focused }) => (
+                <TabIcon Icon={HouseIcon} focused={focused} size={24} />
+              ),
+            }}
+          />
 
-        {/* Favoris - Show for renters, hide for others */}
-        <Tabs.Screen
-          name="favoris"
-          options={{
-            title: "Favoris",
-            tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={HeartIcon} focused={focused} size={24} />
-            ),
-            href: stableIsRenter ? undefined : null,
-          }}
-        />
+          {/* Favoris - Show for renters, hide for others */}
+          <Tabs.Screen
+            name="favoris"
+            options={{
+              title: "Favoris",
+              tabBarIcon: ({ focused }) => (
+                <TabIcon Icon={HeartIcon} focused={focused} size={24} />
+              ),
+              href: stableIsRenter ? undefined : null,
+            }}
+          />
 
-        {/* Upgrades/Boosts - Show for owners, hide for others */}
-        <Tabs.Screen
-          name="photography"
-          options={{
-            title: "Boosts",
-            tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={RocketIcon} focused={focused} size={24} />
-            ),
-            href: isOwnerOrAgent ? undefined : null,
-          }}
-        />
+          {/* Upgrades/Boosts - Show for owners, hide for others */}
+          <Tabs.Screen
+            name="photography"
+            options={{
+              title: "Boosts",
+              tabBarIcon: ({ focused }) => (
+                <TabIcon Icon={RocketIcon} focused={focused} size={24} />
+              ),
+              href: isOwnerOrAgent ? undefined : null,
+            }}
+          />
 
-        {/* Add Property - Show for owners, hide for others */}
-        <Tabs.Screen
-          name="add-property"
-          options={{
-            title: "Ajouter",
-            tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={PlusIcon} focused={focused} size={24} />
-            ),
-            href: isOwnerOrAgent ? undefined : null,
-          }}
-        />
+          {/* Add Property - Show for owners, hide for others */}
+          <Tabs.Screen
+            name="add-property"
+            options={{
+              title: "Ajouter",
+              tabBarIcon: ({ focused }) => (
+                <TabIcon Icon={PlusIcon} focused={focused} size={24} />
+              ),
+              href: isOwnerOrAgent ? undefined : null,
+            }}
+          />
 
-        {/* My Properties - Show for owners, hide for others */}
-        <Tabs.Screen
-          name="my-properties"
-          options={{
-            title: "Biens",
-            tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={BuildingsIcon} focused={focused} size={24} />
-            ),
-            href: isOwnerOrAgent ? undefined : null,
-          }}
-        />
+          {/* My Properties - Show for owners, hide for others */}
+          <Tabs.Screen
+            name="my-properties"
+            options={{
+              title: "Biens",
+              tabBarIcon: ({ focused }) => (
+                <TabIcon Icon={BuildingsIcon} focused={focused} size={24} />
+              ),
+              href: isOwnerOrAgent ? undefined : null,
+            }}
+          />
 
-        {/* Profile - Show different based on user type */}
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: "Profil",
-            tabBarIcon: ({ focused }) => (
-              <TabIcon Icon={UserIcon} focused={focused} size={24} />
-            ),
-            href: stableIsGuest ? null : undefined, // Hide from tab bar for guests (handled in CustomTabBar)
-          }}
-        />
-      </Tabs>
-    </View>
+          {/* Profile - Show different based on user type */}
+          <Tabs.Screen
+            name="profile"
+            options={{
+              title: "Profil",
+              tabBarIcon: ({ focused }) => (
+                <TabIcon Icon={UserIcon} focused={focused} size={24} />
+              ),
+              href: stableIsGuest ? null : undefined, // Hide from tab bar for guests (handled in CustomTabBar)
+            }}
+          />
+        </Tabs>
+      </View>
+    </ErrorBoundary>
   );
 }

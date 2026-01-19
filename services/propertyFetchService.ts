@@ -1,72 +1,20 @@
 import { supabase } from "../lib/supabase";
 import type { Property, PropertyAgent } from "../constants/properties";
+import type {
+  DatabaseProperty,
+  DatabasePropertyImage,
+  DatabaseAmenity,
+  DatabaseAgent,
+  DatabaseOpenHouseSlot,
+} from "../types/database";
 
-export interface PropertyImage {
-  id: string;
-  url: string;
-  width: number;
-  height: number;
-  is_primary: boolean;
-}
-
-export interface PropertyAmenity {
-  name: string;
-  icon: string;
-}
-
-export interface DatabaseProperty {
-  id: string;
-  agent_id: string;
-  title: string;
-  description: string | null;
-  price: number;
-  listing_type: "louer" | "vendre";
-  property_type: "villa" | "appartement" | "maison" | "terrain" | "commercial";
-  status: "en_attente" | "en_ligne" | "expired" | "locked" | "finalized";
-  bedrooms: number | null;
-  bathrooms: number | null;
-  area: number | null;
-  parking_spaces: number | null;
-  address: string;
-  city: string;
-  quartier: string;
-  latitude: number | null;
-  longitude: number | null;
-  period: string | null;
-  caution_mois: number | null;
-  interdictions: string[] | null;
-  slots_filled: number | null;
-  slot_limit: number | null;
-  is_boosted: boolean | null;
-  boost_expires_at: string | null;
-  published_at: string | null;
-  created_at: string;
-  updated_at: string;
-  views_count: number;
-  images?: PropertyImage[];
-  amenities?: PropertyAmenity[];
-  open_house_slots?: {
-    id: string;
-    date: string;
-    start_time: string;
-    end_time: string;
-    capacity: number;
-    bookings_count: number;
-  }[];
-  agent?: {
-    id: string;
-    full_name: string | null;
-    avatar_url: string | null;
-    phone: string | null;
-    email: string | null;
-    user_type: string | null;
-  };
-}
+// Re-export types for backward compatibility
+export type { DatabaseProperty, DatabasePropertyImage as PropertyImage, DatabaseAmenity as PropertyAmenity };
 
 /**
  * Transform database property to frontend Property type
  */
-function transformProperty(dbProperty: any): Property {
+function transformProperty(dbProperty: DatabaseProperty): Property {
   // Try to find images in multiple possible locations
   // Supabase join often returns them as 'property_images'
   const rawImages =
@@ -88,15 +36,15 @@ function transformProperty(dbProperty: any): Property {
   if (primaryImage) {
     if (typeof primaryImage === "string") {
       propertyImage = { uri: primaryImage };
-    } else if (typeof primaryImage === "object") {
-      const imageUrl = primaryImage.url || primaryImage.uri;
+    } else     if (typeof primaryImage === "object") {
+      const imageUrl = primaryImage.url || (primaryImage as any).uri;
       if (imageUrl) {
         propertyImage = { uri: imageUrl };
       }
     }
-  } else if (dbProperty.image_url || dbProperty.imageUrl) {
+  } else if ((dbProperty as any).image_url || (dbProperty as any).imageUrl) {
     // Fallback if image is at top level
-    propertyImage = { uri: dbProperty.image_url || dbProperty.imageUrl };
+    propertyImage = { uri: (dbProperty as any).image_url || (dbProperty as any).imageUrl };
   }
 
   // Convert all images to format expected by frontend
@@ -143,7 +91,9 @@ function transformProperty(dbProperty: any): Property {
   const numericId =
     dbProperty.id && typeof dbProperty.id === "string"
       ? parseInt(dbProperty.id.replace(/-/g, "").substring(0, 8), 16)
-      : dbProperty.id || Math.floor(Math.random() * 1000000);
+      : typeof dbProperty.id === "number"
+        ? dbProperty.id
+        : Math.floor(Math.random() * 1000000);
 
   return {
     id: numericId,
@@ -151,7 +101,7 @@ function transformProperty(dbProperty: any): Property {
     title: dbProperty.title || "Sans titre",
     location: dbProperty.quartier
       ? `${dbProperty.quartier}, ${dbProperty.city || "Ouagadougou"}`
-      : dbProperty.location || "Ouagadougou",
+      : (dbProperty as any).location || "Ouagadougou",
     address: dbProperty.address || "",
     price: (dbProperty.price || 0).toString(),
     bedrooms: dbProperty.bedrooms || 0,
@@ -169,7 +119,7 @@ function transformProperty(dbProperty: any): Property {
     status: dbProperty.status || "en_attente",
     propertyType:
       propertyTypeMap[dbProperty.property_type] ||
-      dbProperty.propertyType ||
+      (dbProperty as any).propertyType ||
       "Résidence",
     description: dbProperty.description || "",
     amenities:
@@ -177,8 +127,8 @@ function transformProperty(dbProperty: any): Property {
         typeof a === "string" ? a : a.name || ""
       ) || [],
     agent,
-    deposit: dbProperty.caution_mois || dbProperty.deposit,
-    prohibitions: dbProperty.interdictions || dbProperty.prohibitions,
+    deposit: dbProperty.caution_mois || (dbProperty as any).deposit,
+    prohibitions: dbProperty.interdictions || (dbProperty as any).prohibitions,
     slots_filled: dbProperty.slots_filled || 0,
     slot_limit: dbProperty.slot_limit || 0,
     created_at: dbProperty.created_at,
