@@ -11,6 +11,7 @@ import {
   SignOutIcon,
   UserCircleIcon,
   CameraIcon,
+  ClockCounterClockwiseIcon,
 } from "phosphor-react-native";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
@@ -21,6 +22,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import UserTypeSelection from "../../components/UserTypeSelection";
@@ -33,6 +36,8 @@ import {
   type UserStats,
 } from "../../services/userService";
 import { tokens } from "../../theme/tokens";
+import { fetchUserViewHistory } from "../../services/analyticsService";
+import { formatCurrency } from "../../utils/formatting";
 
 export default function ProfileScreen() {
   const { hasUserType, userType } = useUserType();
@@ -41,6 +46,9 @@ export default function ProfileScreen() {
   const { signOut } = useClerk();
   const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
   const [showSupportSheet, setShowSupportSheet] = useState(false);
+  const [showViewHistory, setShowViewHistory] = useState(false);
+  const [viewHistory, setViewHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const [updatingPhoto, setUpdatingPhoto] = useState(false);
   const hasRenderedOnce = useRef(false);
   const cachedUserRef = useRef<typeof user>(null);
@@ -91,6 +99,26 @@ export default function ProfileScreen() {
       setLoadingStats(false);
     }
   }, [displayUser?.id, userType]);
+
+  // Fetch view history for renters
+  const loadViewHistory = useCallback(async () => {
+    if (userType !== "renter") return;
+    
+    try {
+      setLoadingHistory(true);
+      const history = await fetchUserViewHistory(20);
+      setViewHistory(history);
+    } catch (error) {
+      console.error("Error loading view history:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [userType]);
+
+  const handleOpenHistory = () => {
+    setShowViewHistory(true);
+    loadViewHistory();
+  };
 
   // Force a re-render when screen focuses to ensure content paints
   useFocusEffect(
@@ -267,6 +295,16 @@ export default function ProfileScreen() {
           icon: HeartIcon,
           onPress: () => router.push("/(tabs)/favoris"),
         },
+    // Show view history for renters
+    ...(userType === "renter"
+      ? [
+          {
+            label: "Historique de vues",
+            icon: ClockCounterClockwiseIcon,
+            onPress: handleOpenHistory,
+          },
+        ]
+      : []),
     {
       label: "Aide & Support",
       icon: QuestionIcon,
@@ -440,7 +478,7 @@ export default function ProfileScreen() {
                   marginLeft: 6,
                   fontSize: 12,
                   fontFamily: "Urbanist-SemiBold",
-                  color: tokens.colors.roogo.neutral[600],
+                  color: tokens.colors.roogo.neutral[500],
                 }}
               >
                 {String(
@@ -620,6 +658,178 @@ export default function ProfileScreen() {
         visible={showSupportSheet}
         onClose={() => setShowSupportSheet(false)}
       />
+
+      {/* View History Modal for Renters */}
+      <Modal
+        visible={showViewHistory}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowViewHistory(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}>
+          <View style={{ 
+            flexDirection: "row", 
+            alignItems: "center", 
+            justifyContent: "space-between",
+            paddingHorizontal: 24,
+            paddingVertical: 16,
+            backgroundColor: "white",
+            borderBottomWidth: 1,
+            borderBottomColor: tokens.colors.roogo.neutral[100],
+          }}>
+            <Text style={{ 
+              fontSize: 20, 
+              fontFamily: "Urbanist-Bold",
+              color: tokens.colors.roogo.neutral[900],
+            }}>
+              Historique de vues
+            </Text>
+            <TouchableOpacity 
+              onPress={() => setShowViewHistory(false)}
+              style={{
+                padding: 8,
+                backgroundColor: tokens.colors.roogo.neutral[100],
+                borderRadius: 20,
+              }}
+            >
+              <Text style={{ 
+                fontSize: 14, 
+                fontFamily: "Urbanist-Bold",
+                color: tokens.colors.roogo.neutral[500],
+              }}>
+                Fermer
+              </Text>
+            </TouchableOpacity>
+          </View>
+          
+          {loadingHistory ? (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <ActivityIndicator size="large" color={tokens.colors.roogo.primary[500]} />
+              <Text style={{ 
+                marginTop: 12, 
+                color: tokens.colors.roogo.neutral[400],
+                fontFamily: "Urbanist-Medium",
+              }}>
+                Chargement...
+              </Text>
+            </View>
+          ) : viewHistory.length === 0 ? (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 40 }}>
+              <ClockCounterClockwiseIcon size={64} color={tokens.colors.roogo.neutral[300]} weight="light" />
+              <Text style={{ 
+                marginTop: 16, 
+                fontSize: 18,
+                fontFamily: "Urbanist-Bold",
+                color: tokens.colors.roogo.neutral[900],
+                textAlign: "center",
+              }}>
+                Pas encore d&apos;historique
+              </Text>
+              <Text style={{ 
+                marginTop: 8, 
+                fontSize: 14,
+                fontFamily: "Urbanist-Medium",
+                color: tokens.colors.roogo.neutral[400],
+                textAlign: "center",
+              }}>
+                Les propriétés que vous consultez apparaîtront ici.
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={viewHistory}
+              keyExtractor={(item, index) => `${item.property?.id || index}`}
+              contentContainerStyle={{ padding: 16 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowViewHistory(false);
+                    if (item.property?.id) {
+                      router.push(`/(tabs)/(home)/details?id=${item.property.id}`);
+                    }
+                  }}
+                  style={{
+                    flexDirection: "row",
+                    backgroundColor: "white",
+                    borderRadius: 20,
+                    padding: 12,
+                    marginBottom: 12,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.03,
+                    shadowRadius: 8,
+                    elevation: 1,
+                  }}
+                >
+                  <View style={{ 
+                    width: 70, 
+                    height: 70, 
+                    borderRadius: 16, 
+                    backgroundColor: tokens.colors.roogo.neutral[100],
+                    overflow: "hidden",
+                  }}>
+                    {item.property?.image?.uri ? (
+                      <Image
+                        source={{ uri: item.property.image.uri }}
+                        style={{ width: "100%", height: "100%" }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={{ 
+                        flex: 1, 
+                        justifyContent: "center", 
+                        alignItems: "center" 
+                      }}>
+                        <HouseIcon size={28} color={tokens.colors.roogo.neutral[300]} />
+                      </View>
+                    )}
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 12, justifyContent: "center" }}>
+                    <Text style={{ 
+                      fontSize: 15, 
+                      fontFamily: "Urbanist-Bold",
+                      color: tokens.colors.roogo.neutral[900],
+                      marginBottom: 4,
+                    }} numberOfLines={1}>
+                      {item.property?.title || "Propriété"}
+                    </Text>
+                    <Text style={{ 
+                      fontSize: 13, 
+                      fontFamily: "Urbanist-Medium",
+                      color: tokens.colors.roogo.neutral[400],
+                      marginBottom: 4,
+                    }} numberOfLines={1}>
+                      {item.property?.address || "Adresse inconnue"}
+                    </Text>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                      <Text style={{ 
+                        fontSize: 14, 
+                        fontFamily: "Urbanist-Bold",
+                        color: tokens.colors.roogo.primary[500],
+                      }}>
+                        {formatCurrency(item.property?.price)}
+                      </Text>
+                      <Text style={{ 
+                        fontSize: 11, 
+                        fontFamily: "Urbanist-Medium",
+                        color: tokens.colors.roogo.neutral[300],
+                      }}>
+                        {item.viewed_at ? new Date(item.viewed_at).toLocaleDateString("fr-FR", { 
+                          day: "2-digit", 
+                          month: "short" 
+                        }) : ""}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={{ justifyContent: "center", marginLeft: 8 }}>
+                    <CaretRightIcon size={18} color={tokens.colors.roogo.neutral[300]} weight="bold" />
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </SafeAreaView>
+      </Modal>
 
       {/* User Type Selection Modal */}
       <UserTypeSelection

@@ -1,5 +1,5 @@
 import { tokens } from "../theme/tokens";
-import { formatPrice } from "../utils/formatting";
+import { formatCurrency } from "../utils/formatting";
 import { useUser } from "@clerk/clerk-expo";
 import { useUserType } from "../hooks/useUserType";
 import {
@@ -13,6 +13,7 @@ import {
   ShareIcon,
   TrashIcon,
   LightningIcon,
+  FireIcon,
 } from "phosphor-react-native";
 import React, { useRef, useState } from "react";
 import {
@@ -57,6 +58,7 @@ interface PropertyCardProps {
     isSponsored?: boolean;
     views?: number;
     favorites?: number;
+    recentViews?: number;
   };
   isHorizontal?: boolean;
   onPress?: () => void;
@@ -175,6 +177,7 @@ export default function PropertyCard({
             resizeMode={ResizeMode.COVER}
             shouldPlay={false}
             isMuted={true}
+            onError={() => {}}
           />
         ) : (
           <Image
@@ -208,6 +211,21 @@ export default function PropertyCard({
             </Text>
           </View>
         )}
+        
+        {/* Trending Badge (Popularity) */}
+        {!property.isSponsored && (property.recentViews || 0) > 10 && (
+          <View className="absolute top-4 left-36 flex-row items-center bg-roogo-error/90 px-3 py-1.5 rounded-full shadow-md backdrop-blur-md">
+            <FireIcon
+              size={12}
+              weight="fill"
+              color="white"
+            />
+            <Text className="text-white text-[10px] font-black font-urbanist tracking-tighter uppercase ml-1">
+              POPULAIRE
+            </Text>
+          </View>
+        )}
+
         {/* Heart Icon */}
         {shouldShowFavorite && (
           <TouchableOpacity
@@ -246,7 +264,7 @@ export default function PropertyCard({
             </View>
           </View>
           <Text className="text-xl font-bold text-roogo-primary-500 font-urbanist">
-            {formatPrice(property.price)}
+            {formatCurrency(property.price)}
             <Text className="text-sm font-normal text-roogo-neutral-500">
               {property.period ? `/${property.period}` : ""}
             </Text>
@@ -300,7 +318,7 @@ export default function PropertyCard({
                   onPress={async () => {
                     try {
                       await Share.share({
-                        message: `Découvrez cette propriété: ${property.title} à ${property.location} - ${property.price} CFA`,
+                        message: `Découvrez cette propriété: ${property.title} à ${property.location} - ${formatCurrency(property.price)}`,
                         title: "Partager la propriété",
                       });
                     } catch (error) {

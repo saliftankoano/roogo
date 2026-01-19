@@ -51,7 +51,7 @@ import {
   incrementPropertyViews,
 } from "../../../services/propertyFetchService";
 import { tokens } from "../../../theme/tokens";
-import { formatPrice } from "../../../utils/formatting";
+import { formatCurrency } from "../../../utils/formatting";
 import { cn } from "../../../lib/utils";
 import { getInterdictionByLabel } from "../../../utils/interdictions";
 import { SlotMeter } from "../../../components/SlotMeter";
@@ -61,6 +61,13 @@ import {
 } from "../../../services/applicationService";
 import { OpenHousePickerModal } from "../../../components/OpenHousePickerModal";
 import { PaymentModal } from "../../../components/PaymentModal";
+import {
+  shouldIncrementView,
+  markPropertyViewed,
+  recordViewEvent,
+  getUserLocation,
+} from "../../../utils/viewTracking";
+import { supabase } from "../../../lib/supabase";
 
 // --- Lock Confirmation Modal ---
 interface LockModalProps {
@@ -141,7 +148,7 @@ const LockModal: React.FC<LockModalProps> = ({
                 </Text>
               </View>
               <Text className="text-roogo-primary-500 font-urbanist-bold text-2xl">
-                {formatPrice(fee)} XOF
+                {formatCurrency(fee)}
               </Text>
             </View>
 
@@ -177,7 +184,7 @@ const LockModal: React.FC<LockModalProps> = ({
               className="flex-[2] bg-roogo-primary-500 py-5 rounded-2xl items-center shadow-lg shadow-roogo-primary-500/40"
             >
               <Text className="text-white font-urbanist-bold text-base">
-                Payer {formatPrice(fee)} XOF
+                Payer {formatCurrency(fee)}
               </Text>
             </TouchableOpacity>
           </View>
@@ -224,7 +231,7 @@ const EarlyBirdBanner = ({
       </View>
 
       <Text className="text-xs text-roogo-primary-400 font-urbanist-medium text-center italic">
-        Seulement {formatPrice(fee)} XOF pour sécuriser votre priorité.
+        Seulement {formatCurrency(fee)} pour sécuriser votre priorité.
       </Text>
     </View>
   );
@@ -397,8 +404,8 @@ export default function PropertyDetailsScreen() {
     ).start();
   }, [bounceAnim]);
 
-  // Track if we've already incremented views for this property
-  const hasIncrementedViews = useRef(false);
+  // Track if we've already checked views for this session (to avoid multiple async checks)
+  const hasCheckedViews = useRef(false);
 
   useEffect(() => {
     const loadProperty = async () => {
@@ -417,14 +424,40 @@ export default function PropertyDetailsScreen() {
           setProperty(fetchedProperty || undefined);
 
           // Increment views if this is a real property and user is not the owner
-          if (fetchedProperty?.uuid && !hasIncrementedViews.current) {
+          // Uses persistent AsyncStorage tracking with 24h TTL to prevent duplicate counts
+          if (fetchedProperty?.uuid && !hasCheckedViews.current) {
+            hasCheckedViews.current = true;
+            
             const userEmail = user?.primaryEmailAddress?.emailAddress;
             const isOwner =
               userEmail && fetchedProperty.agent?.email === userEmail;
 
             if (!isOwner) {
-              hasIncrementedViews.current = true;
-              incrementPropertyViews(fetchedProperty.uuid);
+              // Check if we should increment (hasn't been viewed within TTL)
+              const shouldIncrement = await shouldIncrementView(fetchedProperty.uuid);
+              
+              if (shouldIncrement) {
+                // Increment on server and mark as viewed locally
+                incrementPropertyViews(fetchedProperty.uuid);
+                
+                // Get user location (non-blocking)
+                const propertyUuid = fetchedProperty.uuid; // Capture for closure
+                getUserLocation().then(({ coords, city }) => {
+                  // Get current supabase user ID
+                  supabase.auth.getUser().then(({ data: { user: supabaseUser } }) => {
+                    recordViewEvent({
+                      propertyId: propertyUuid,
+                      userId: supabaseUser?.id || null,
+                      clerkId: user?.id || null,
+                      source: "browse", // or derive from params if available
+                      coordinates: coords,
+                      city
+                    });
+                  });
+                });
+                
+                await markPropertyViewed(fetchedProperty.uuid);
+              }
             }
           }
         } else {
@@ -449,7 +482,7 @@ export default function PropertyDetailsScreen() {
     };
 
     loadProperty();
-  }, [id, user?.primaryEmailAddress?.emailAddress]);
+  }, [id, user?.primaryEmailAddress?.emailAddress, user?.id]);
 
   if (loading) {
     return (
@@ -521,6 +554,7 @@ export default function PropertyDetailsScreen() {
                 shouldPlay
                 isLooping
                 isMuted
+                onError={() => {}}
               />
             ) : (
               <Image
@@ -643,7 +677,7 @@ export default function PropertyDetailsScreen() {
             </View>
             <View>
               <Text className="text-xl font-urbanist-bold text-roogo-primary-500">
-                {formatPrice(property.price)}
+                {formatCurrency(property.price)}
               </Text>
               <Text className="text-xs text-roogo-neutral-500 font-urbanist text-right">
                 {property.period || "par mois"}
@@ -740,10 +774,9 @@ export default function PropertyDetailsScreen() {
                     </Text>
                     <Text className="text-roogo-neutral-600 font-urbanist-medium text-sm mt-1">
                       Total:{" "}
-                      {formatPrice(
+                      {formatCurrency(
                         String(Number(property.price) * property.deposit)
-                      )}{" "}
-                      CFA
+                      )}
                     </Text>
                   </View>
                 </View>
@@ -809,7 +842,7 @@ export default function PropertyDetailsScreen() {
             )}
             <View className="flex-[2]">
               <PrimaryButton
-                title={`🔒 Réserver - ${formatPrice(lockFee)} XOF`}
+                title={`🔒 Réserver - ${formatCurrency(lockFee)}`}
                 onPress={handleLockPress}
               />
             </View>
