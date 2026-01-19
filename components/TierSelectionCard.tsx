@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { CheckIcon, FireIcon } from "phosphor-react-native";
 import { tokens } from "../theme/tokens";
+import { formatCurrency } from "../utils/formatting";
 
 export interface Tier {
   id: string;
@@ -27,10 +28,6 @@ export const TierSelectionCard: React.FC<TierSelectionCardProps> = ({
   onSelect,
   calculatedPrice,
 }) => {
-  const formatPrice = (price: number) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
-
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -48,7 +45,7 @@ export const TierSelectionCard: React.FC<TierSelectionCardProps> = ({
               </View>
             )}
           </View>
-          <Text style={styles.price}>{formatPrice(calculatedPrice)} XOF</Text>
+            <Text style={styles.price}>{formatCurrency(calculatedPrice)}</Text>
         </View>
 
         <View

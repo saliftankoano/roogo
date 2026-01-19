@@ -35,7 +35,7 @@ import {
 import { useUser } from "@clerk/clerk-expo";
 import AgentOnly from "../../components/AgentOnly";
 import { tokens } from "../../theme/tokens";
-import { formatPrice } from "../../utils/formatting";
+import { formatCurrency } from "../../utils/formatting";
 import { OutlinedField } from "../../components/OutlinedField";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { PaymentModal } from "../../components/PaymentModal";
@@ -728,7 +728,7 @@ export default function PhotographyScreen() {
                                     marginBottom: 4,
                                   }}
                                 >
-                                  {formatPrice(pkg.price)} FCFA
+                                  {formatCurrency(pkg.price)}
                                 </Text>
                                 <Text
                                   style={{
@@ -1054,11 +1054,10 @@ export default function PhotographyScreen() {
                   {packages.find((pkg) => pkg.id === selectedPackage)?.name}
                   {" - "}
                   <Text style={{ color: tokens.colors.roogo.primary[500] }}>
-                    {formatPrice(
+                    {formatCurrency(
                       packages.find((pkg) => pkg.id === selectedPackage)
                         ?.price || 0
-                    )}{" "}
-                    FCFA
+                    )}
                   </Text>
                 </Text>
               </View>

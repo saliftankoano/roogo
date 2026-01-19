@@ -1,4 +1,5 @@
 import { useAuth } from "@clerk/clerk-expo";
+import type { PaymentMetadata } from "../types/database";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -9,19 +10,28 @@ export type TransactionType =
   | "boost";
 export type PaymentProvider = "ORANGE_MONEY" | "MOOV_MONEY";
 
+/**
+ * Raw response from PawaPay API
+ */
+export interface PawaPayRawResponse {
+  status?: string;
+  depositId?: string;
+  [key: string]: unknown;
+}
+
 export interface InitiatePaymentResponse {
   success: boolean;
   depositId?: string;
   status?: string;
   error?: string;
-  raw?: any;
+  raw?: PawaPayRawResponse;
 }
 
 export interface PaymentStatusResponse {
   success: boolean;
   status: string;
   error?: string;
-  raw?: any;
+  raw?: PawaPayRawResponse;
 }
 
 export const usePaymentService = () => {
@@ -35,7 +45,7 @@ export const usePaymentService = () => {
     description: string,
     propertyId?: string,
     preAuthorisationCode?: string,
-    metadata?: any
+    metadata?: PaymentMetadata | null
   ): Promise<InitiatePaymentResponse> => {
     try {
       const token = await getToken();

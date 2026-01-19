@@ -30,6 +30,7 @@ import {
 } from "@/forms/listingSchema";
 import { tokens } from "@/theme/tokens";
 import { TierSelectionCard } from "@/components/TierSelectionCard";
+import { formatCurrency } from "@/utils/formatting";
 
 // Enable LayoutAnimation for Android
 if (
@@ -92,13 +93,8 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
       .filter(Boolean)
       .join(", ") || "Aucune";
 
-  // Format price with dots
-  const formatPrice = (price: number) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
-
   const formattedPrice = formData.prixMensuel
-    ? `${formatPrice(formData.prixMensuel)} CFA`
+    ? formatCurrency(formData.prixMensuel)
     : "";
 
   return (
