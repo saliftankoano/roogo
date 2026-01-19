@@ -9,11 +9,10 @@ export const formatPrice = (price: string | number | undefined): string => {
 };
 
 /**
- * Parses a formatted price string back to a number.
- * Removes non-numeric characters.
- * Example: "1 000 000" -> 1000000
+ * Formats a price with the standard currency suffix (FCFA).
+ * Example: 1000000 -> "1 000 000 FCFA"
  */
-export const parsePrice = (formattedPrice: string): number | undefined => {
-  const numericValue = formattedPrice.replace(/[^0-9]/g, "");
-  return numericValue ? parseInt(numericValue, 10) : undefined;
+export const formatCurrency = (price: string | number | undefined): string => {
+  if (price === undefined || price === null) return "";
+  return `${formatPrice(price)} FCFA`;
 };
