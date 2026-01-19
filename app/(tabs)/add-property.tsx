@@ -59,6 +59,53 @@ export default function AddPropertyScreen() {
     return baseFee + percentageFee + calculateAddOnTotal();
   };
 
+  const getPriceBreakdown = () => {
+    if (!formData.tier_id) return null;
+    const tier = TIERS.find((t) => t.id === formData.tier_id);
+    if (!tier) return null;
+
+    const rent = formData.prixMensuel || 0;
+    const baseFee = tier.base_fee;
+    const percentageFee = rent * 0.05;
+
+    const addOns: Record<string, number> = {
+      video: 10000,
+      extra_slots: 7500,
+      "3d_env": 25000,
+      extra_photos: 10000,
+      boost: 7000,
+      open_house: 3000,
+    };
+
+    const addOnDetails = selectedAddOns.map((id) => ({
+      id,
+      name:
+        id === "video"
+          ? "Vidéo incluse"
+          : id === "extra_slots"
+            ? "Slots additionnels"
+            : id === "3d_env"
+              ? "Environnement 3D"
+              : id === "extra_photos"
+                ? "Photos supplémentaires"
+                : id === "boost"
+                  ? "Boost visibilité"
+                  : "Open House extra",
+      price: addOns[id] || 0,
+    }));
+
+    return {
+      tier: {
+        id: tier.id,
+        name: tier.name,
+        base_fee: baseFee,
+      },
+      commission: percentageFee,
+      add_ons: addOnDetails,
+      total: baseFee + percentageFee + calculateAddOnTotal(),
+    };
+  };
+
   const [formData, setFormData] = useState<Partial<ListingDraft>>({
     photos: [],
     equipements: [],
@@ -314,6 +361,7 @@ export default function AddPropertyScreen() {
           TIERS.find((t) => t.id === formData.tier_id)?.name || ""
         }${selectedAddOns.length > 0 ? " avec Options" : ""}`}
         transactionType="listing_submission"
+        metadata={getPriceBreakdown()}
       />
 
       {/* Upsell Modal */}

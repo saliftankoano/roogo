@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Video, ResizeMode } from "expo-av";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -48,6 +49,20 @@ export default function PhotoGallery({
     setCurrentIndex(index);
   };
 
+  const isVideo = (image: any) => {
+    if (typeof image === "object" && image.uri) {
+      const uri = image.uri.toLowerCase();
+      return (
+        uri.endsWith(".mp4") ||
+        uri.endsWith(".mov") ||
+        uri.endsWith(".avi") ||
+        uri.endsWith(".mkv") ||
+        uri.endsWith(".webm")
+      );
+    }
+    return false;
+  };
+
   if (!visible || images.length === 0) return null;
 
   return (
@@ -76,14 +91,28 @@ export default function PhotoGallery({
               style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
               className="items-center justify-center"
             >
-              <Image
-                source={image}
-                style={{
-                  width: SCREEN_WIDTH,
-                  height: SCREEN_HEIGHT,
-                }}
-                resizeMode="contain"
-              />
+              {isVideo(image) ? (
+                <Video
+                  source={image}
+                  style={{
+                    width: SCREEN_WIDTH,
+                    height: SCREEN_HEIGHT,
+                  }}
+                  resizeMode={ResizeMode.CONTAIN}
+                  useNativeControls
+                  shouldPlay={index === currentIndex}
+                  isLooping
+                />
+              ) : (
+                <Image
+                  source={image}
+                  style={{
+                    width: SCREEN_WIDTH,
+                    height: SCREEN_HEIGHT,
+                  }}
+                  resizeMode="contain"
+                />
+              )}
             </View>
           ))}
         </ScrollView>

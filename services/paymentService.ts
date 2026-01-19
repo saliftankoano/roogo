@@ -34,7 +34,8 @@ export const usePaymentService = () => {
     transactionType: TransactionType,
     description: string,
     propertyId?: string,
-    preAuthorisationCode?: string
+    preAuthorisationCode?: string,
+    metadata?: any
   ): Promise<InitiatePaymentResponse> => {
     try {
       const token = await getToken();
@@ -54,6 +55,7 @@ export const usePaymentService = () => {
           transactionType,
           propertyId,
           preAuthorisationCode,
+          metadata,
         }),
       });
 

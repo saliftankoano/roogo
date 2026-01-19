@@ -28,6 +28,7 @@ interface PaymentModalProps {
   description: string;
   transactionType: TransactionType;
   propertyId?: string;
+  metadata?: any;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -117,6 +118,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   description,
   transactionType,
   propertyId,
+  metadata,
 }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [preAuthorisationCode, setPreAuthorisationCode] = useState("");
@@ -291,8 +293,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       transactionType,
       description,
       propertyId,
-      preAuthorisationCode
+      preAuthorisationCode,
+      metadata
     );
+
 
     if (result.success && result.depositId) {
       // Check if payment is already accepted in the initiation response

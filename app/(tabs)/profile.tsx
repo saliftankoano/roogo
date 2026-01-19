@@ -1,18 +1,21 @@
 import { useClerk, useUser, useAuth } from "@clerk/clerk-expo";
 import { router, useFocusEffect } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import {
   CaretRightIcon,
-  GearIcon,
   HeartIcon,
   HouseIcon,
   MapPinIcon,
   QuestionIcon,
   SignOutIcon,
   UserCircleIcon,
+  CameraIcon,
 } from "phosphor-react-native";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   ScrollView,
   Text,
@@ -21,6 +24,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import UserTypeSelection from "../../components/UserTypeSelection";
+import SupportSheet from "../../components/SupportSheet";
 import { useUserType } from "../../hooks/useUserType";
 import {
   getUserByClerkId,
@@ -36,6 +40,8 @@ export default function ProfileScreen() {
   const { getToken } = useAuth();
   const { signOut } = useClerk();
   const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
+  const [showSupportSheet, setShowSupportSheet] = useState(false);
+  const [updatingPhoto, setUpdatingPhoto] = useState(false);
   const hasRenderedOnce = useRef(false);
   const cachedUserRef = useRef<typeof user>(null);
 
@@ -113,6 +119,44 @@ export default function ProfileScreen() {
       router.replace("/(auth)/sign-in");
     } catch (err) {
       console.error("Error signing out:", err);
+    }
+  };
+
+  const handleUpdatePhoto = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets[0] && user) {
+        setUpdatingPhoto(true);
+        const asset = result.assets[0];
+
+        // Compress and resize if needed
+        const manipulated = await ImageManipulator.manipulateAsync(
+          asset.uri,
+          [{ resize: { width: 400, height: 400 } }],
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        );
+
+        // Convert to base64 or fetch as blob
+        const response = await fetch(manipulated.uri);
+        const blob = await response.blob();
+
+        await user.setProfileImage({
+          file: blob,
+        });
+
+        Alert.alert("Succès", "Photo de profil mise à jour.");
+      }
+    } catch (error) {
+      console.error("Error updating profile photo:", error);
+      Alert.alert("Erreur", "Impossible de mettre à jour la photo.");
+    } finally {
+      setUpdatingPhoto(false);
     }
   };
 
@@ -223,8 +267,11 @@ export default function ProfileScreen() {
           icon: HeartIcon,
           onPress: () => router.push("/(tabs)/favoris"),
         },
-    { label: "Paramètres", icon: GearIcon, onPress: () => {} },
-    { label: "Aide & Support", icon: QuestionIcon, onPress: () => {} },
+    {
+      label: "Aide & Support",
+      icon: QuestionIcon,
+      onPress: () => setShowSupportSheet(true),
+    },
     // Add option to change user type if user doesn't have one or wants to change
     ...(!hasUserType || !userType
       ? [
@@ -239,12 +286,11 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#FFFFFF" }}
+      style={{ flex: 1, backgroundColor: tokens.colors.roogo.neutral[100] }}
       edges={["top"]}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        style={{ backgroundColor: tokens.colors.roogo.neutral[100] }}
         contentContainerStyle={{
           paddingBottom: 120,
         }}
@@ -253,133 +299,148 @@ export default function ProfileScreen() {
         <View
           style={{
             backgroundColor: "#FFFFFF",
-            paddingBottom: 32,
-            borderBottomLeftRadius: 32,
-            borderBottomRightRadius: 32,
+            paddingBottom: 16,
+            borderBottomLeftRadius: 40,
+            borderBottomRightRadius: 40,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.05,
+            shadowOpacity: 0.03,
             shadowRadius: 12,
-            elevation: 4,
-            zIndex: 10,
+            elevation: 2,
           }}
         >
           <View
             style={{
               alignItems: "center",
-              paddingTop: 24,
-              paddingBottom: 24,
+              paddingTop: 8,
             }}
           >
             <View style={{ position: "relative" }}>
-              <View
+              <TouchableOpacity
+                onPress={handleUpdatePhoto}
+                disabled={updatingPhoto}
+                activeOpacity={0.8}
                 style={{
-                  width: 112,
-                  height: 112,
-                  borderRadius: 56,
-                  marginBottom: 20,
+                  width: 100,
+                  height: 100,
+                  borderRadius: 50,
                   alignItems: "center",
                   justifyContent: "center",
                   borderWidth: 3,
-                  borderColor: "#E48C26",
+                  borderColor: tokens.colors.roogo.primary[500],
                   backgroundColor: "#FFF5EB",
+                  padding: 3,
                 }}
               >
-                <Image
-                  source={
-                    displayUser?.imageUrl
-                      ? { uri: displayUser.imageUrl }
-                      : require("../../assets/images/icon.png")
-                  }
-                  style={{ width: 96, height: 96, borderRadius: 48 }}
-                />
-              </View>
-              {userType && (
+                {updatingPhoto ? (
+                  <ActivityIndicator color={tokens.colors.roogo.primary[500]} />
+                ) : (
+                  <Image
+                    source={
+                      displayUser?.imageUrl
+                        ? { uri: displayUser.imageUrl }
+                        : require("../../assets/images/icon.png")
+                    }
+                    style={{ width: "100%", height: "100%", borderRadius: 50 }}
+                  />
+                )}
                 <View
                   style={{
                     position: "absolute",
-                    bottom: 8,
-                    alignSelf: "center",
-                    backgroundColor:
-                      userType === "owner" || userType === "agent"
-                        ? tokens.colors.roogo.primary[500]
-                        : tokens.colors.roogo.neutral[900],
-                    paddingHorizontal: 16,
-                    paddingVertical: 6,
-                    borderRadius: 20,
+                    bottom: 0,
+                    right: 0,
+                    backgroundColor: tokens.colors.roogo.primary[500],
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
                     borderWidth: 3,
                     borderColor: "#FFFFFF",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 8,
-                    elevation: 5,
-                    zIndex: 20,
-                    minWidth: 110,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Text
-                    style={{
-                      color: "#FFFFFF",
-                      fontSize: 10,
-                      fontFamily: "Urbanist-Bold",
-                      textTransform: "uppercase",
-                      letterSpacing: 0.5,
-                      textAlign: "center",
-                    }}
-                    numberOfLines={1}
-                  >
-                    {userType === "owner"
-                      ? "Propriétaire"
-                      : userType === "agent"
-                        ? "Agent"
-                        : "Locataire"}
-                  </Text>
+                  <CameraIcon size={16} color="white" weight="bold" />
                 </View>
-              )}
+              </TouchableOpacity>
             </View>
+
+            {userType && (
+              <View
+                style={{
+                  backgroundColor:
+                    userType === "owner" || userType === "agent"
+                      ? tokens.colors.roogo.primary[500]
+                      : tokens.colors.roogo.neutral[900],
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                  borderRadius: 12,
+                  marginTop: 12,
+                  marginBottom: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: 10,
+                    fontFamily: "Urbanist-Bold",
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
+                  }}
+                >
+                  {userType === "owner"
+                    ? "Propriétaire"
+                    : userType === "agent"
+                      ? "Agent"
+                      : "Locataire"}
+                </Text>
+              </View>
+            )}
+
             <Text
               style={{
-                fontSize: 24,
+                fontSize: 22,
                 fontFamily: "Urbanist-Bold",
                 color: tokens.colors.roogo.neutral[900],
-                marginBottom: 6,
+                marginBottom: 2,
               }}
             >
               {displayUser?.fullName || displayUser?.firstName || "Utilisateur"}
             </Text>
             <Text
               style={{
-                fontSize: 14,
+                fontSize: 13,
                 fontFamily: "Urbanist-Medium",
-                color: tokens.colors.roogo.neutral[500],
-                marginBottom: 16,
+                color: tokens.colors.roogo.neutral[400],
+                marginBottom: 8,
               }}
             >
               {displayUser?.primaryEmailAddress?.emailAddress ||
                 "Email non disponible"}
             </Text>
+
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                paddingHorizontal: 16,
-                paddingVertical: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
                 borderRadius: 100,
-                backgroundColor: "#FFF5EB",
+                backgroundColor: tokens.colors.roogo.neutral[50],
                 borderWidth: 1,
-                borderColor: "rgba(228, 140, 38, 0.2)",
+                borderColor: tokens.colors.roogo.neutral[100],
               }}
             >
-              <MapPinIcon size={16} color="#E48C26" weight="fill" />
+              <MapPinIcon
+                size={14}
+                color={tokens.colors.roogo.primary[500]}
+                weight="fill"
+              />
               <Text
                 style={{
                   marginLeft: 6,
-                  fontSize: 14,
+                  fontSize: 12,
                   fontFamily: "Urbanist-SemiBold",
-                  color: tokens.colors.roogo.neutral[700],
+                  color: tokens.colors.roogo.neutral[600],
                 }}
               >
                 {String(
@@ -393,7 +454,7 @@ export default function ProfileScreen() {
 
           {/* Stats Section */}
           {(userType === "owner" || userType === "agent") && (
-            <View style={{ paddingHorizontal: 24 }}>
+            <View style={{ paddingHorizontal: 24, marginTop: 16 }}>
               <View
                 style={{
                   flexDirection: "row",
@@ -416,27 +477,29 @@ export default function ProfileScreen() {
                     key={idx}
                     style={{
                       flex: 1,
-                      backgroundColor: tokens.colors.roogo.neutral[100],
-                      borderRadius: 16,
-                      padding: 16,
+                      backgroundColor: tokens.colors.roogo.neutral[50],
+                      borderRadius: 20,
+                      paddingVertical: 12,
                       alignItems: "center",
+                      borderWidth: 1,
+                      borderColor: tokens.colors.roogo.neutral[100],
                     }}
                   >
                     <Text
                       style={{
-                        fontSize: 20,
+                        fontSize: 18,
                         fontFamily: "Urbanist-Bold",
                         color: tokens.colors.roogo.primary[500],
-                        marginBottom: 4,
+                        marginBottom: 2,
                       }}
                     >
                       {loadingStats ? "-" : stat.value}
                     </Text>
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: 11,
                         fontFamily: "Urbanist-Medium",
-                        color: tokens.colors.roogo.neutral[500],
+                        color: tokens.colors.roogo.neutral[400],
                       }}
                     >
                       {stat.label}
@@ -449,18 +512,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Menu Items */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 24, gap: 16 }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontFamily: "Urbanist-Bold",
-              color: tokens.colors.roogo.neutral[900],
-              marginBottom: 8,
-            }}
-          >
-            Général
-          </Text>
-
+        <View style={{ paddingHorizontal: 24, paddingTop: 16, gap: 8 }}>
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={index}
@@ -470,33 +522,36 @@ export default function ProfileScreen() {
                 flexDirection: "row",
                 alignItems: "center",
                 backgroundColor: "white",
-                padding: 20,
-                borderRadius: 20,
+                padding: 14,
+                borderRadius: 24,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
+                shadowOpacity: 0.02,
                 shadowRadius: 8,
-                elevation: 2,
+                elevation: 1,
               }}
             >
               <View
                 style={{
-                  backgroundColor: tokens.colors.roogo.neutral[100],
-                  padding: 10,
-                  borderRadius: 12,
+                  width: 44,
+                  height: 44,
+                  backgroundColor: tokens.colors.roogo.neutral[50],
+                  borderRadius: 14,
+                  alignItems: "center",
+                  justifyContent: "center",
                   marginRight: 16,
                 }}
               >
                 <item.icon
                   size={22}
                   color={tokens.colors.roogo.neutral[900]}
-                  weight="duotone"
+                  weight="regular"
                 />
               </View>
               <Text
                 style={{
                   flex: 1,
-                  fontSize: 16,
+                  fontSize: 15,
                   fontFamily: "Urbanist-SemiBold",
                   color: tokens.colors.roogo.neutral[900],
                 }}
@@ -504,8 +559,8 @@ export default function ProfileScreen() {
                 {item.label}
               </Text>
               <CaretRightIcon
-                size={20}
-                color={tokens.colors.roogo.neutral[400]}
+                size={18}
+                color={tokens.colors.roogo.neutral[300]}
                 weight="bold"
               />
             </TouchableOpacity>
@@ -518,41 +573,53 @@ export default function ProfileScreen() {
               flexDirection: "row",
               alignItems: "center",
               backgroundColor: "white",
-              padding: 20,
-              borderRadius: 20,
-              marginTop: 8,
+              padding: 14,
+              borderRadius: 24,
+              marginTop: 4,
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.05,
+              shadowOpacity: 0.02,
               shadowRadius: 8,
-              elevation: 2,
-              borderWidth: 1,
-              borderColor: "#FEE2E2",
+              elevation: 1,
             }}
           >
             <View
               style={{
-                backgroundColor: "#FEE2E2",
-                padding: 10,
-                borderRadius: 12,
+                width: 44,
+                height: 44,
+                backgroundColor: "#FEF2F2",
+                borderRadius: 14,
+                alignItems: "center",
+                justifyContent: "center",
                 marginRight: 16,
               }}
             >
-              <SignOutIcon size={22} color="#DC2626" weight="duotone" />
+              <SignOutIcon size={22} color="#DC2626" weight="regular" />
             </View>
             <Text
               style={{
                 flex: 1,
-                fontSize: 16,
+                fontSize: 15,
                 fontFamily: "Urbanist-SemiBold",
-                color: "#DC2626",
+                color: tokens.colors.roogo.neutral[900],
               }}
             >
               Se déconnecter
             </Text>
+            <CaretRightIcon
+              size={18}
+              color={tokens.colors.roogo.neutral[300]}
+              weight="bold"
+            />
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Support Sheet */}
+      <SupportSheet
+        visible={showSupportSheet}
+        onClose={() => setShowSupportSheet(false)}
+      />
 
       {/* User Type Selection Modal */}
       <UserTypeSelection

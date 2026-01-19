@@ -37,6 +37,7 @@ import {
   Alert,
   Modal,
 } from "react-native";
+import { Video, ResizeMode } from "expo-av";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AgentCard from "../../../components/AgentCard";
 import AuthPromptModal from "../../../components/AuthPromptModal";
@@ -227,6 +228,20 @@ const EarlyBirdBanner = ({
       </Text>
     </View>
   );
+};
+
+const isVideo = (image: any) => {
+  if (typeof image === "object" && image.uri) {
+    const uri = image.uri.toLowerCase();
+    return (
+      uri.endsWith(".mp4") ||
+      uri.endsWith(".mov") ||
+      uri.endsWith(".avi") ||
+      uri.endsWith(".mkv") ||
+      uri.endsWith(".webm")
+    );
+  }
+  return false;
 };
 
 export default function PropertyDetailsScreen() {
@@ -498,11 +513,22 @@ export default function PropertyDetailsScreen() {
             }}
             className="w-full h-full"
           >
-            <Image
-              source={property.image}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
+            {isVideo(property.image) ? (
+              <Video
+                source={property.image}
+                style={{ width: "100%", height: "100%" }}
+                resizeMode={ResizeMode.COVER}
+                shouldPlay
+                isLooping
+                isMuted
+              />
+            ) : (
+              <Image
+                source={property.image}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            )}
             <LinearGradient
               colors={["rgba(0,0,0,0.6)", "transparent", "rgba(0,0,0,0.3)"]}
               style={{ position: "absolute", inset: 0 }}
@@ -588,7 +614,7 @@ export default function PropertyDetailsScreen() {
                 <CameraIcon size={16} color="white" weight="fill" />
               </Animated.View>
               <Text className="ml-2 text-white text-sm font-urbanist-bold">
-                Voir les photos ({property.images ? property.images.length : 1})
+                Voir les médias ({property.images ? property.images.length : 1})
               </Text>
             </TouchableOpacity>
           </View>

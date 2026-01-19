@@ -24,7 +24,22 @@ import {
   View,
   Easing,
 } from "react-native";
+import { Video, ResizeMode } from "expo-av";
 import AuthPromptModal from "./AuthPromptModal";
+
+const isVideo = (image: any) => {
+  if (typeof image === "object" && image.uri) {
+    const uri = image.uri.toLowerCase();
+    return (
+      uri.endsWith(".mp4") ||
+      uri.endsWith(".mov") ||
+      uri.endsWith(".avi") ||
+      uri.endsWith(".mkv") ||
+      uri.endsWith(".webm")
+    );
+  }
+  return false;
+};
 
 interface PropertyCardProps {
   property: {
@@ -118,6 +133,19 @@ export default function PropertyCard({
     }).start();
   }, [dividerAnimation]);
 
+  const imageSource =
+    property.image &&
+    typeof property.image === "object" &&
+    property.image.uri
+      ? { uri: property.image.uri }
+      : typeof property.image === "number"
+        ? property.image
+        : typeof property.image === "string"
+          ? { uri: property.image }
+          : {
+              uri: "https://via.placeholder.com/400x300?text=Pas+d%27image",
+            };
+
   const content = (
     <View
       className={`bg-white rounded-3xl overflow-hidden mb-6 ${
@@ -140,23 +168,21 @@ export default function PropertyCard({
     >
       {/* Image Section */}
       <View className="relative">
-        <Image
-          source={
-            property.image &&
-            typeof property.image === "object" &&
-            property.image.uri
-              ? { uri: property.image.uri }
-              : typeof property.image === "number"
-                ? property.image
-                : typeof property.image === "string"
-                  ? { uri: property.image }
-                  : {
-                      uri: "https://via.placeholder.com/400x300?text=Pas+d%27image",
-                    }
-          }
-          className="w-full h-[240px] bg-roogo-neutral-100"
-          resizeMode="cover"
-        />
+        {isVideo(imageSource) ? (
+          <Video
+            source={imageSource}
+            style={{ width: "100%", height: 240, backgroundColor: tokens.colors.roogo.neutral[100] }}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay={false}
+            isMuted={true}
+          />
+        ) : (
+          <Image
+            source={imageSource}
+            className="w-full h-[240px] bg-roogo-neutral-100"
+            resizeMode="cover"
+          />
+        )}
         {/* Floating Category Tag */}
         <View
           className={`absolute top-4 left-4 px-4 py-1.5 rounded-full shadow-sm ${
