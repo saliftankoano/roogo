@@ -8,6 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
+import { PostHogProvider } from "posthog-react-native";
 
 import "../global.css";
 
@@ -128,12 +129,27 @@ export default function RootLayout() {
       tokenCache={tokenCache}
       publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}
     >
-      <PushNotificationHandler />
-      <SafeAreaProvider>
-        <View style={{ flex: 1 }}>
-          <Slot />
-        </View>
-      </SafeAreaProvider>
+      <PostHogProvider
+        apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
+        options={{
+          host: "https://us.i.posthog.com",
+          enableSessionReplay: true,
+          sessionReplayConfig: {
+            maskAllTextInputs: true,
+            maskAllImages: false,
+            captureLog: true,
+            captureNetworkTelemetry: true,
+            throttleDelayMs: 1000,
+          },
+        }}
+      >
+        <PushNotificationHandler />
+        <SafeAreaProvider>
+          <View style={{ flex: 1 }}>
+            <Slot />
+          </View>
+        </SafeAreaProvider>
+      </PostHogProvider>
     </ClerkProvider>
   );
 }

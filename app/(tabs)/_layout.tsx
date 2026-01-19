@@ -24,6 +24,7 @@ import {
 import { useUserType } from "../../hooks/useUserType";
 import { tokens } from "../../theme/tokens";
 import { ErrorBoundary } from "../../components/ErrorBoundary";
+import { usePostHog } from "posthog-react-native";
 
 const ACTIVE_COLOR = tokens.colors.roogo.primary[500];
 const INACTIVE_COLOR = tokens.colors.roogo.neutral[500];
@@ -103,6 +104,7 @@ export default function TabLayout() {
   const pathname = usePathname();
   const isDetailsPage = pathname.includes("/details");
   const { isOwner, isAgent, isRenter, isGuest, isLoaded } = useUserType();
+  const posthog = usePostHog();
 
   // Track if we've ever loaded successfully to prevent blank flash on tab switches
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
@@ -262,7 +264,14 @@ export default function TabLayout() {
                   key={route.key}
                   accessibilityRole="button"
                   accessibilityState={isFocused ? { selected: true } : {}}
-                  onPress={onPress}
+                  onPress={() => {
+                    if (posthog) {
+                        posthog.capture("add_property_tab_pressed", {
+                            user_type: isAgent ? "agent" : "owner",
+                        });
+                    }
+                    onPress();
+                  }}
                   style={{
                     flex: 1,
                     alignItems: "center",
