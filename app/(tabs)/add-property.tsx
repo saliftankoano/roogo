@@ -1,7 +1,8 @@
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import AgentOnly from "../../components/AgentOnly";
 import { SubmissionOverlay } from "../../components/SubmissionOverlay";
@@ -11,6 +12,7 @@ import {
   TIERS,
 } from "../../forms/listingSchema";
 import { submitProperty } from "../../services/propertyService";
+import { fetchPropertyById } from "../../services/propertyFetchService";
 import { ListingStep1Screen } from "../../screens/ListingStep1Screen";
 import { ListingStep2Screen } from "../../screens/ListingStep2Screen";
 import { ListingStep3Screen } from "../../screens/ListingStep3Screen";
@@ -19,9 +21,11 @@ import { UpsellModal } from "../../components/UpsellModal";
 
 export default function AddPropertyScreen() {
   const navigation = useNavigation();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useUser();
   const { getToken } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +38,78 @@ export default function AddPropertyScreen() {
 
   // Payment state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      setIsEditing(true);
+      loadProperty(id);
+    }
+  }, [id]);
+
+  const loadProperty = async (propertyId: string) => {
+    try {
+      const property = await fetchPropertyById(propertyId);
+      if (!property) return;
+
+      // Parse location "Quartier, Ville"
+      let quartier = "";
+      let ville: "ouaga" | "bobo" = "ouaga";
+      
+      if (property.location) {
+        const parts = property.location.split(",").map(p => p.trim());
+        if (parts.length >= 2) {
+          quartier = parts[0];
+          const cityStr = parts[1].toLowerCase();
+          if (cityStr.includes("bobo")) ville = "bobo";
+        } else {
+          quartier = property.location;
+        }
+      }
+
+      // Map amenities names to IDs
+      // This is a simplified mapping, might need robust logic if names change
+      const equipements: any[] = [];
+      const amenitiesList = property.amenities || [];
+      if (amenitiesList.some(a => a.toLowerCase().includes("wifi"))) equipements.push("wifi");
+      if (amenitiesList.some(a => a.toLowerCase().includes("sécurité") || a.toLowerCase().includes("securite"))) equipements.push("securite");
+      if (amenitiesList.some(a => a.toLowerCase().includes("jardin"))) equipements.push("jardin");
+      if (amenitiesList.some(a => a.toLowerCase().includes("solaire"))) equipements.push("solaires");
+      if (amenitiesList.some(a => a.toLowerCase().includes("piscine"))) equipements.push("piscine");
+      if (amenitiesList.some(a => a.toLowerCase().includes("meublé") || a.toLowerCase().includes("meuble"))) equipements.push("meuble");
+
+      const mappedData: Partial<ListingDraft> = {
+        titre: property.title,
+        type: property.propertyType.toLowerCase() as any, // Ensure matches enum
+        prixMensuel: parseInt(property.price.replace(/[^0-9]/g, "")),
+        quartier: quartier,
+        ville: ville,
+        chambres: property.bedrooms,
+        sdb: property.bathrooms,
+        superficie: parseInt(property.area),
+        vehicules: property.parking,
+        description: property.description,
+        photos: (property.images || []).map((img: any) => ({
+          uri: img.uri || img,
+          width: 1000, // Default dimensions
+          height: 800,
+        })),
+        equipements: equipements,
+        cautionMois: property.deposit,
+        interdictions: (property.prohibitions || []) as any[],
+      };
+
+      setFormData(mappedData);
+      // Reset form with new values
+      // We need to use reset() from useForm but we only have setFormData here which updates local state
+      // The form uses defaultValues from formData which is only initial.
+      // We should probably update the form values explicitly if we had access to reset/setValue
+      // But since we pass formData to screens, it should update if screens use it.
+      // However, useForm in this component is initialized once. 
+      // We should update the form state as well.
+    } catch (error) {
+      console.error("Error loading property:", error);
+    }
+  };
 
   const calculateAddOnTotal = () => {
     const prices: Record<string, number> = {
@@ -116,11 +192,17 @@ export default function AddPropertyScreen() {
     formState: { errors: formErrors },
     setError,
     clearErrors,
+    reset,
   } = useForm<ListingDraft>({
     resolver: zodResolver(listingSchema),
     mode: "onChange",
     defaultValues: formData as ListingDraft,
   });
+
+  // Update form when formData changes (e.g. after loading property)
+  useEffect(() => {
+    reset(formData as ListingDraft);
+  }, [formData, reset]);
 
   // Convert form errors to simple object
   const errors = Object.keys(formErrors).reduce(
@@ -321,6 +403,7 @@ export default function AddPropertyScreen() {
           onFormChange={handleFormChange}
           onNext={handleNextStep1}
           errors={errors}
+          isEditing={isEditing}
         />
       )}
       {currentStep === 2 && (

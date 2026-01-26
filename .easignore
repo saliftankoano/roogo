@@ -1,0 +1,9 @@
+# Review screenshots (not used in app)
+assets/review-1/
+assets/review-2/
+
+# Sample video (not used in app)
+assets/submission-vid.mp4
+
+# Sample home images (properties load from Supabase, not local)
+assets/images/homes/

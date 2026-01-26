@@ -29,8 +29,14 @@ async function getSupabaseUserId(clerkId: string): Promise<string | null> {
     .eq("clerk_id", clerkId)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
     console.error("Error getting Supabase user ID:", error);
+    return null;
+  }
+
+  if (!data) {
+    // User not found in Supabase - valid case (e.g. not synced yet)
+    // Return null silently so we just show empty favorites
     return null;
   }
 

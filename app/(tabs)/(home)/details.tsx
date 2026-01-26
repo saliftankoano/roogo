@@ -38,7 +38,10 @@ import {
   Modal,
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import AgentCard from "../../../components/AgentCard";
 import AuthPromptModal from "../../../components/AuthPromptModal";
 import ContactSheet from "../../../components/ContactSheet";
@@ -254,6 +257,7 @@ const isVideo = (image: any) => {
 export default function PropertyDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
   const [isContactSheetVisible, setIsContactSheetVisible] = useState(false);
   const [isGalleryVisible, setIsGalleryVisible] = useState(false);
   const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
@@ -335,7 +339,7 @@ export default function PropertyDetailsScreen() {
     Alert.alert(
       "🎉 Réservé !",
       "Félicitations, vous avez verrouillé ce bien. Le propriétaire vous contactera sous peu pour la signature du bail.",
-      [{ text: "Super", onPress: () => {} }]
+      [{ text: "Super", onPress: () => {} }],
     );
   };
 
@@ -358,7 +362,7 @@ export default function PropertyDetailsScreen() {
           [
             { text: "Plus tard", style: "cancel" },
             { text: "Voir les dates", onPress: () => setShowPicker(true) },
-          ]
+          ],
         );
         // Optionally refresh property to update slots_filled
         if (property.slots_filled !== undefined) {
@@ -400,7 +404,7 @@ export default function PropertyDetailsScreen() {
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, [bounceAnim]);
 
@@ -427,35 +431,39 @@ export default function PropertyDetailsScreen() {
           // Uses persistent AsyncStorage tracking with 24h TTL to prevent duplicate counts
           if (fetchedProperty?.uuid && !hasCheckedViews.current) {
             hasCheckedViews.current = true;
-            
+
             const userEmail = user?.primaryEmailAddress?.emailAddress;
             const isOwner =
               userEmail && fetchedProperty.agent?.email === userEmail;
 
             if (!isOwner) {
               // Check if we should increment (hasn't been viewed within TTL)
-              const shouldIncrement = await shouldIncrementView(fetchedProperty.uuid);
-              
+              const shouldIncrement = await shouldIncrementView(
+                fetchedProperty.uuid,
+              );
+
               if (shouldIncrement) {
                 // Increment on server and mark as viewed locally
                 incrementPropertyViews(fetchedProperty.uuid);
-                
+
                 // Get user location (non-blocking)
                 const propertyUuid = fetchedProperty.uuid; // Capture for closure
                 getUserLocation().then(({ coords, city }) => {
                   // Get current supabase user ID
-                  supabase.auth.getUser().then(({ data: { user: supabaseUser } }) => {
-                    recordViewEvent({
-                      propertyId: propertyUuid,
-                      userId: supabaseUser?.id || null,
-                      clerkId: user?.id || null,
-                      source: "browse", // or derive from params if available
-                      coordinates: coords,
-                      city
+                  supabase.auth
+                    .getUser()
+                    .then(({ data: { user: supabaseUser } }) => {
+                      recordViewEvent({
+                        propertyId: propertyUuid,
+                        userId: supabaseUser?.id || null,
+                        clerkId: user?.id || null,
+                        source: "browse", // or derive from params if available
+                        coordinates: coords,
+                        city,
+                      });
                     });
-                  });
                 });
-                
+
                 await markPropertyViewed(fetchedProperty.uuid);
               }
             }
@@ -464,7 +472,7 @@ export default function PropertyDetailsScreen() {
           const numericId = parseInt(propertyId, 10);
           if (!Number.isNaN(numericId)) {
             const mockProperty = properties.find(
-              (item) => item.id === numericId
+              (item) => item.id === numericId,
             );
             setProperty(mockProperty);
           }
@@ -533,7 +541,7 @@ export default function PropertyDetailsScreen() {
       <StatusBar barStyle="light-content" />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: property.agent ? 0 : 120 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         bounces={false}
       >
         {/* Immersive Header Image */}
@@ -578,7 +586,7 @@ export default function PropertyDetailsScreen() {
                   "px-4 py-2 rounded-2xl flex-row items-center backdrop-blur-md shadow-lg",
                   property.status === "locked"
                     ? "bg-roogo-primary-500/90"
-                    : "bg-green-600/90"
+                    : "bg-green-600/90",
                 )}
               >
                 {property.status === "locked" ? (
@@ -775,7 +783,7 @@ export default function PropertyDetailsScreen() {
                     <Text className="text-roogo-neutral-600 font-urbanist-medium text-sm mt-1">
                       Total:{" "}
                       {formatCurrency(
-                        String(Number(property.price) * property.deposit)
+                        String(Number(property.price) * property.deposit),
                       )}
                     </Text>
                   </View>
@@ -821,7 +829,10 @@ export default function PropertyDetailsScreen() {
       </ScrollView>
 
       {/* Floating Contact Footer */}
-      <View className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 bg-white border-t border-roogo-neutral-100">
+      <View 
+        className="absolute bottom-0 left-0 right-0 px-6 pt-4 bg-white border-t border-roogo-neutral-100"
+        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+      >
         {property.status === "locked" ? (
           <View className="flex-row gap-3">
             <View className="flex-1">
@@ -849,7 +860,7 @@ export default function PropertyDetailsScreen() {
           </View>
         ) : (
           <View>
-            <View className="flex-row gap-3 mb-3">
+            <View className="flex-row gap-3 mb-2">
               {!property.agent && (
                 <TouchableOpacity
                   onPress={() => setIsContactSheetVisible(true)}
@@ -885,7 +896,7 @@ export default function PropertyDetailsScreen() {
               property.status === "en_ligne" && (
                 <TouchableOpacity
                   disabled={true}
-                  className="w-full bg-roogo-neutral-100 py-3 rounded-2xl items-center opacity-60 flex-row justify-center gap-2"
+                  className="w-full bg-roogo-neutral-100 py-2 rounded-2xl items-center opacity-60 flex-row justify-center gap-2"
                 >
                   <LockIcon
                     size={16}

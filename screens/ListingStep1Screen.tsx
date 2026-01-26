@@ -25,6 +25,7 @@ interface ListingStep1ScreenProps {
   onFormChange: (data: Partial<ListingDraft>) => void;
   onNext: () => void;
   errors: Record<string, string>;
+  isEditing?: boolean;
 }
 
 export const ListingStep1Screen: React.FC<ListingStep1ScreenProps> = ({
@@ -33,6 +34,7 @@ export const ListingStep1Screen: React.FC<ListingStep1ScreenProps> = ({
   onFormChange,
   onNext,
   errors,
+  isEditing,
 }) => {
   const handleFieldChange = (field: keyof ListingDraft, value: any) => {
     onFormChange({ ...formData, [field]: value });
@@ -196,7 +198,21 @@ export const ListingStep1Screen: React.FC<ListingStep1ScreenProps> = ({
               }}
               keyboardType="numeric"
               error={errors.prixMensuel}
+              editable={!isEditing}
+              style={
+                isEditing
+                  ? {
+                      backgroundColor: tokens.colors.roogo.neutral[100],
+                      color: tokens.colors.roogo.neutral[500],
+                    }
+                  : undefined
+              }
             />
+            {isEditing && (
+              <Text className="text-xs text-roogo-neutral-500 mt-1 ml-1 font-urbanist">
+                Le prix ne peut pas être modifié car les frais sont calculés sur cette base.
+              </Text>
+            )}
           </View>
 
           {/* Localisation */}

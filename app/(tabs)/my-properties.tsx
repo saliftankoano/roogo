@@ -98,7 +98,7 @@ export default function MyPropertiesScreen() {
       if (isLoaded && user && (isOwner || isAgent)) {
         loadProperties();
       }
-    }, [isLoaded, user, isOwner, isAgent, loadProperties])
+    }, [isLoaded, user, isOwner, isAgent, loadProperties]),
   );
 
   const onRefresh = useCallback(() => {
@@ -215,7 +215,7 @@ export default function MyPropertiesScreen() {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -372,13 +372,12 @@ export default function MyPropertiesScreen() {
             </Text>
           </View>
 
-          {/* Status Filters - Horizontal Scroll */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: 20,
-              gap: 12,
+          {/* Status Filters - Single Row Adaptive */}
+          <View
+            style={{
+              flexDirection: "row",
+              paddingHorizontal: 16,
+              gap: 6,
               paddingBottom: 20,
             }}
           >
@@ -416,11 +415,13 @@ export default function MyPropertiesScreen() {
                   onPress={() => toggleStatus(stat.id)}
                   activeOpacity={0.8}
                   style={{
+                    flex: 1,
                     flexDirection: "row",
                     alignItems: "center",
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                    borderRadius: 16,
+                    justifyContent: "center",
+                    paddingHorizontal: 4,
+                    paddingVertical: 8,
+                    borderRadius: 12,
                     backgroundColor: isActive
                       ? tokens.colors.roogo.primary[500]
                       : "white",
@@ -436,8 +437,10 @@ export default function MyPropertiesScreen() {
                   }}
                 >
                   <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
                     style={{
-                      fontSize: 14,
+                      fontSize: 11,
                       fontFamily: isActive
                         ? "Urbanist-Bold"
                         : "Urbanist-SemiBold",
@@ -450,8 +453,8 @@ export default function MyPropertiesScreen() {
                   </Text>
                   <View
                     style={{
-                      marginLeft: 8,
-                      paddingHorizontal: 6,
+                      marginLeft: 4,
+                      paddingHorizontal: 4,
                       paddingVertical: 2,
                       borderRadius: 6,
                       backgroundColor: isActive
@@ -461,7 +464,7 @@ export default function MyPropertiesScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: 10,
                         fontFamily: "Urbanist-Bold",
                         color: isActive
                           ? "white"
@@ -474,7 +477,7 @@ export default function MyPropertiesScreen() {
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
 
           {/* Sort Controls */}
           <View
@@ -580,7 +583,7 @@ export default function MyPropertiesScreen() {
           }
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
+            { useNativeDriver: true },
           )}
           scrollEventThrottle={16}
           contentContainerStyle={{ paddingBottom: 100 }}

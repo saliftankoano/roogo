@@ -17,7 +17,8 @@
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.salift_roogo.roogo"
+      "package": "com.salift_roogo.roogo",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -58,7 +59,8 @@
       ],
       "expo-web-browser",
       "expo-notifications",
-      "expo-localization"
+      "expo-localization",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -67,9 +69,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "10bc3aa3-8663-4af9-b726-e70556a0d76e"
+        "projectId": "101419dc-288d-4948-ad6f-207ddfcf361b"
       }
     },
-    "owner": "salift_roogo"
+    "owner": "kazedra-technologies"
   }
 }

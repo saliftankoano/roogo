@@ -75,7 +75,7 @@ const SupportSheet: React.FC<SupportSheetProps> = ({ visible, onClose }) => {
           activeOpacity={1}
         >
           {/* Drag Handle */}
-          <View style={{ alignItems: "center", paddingTop: 12, pb: 8 }}>
+          <View style={{ alignItems: "center", paddingTop: 12, paddingBottom: 8 }}>
             <View
               style={{
                 width: 40,
@@ -128,7 +128,7 @@ const SupportSheet: React.FC<SupportSheetProps> = ({ visible, onClose }) => {
                 justifyContent: "center",
               }}
             >
-              <XIcon size={20} color={tokens.colors.roogo.neutral[600]} />
+              <XIcon size={20} color={tokens.colors.roogo.neutral[500]} />
             </TouchableOpacity>
           </View>
 

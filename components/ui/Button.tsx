@@ -27,7 +27,7 @@ export const Button = React.forwardRef<View, ButtonProps>(
       disabled,
       ...props
     },
-    ref
+    ref,
   ) => {
     const baseStyles = "flex-row items-center justify-center rounded-full";
 
@@ -77,7 +77,7 @@ export const Button = React.forwardRef<View, ButtonProps>(
         )}
       </TouchableOpacity>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";
