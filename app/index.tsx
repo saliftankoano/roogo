@@ -1,5 +1,5 @@
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
+import { router, Redirect } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
@@ -32,19 +32,15 @@ export default function OnboardingScreen() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { userType, isLoaded: isTypeLoaded } = useUserType();
   const { user } = useUser();
-
   const [step, setStep] = useState<OnboardingStep>(1);
+
   const [companyName, setCompanyName] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  
+
   // Track if we've already attempted to reload user to prevent infinite loops
   const hasAttemptedReload = useRef(false);
-  // Track if navigation is in progress to prevent race conditions
-  const isNavigating = useRef(false);
-  // Track the current operation ID to detect stale operations
-  const operationId = useRef(0);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -54,62 +50,35 @@ export default function OnboardingScreen() {
     };
   }, []);
 
-  // Auth Status Check Logic - Simplified with explicit guards
+  // Auth Status Check Logic - Handle user type selection for signed in users without type
   useEffect(() => {
-    // Increment operation ID for this effect run
-    const currentOperationId = ++operationId.current;
-    
-    // Guard: Don't run if already navigating
-    if (isNavigating.current) return;
-    
     // Guard: Wait for both auth and type to load
-    if (!isLoaded || !isTypeLoaded) return;
+    if (!isLoaded || !isTypeLoaded) {
+      return;
+    }
 
-    const checkAuthStatus = async () => {
-      // Guard: Check if this operation is still current
-      if (operationId.current !== currentOperationId) return;
-      
-      if (isSignedIn) {
-        if (userType) {
-          // User is fully signed in and has a type -> Go Home
-          // Guard against multiple navigations
-          if (!isNavigating.current) {
-            isNavigating.current = true;
-            console.log("Redirecting to tabs...");
-            router.replace("/(tabs)/(home)");
-          }
-        } else {
-          // User is signed in but has NO type (new signup or sync issue)
-          // Try one reload to be absolutely sure before showing selection
-          if (!hasAttemptedReload.current && user) {
-            hasAttemptedReload.current = true;
-            try {
-              await user.reload();
-              // After reload, if userType is now available via publicMetadata,
-              // the next effect run will handle redirection.
-              // Don't set step here - let the effect re-run with new data
-              return;
-            } catch (e) {
-              console.error("Error reloading user in onboarding:", e);
-            }
-          }
-          
-          // Guard: Only transition if still on step 1 and operation is current
-          if (operationId.current === currentOperationId && step === 1) {
-            setStep(2);
-          }
-        }
-      } else {
-        // Not signed in -> Stay on Step 1 (Welcome)
-        // Reset reload flag when user signs out
-        hasAttemptedReload.current = false;
-        if (step !== 1) {
-          setStep(1);
-        }
+    // Handle signed-in user without userType (needs to select type)
+    if (isSignedIn && !userType) {
+      // Try one reload to be absolutely sure before showing selection
+      if (!hasAttemptedReload.current && user) {
+        hasAttemptedReload.current = true;
+        user.reload().catch((e) => {
+          console.error("Error reloading user in onboarding:", e);
+        });
       }
-    };
 
-    checkAuthStatus();
+      // Show user type selection (step 2)
+      if (step === 1) {
+        setStep(2);
+      }
+    } else if (!isSignedIn) {
+      // Not signed in -> Stay on Step 1 (Welcome)
+      hasAttemptedReload.current = false;
+      if (step !== 1) {
+        setStep(1);
+      }
+    }
+    // Note: if isSignedIn && userType, the Redirect component handles navigation
   }, [isLoaded, isTypeLoaded, isSignedIn, userType, step, user]);
 
   const transitionTo = (nextStep: OnboardingStep) => {
@@ -136,50 +105,55 @@ export default function OnboardingScreen() {
     }
   };
 
-  const completeOnboarding = useCallback(async (
-    type: string,
-    agentData?: { companyName?: string; facebookUrl?: string }
-  ) => {
-    if (!user) return;
-    
-    // Guard against multiple submissions or navigations
-    if (isSubmitting || isNavigating.current) return;
+  const completeOnboarding = useCallback(
+    async (
+      type: string,
+      agentData?: { companyName?: string; facebookUrl?: string },
+    ) => {
+      if (!user) return;
 
-    try {
-      setIsSubmitting(true);
+      // Guard against multiple submissions or navigations
+      if (isSubmitting) return;
 
-      const token = await getToken();
-      if (!token) {
-        throw new Error("No auth token available");
+      try {
+        setIsSubmitting(true);
+
+        const token = await getToken();
+        if (!token) {
+          throw new Error("No auth token available");
+        }
+
+        // Securely update metadata via backend API
+        const metadata: {
+          userType: string;
+          companyName?: string;
+          facebookUrl?: string;
+        } = {
+          userType: type,
+        };
+        if (type === "agent" && agentData) {
+          if (agentData.companyName)
+            metadata.companyName = agentData.companyName;
+          if (agentData.facebookUrl)
+            metadata.facebookUrl = agentData.facebookUrl;
+        }
+
+        const success = await updateClerkMetadata(token, metadata);
+
+        if (success) {
+          // Reload user to get updated publicMetadata
+          await user.reload();
+          router.replace("/(tabs)/(home)");
+        } else {
+          throw new Error("Failed to update metadata via API");
+        }
+      } catch (error) {
+        console.error("Error completing onboarding:", error);
+        setIsSubmitting(false);
       }
-
-      // Securely update metadata via backend API
-      const metadata: { userType: string; companyName?: string; facebookUrl?: string } = {
-        userType: type,
-      };
-      if (type === "agent" && agentData) {
-        if (agentData.companyName) metadata.companyName = agentData.companyName;
-        if (agentData.facebookUrl) metadata.facebookUrl = agentData.facebookUrl;
-      }
-
-      const success = await updateClerkMetadata(token, metadata);
-
-      if (success) {
-        // Guard against race condition during navigation
-        if (isNavigating.current) return;
-        isNavigating.current = true;
-        
-        // Reload user to get updated publicMetadata
-        await user.reload();
-        router.replace("/(tabs)/(home)");
-      } else {
-        throw new Error("Failed to update metadata via API");
-      }
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
-      setIsSubmitting(false);
-    }
-  }, [user, getToken, isSubmitting]);
+    },
+    [user, getToken, isSubmitting],
+  );
 
   const handleAgentSubmit = async () => {
     await completeOnboarding("agent", { companyName, facebookUrl });
@@ -194,6 +168,12 @@ export default function OnboardingScreen() {
         </Text>
       </View>
     );
+  }
+
+  // Use declarative Redirect instead of programmatic navigation
+  // This is the recommended pattern for expo-router
+  if (isSignedIn && userType) {
+    return <Redirect href="/(tabs)/(home)" />;
   }
 
   return (
@@ -233,7 +213,9 @@ export default function OnboardingScreen() {
                   variant="primary"
                   size="lg"
                   className="w-[50%] mx-auto bg-figma-primary h-[64px] rounded-2xl shadow-xl shadow-figma-primary/20"
-                  onPress={() => router.push("/(auth)/sign-up")}
+                  onPress={() => {
+                    router.push("/(auth)/sign-up");
+                  }}
                 >
                   C&apos;est parti !
                 </Button>

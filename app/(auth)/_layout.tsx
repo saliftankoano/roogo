@@ -1,12 +1,16 @@
 import { useAuth } from "@clerk/clerk-expo";
-import { Redirect, Stack } from "expo-router";
+import { Stack, router } from "expo-router";
+import { useEffect } from "react";
 
 export default function AuthRoutesLayout() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
 
-  if (isSignedIn) {
-    return <Redirect href={"/"} />;
-  }
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace("/");
+    }
+  }, [isSignedIn, isLoaded]);
 
+  // Show the auth screens while not signed in or still loading
   return <Stack screenOptions={{ headerShown: false }} />;
 }

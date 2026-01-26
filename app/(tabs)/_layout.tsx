@@ -21,6 +21,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUserType } from "../../hooks/useUserType";
 import { tokens } from "../../theme/tokens";
 import { ErrorBoundary } from "../../components/ErrorBoundary";
@@ -105,6 +106,7 @@ export default function TabLayout() {
   const isDetailsPage = pathname.includes("/details");
   const { isOwner, isAgent, isRenter, isGuest, isLoaded } = useUserType();
   const posthog = usePostHog();
+  const insets = useSafeAreaInsets();
 
   // Track if we've ever loaded successfully to prevent blank flash on tab switches
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
@@ -131,7 +133,7 @@ export default function TabLayout() {
   const commonTabBarStyle = {
     backgroundColor: "#FFFFFF",
     position: "absolute" as const,
-    bottom: Platform.OS === "ios" ? 32 : 24,
+    bottom: (Platform.OS === "ios" ? 32 : 24) + insets.bottom,
     left: stableIsRenter ? 80 : 20,
     right: stableIsRenter ? 80 : 20,
     height: stableIsRenter ? 64 : 72,
@@ -167,7 +169,11 @@ export default function TabLayout() {
       paddingHorizontal: 16,
     };
 
-    const totalHeight = (Platform.OS === "ios" ? 32 : 24) + (stableIsRenter ? 64 : 72) + 8;
+    const totalHeight =
+      (Platform.OS === "ios" ? 32 : 24) +
+      (stableIsRenter ? 64 : 72) +
+      8 +
+      insets.bottom;
 
     return (
       <View
@@ -181,20 +187,26 @@ export default function TabLayout() {
         pointerEvents="box-none"
       >
         {/* Solid background only for the bottom safe area to hide content below the bar */}
-        <View
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: Platform.OS === "ios" ? 40 : 32,
-            backgroundColor: "#FFFFFF",
-          }}
-        />
+        {insets.bottom > 0 && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: insets.bottom + (Platform.OS === "ios" ? 0 : 10),
+              backgroundColor: "transparent", // Changed to transparent as requested by design or just let content show?
+              // Actually, usually we want to cover it if it's edge to edge, but the user complained about overlap.
+              // If we add a white view here, it might block content.
+              // But the island menu floats.
+              // Let's just ensure the island menu is pushed up.
+            }}
+          />
+        )}
         <View style={containerStyle as any}>
           {props.state.routes.map((route, index) => {
             const isFocused = props.state.index === index;
-            
+
             // Explicitly filter visibility based on user type
             if (route.name === "favoris" && !stableIsRenter) return null;
             if (route.name === "photography" && !isOwnerOrAgent) return null;
@@ -221,9 +233,13 @@ export default function TabLayout() {
             // Special handle for Guest Login Button
             if (route.name === "profile" && stableIsGuest) {
               return (
-                <View 
+                <View
                   key={route.key}
-                  style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
                   <TouchableOpacity
                     onPress={() => {
@@ -266,9 +282,9 @@ export default function TabLayout() {
                   accessibilityState={isFocused ? { selected: true } : {}}
                   onPress={() => {
                     if (posthog) {
-                        posthog.capture("add_property_tab_pressed", {
-                            user_type: isAgent ? "agent" : "owner",
-                        });
+                      posthog.capture("add_property_tab_pressed", {
+                        user_type: isAgent ? "agent" : "owner",
+                      });
                     }
                     onPress();
                   }}
@@ -284,14 +300,14 @@ export default function TabLayout() {
                       width: 48,
                       height: 48,
                       borderRadius: 24,
-                      backgroundColor: isFocused 
-                        ? tokens.colors.roogo.primary[500] 
+                      backgroundColor: isFocused
+                        ? tokens.colors.roogo.primary[500]
                         : tokens.colors.roogo.neutral[900],
                       justifyContent: "center",
                       alignItems: "center",
                       // Subtle shadow to give it presence without breaking the level
-                      shadowColor: isFocused 
-                        ? tokens.colors.roogo.primary[500] 
+                      shadowColor: isFocused
+                        ? tokens.colors.roogo.primary[500]
                         : "#000",
                       shadowOffset: { width: 0, height: 4 },
                       shadowOpacity: 0.3,
@@ -344,7 +360,11 @@ export default function TabLayout() {
       bottom: 0,
       left: 0,
       right: 0,
-      height: (Platform.OS === "ios" ? 32 : 24) + (stableIsRenter ? 64 : 72) + 8,
+      height:
+        (Platform.OS === "ios" ? 32 : 24) +
+        (stableIsRenter ? 64 : 72) +
+        8 +
+        insets.bottom,
       backgroundColor: "transparent",
       borderTopWidth: 0,
       elevation: 0,

@@ -31,59 +31,69 @@ function PushNotificationHandler() {
 
   useEffect(() => {
     async function registerForPushNotificationsAsync() {
-      if (!Device.isDevice) {
-        console.log("Must use physical device for Push Notifications");
-        return;
-      }
-
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== "granted") {
-        console.log("Failed to get push token for push notification!");
-        return;
-      }
-
-      const projectId =
-        Constants?.expoConfig?.extra?.eas?.projectId ??
-        Constants?.easConfig?.projectId;
-
-      if (!projectId) {
-        console.warn(
-          "Push Notifications: EAS Project ID not found in app.json. " +
-            "Please run 'eas project:init' or add 'extra.eas.projectId' to your app.json."
-        );
-        return;
-      }
-
-      const token = (await Notifications.getExpoPushTokenAsync({ projectId }))
-        .data;
-      console.log("Expo Push Token:", token);
-
-      // Register token with backend if signed in
-      if (isSignedIn) {
-        try {
-          const clerkToken = await getToken();
-          const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-          await fetch(`${API_URL}/api/push-tokens`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${clerkToken}`,
-            },
-            body: JSON.stringify({
-              expoPushToken: token,
-              platform: Platform.OS,
-            }),
-          });
-        } catch (error) {
-          console.error("Failed to register push token with backend:", error);
+      try {
+        if (!Device.isDevice) {
+          console.log("Must use physical device for Push Notifications");
+          return;
         }
+
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        if (finalStatus !== "granted") {
+          console.log("Failed to get push token for push notification!");
+          return;
+        }
+
+        const projectId =
+          Constants?.expoConfig?.extra?.eas?.projectId ??
+          Constants?.easConfig?.projectId;
+
+        if (!projectId) {
+          console.warn(
+            "Push Notifications: EAS Project ID not found in app.json. " +
+              "Please run 'eas project:init' or add 'extra.eas.projectId' to your app.json.",
+          );
+          return;
+        }
+
+        const token = (await Notifications.getExpoPushTokenAsync({ projectId }))
+          .data;
+        console.log("Expo Push Token:", token);
+
+        // Register token with backend if signed in
+        if (isSignedIn) {
+          try {
+            const clerkToken = await getToken();
+            const API_URL = process.env.EXPO_PUBLIC_API_URL;
+            
+            await fetch(`${API_URL}/api/push-tokens`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${clerkToken}`,
+              },
+              body: JSON.stringify({
+                expoPushToken: token,
+                platform: Platform.OS,
+              }),
+            });
+          } catch (error) {
+            console.error("Failed to register push token with backend:", error);
+          }
+        }
+      } catch (error) {
+        // Firebase not configured - push notifications will be unavailable
+        console.warn(
+          "Push notifications unavailable:",
+          error instanceof Error
+            ? error.message
+            : "Firebase not configured. Add google-services.json to enable push notifications.",
+        );
       }
     }
 

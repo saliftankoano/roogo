@@ -22,7 +22,7 @@ export default function SignUpScreen() {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [loadingProvider, setLoadingProvider] = React.useState<string | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -42,13 +42,16 @@ export default function SignUpScreen() {
   }, [isUserLoaded, user, isLoading, router]);
 
   async function handleOAuth(
-    strategy: "oauth_google" | "oauth_facebook" | "oauth_apple"
+    strategy: "oauth_google" | "oauth_facebook" | "oauth_apple",
   ) {
     try {
       setIsLoading(true);
       setLoadingProvider(strategy);
 
-      const redirectUrl = AuthSession.makeRedirectUri({ scheme: "roogo" });
+      const redirectUrl = AuthSession.makeRedirectUri({ 
+        scheme: "roogo",
+        path: "oauth-native-callback"
+      });
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy,
         redirectUrl,
@@ -69,13 +72,16 @@ export default function SignUpScreen() {
     <View className="bg-white flex-1">
       {/* Navigation Header */}
       <View className="flex-row items-center justify-between px-6 mt-16">
-        <TouchableOpacity onPress={() => {
+        <TouchableOpacity
+          onPress={() => {
             if (router.canGoBack()) {
               router.back();
             } else {
               router.replace("/");
             }
-        }} className="p-2">
+          }}
+          className="p-2"
+        >
           <Ionicons name="arrow-back" size={24} color="#000000" />
         </TouchableOpacity>
       </View>
