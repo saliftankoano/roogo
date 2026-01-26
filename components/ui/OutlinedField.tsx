@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Text, TextInput, TextInputProps, View, Animated } from "react-native";
-import { tokens } from "../theme/tokens";
+import { Text, TextInput, TextInputProps, View } from "react-native";
+import { tokens } from "@/theme/tokens";
 
 interface OutlinedFieldProps extends TextInputProps {
   label?: string;
@@ -77,3 +77,4 @@ export const OutlinedField: React.FC<OutlinedFieldProps> = ({
     </View>
   );
 };
+

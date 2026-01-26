@@ -6,7 +6,7 @@ import {
   ViewStyle,
   Animated,
 } from "react-native";
-import { tokens } from "../theme/tokens";
+import { tokens } from "@/theme/tokens";
 
 interface ChipSelectableProps {
   label: string;
@@ -37,7 +37,7 @@ export const ChipSelectable: React.FC<ChipSelectableProps> = ({
       duration: 200,
       useNativeDriver: false,
     }).start();
-  }, [selected]);
+  }, [selected, anim]);
 
   const onPressIn = () => {
     Animated.spring(scaleAnim, {
@@ -138,3 +138,4 @@ export const ChipSelectable: React.FC<ChipSelectableProps> = ({
     </AnimatedTouchableOpacity>
   );
 };
+

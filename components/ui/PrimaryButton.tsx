@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   TouchableOpacityProps,
 } from "react-native";
-import { tokens } from "../theme/tokens";
+import { tokens } from "@/theme/tokens";
 
 interface PrimaryButtonProps extends TouchableOpacityProps {
   title: string;
@@ -90,3 +90,4 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
     </TouchableOpacity>
   );
 };
+

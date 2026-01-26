@@ -1,7 +1,7 @@
 import { CheckIcon } from "phosphor-react-native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Text, View } from "react-native";
-import { tokens } from "../theme/tokens";
+import { tokens } from "@/theme/tokens";
 
 interface Step {
   id: number;
@@ -45,7 +45,7 @@ const AnimatedStep: React.FC<{
             duration: 1200,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       ).start();
     } else if (isCompleted) {
       // Completion animation
@@ -283,3 +283,4 @@ export const Stepper: React.FC<StepperProps> = ({
     </View>
   );
 };
+

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { tokens } from "../theme/tokens";
+import { tokens } from "@/theme/tokens";
 
 interface SlotMeterProps {
   slotsFilled: number;
@@ -98,3 +98,4 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
 });
+

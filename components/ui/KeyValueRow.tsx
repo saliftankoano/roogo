@@ -24,3 +24,4 @@ export const KeyValueRow: React.FC<KeyValueRowProps> = ({
     </View>
   );
 };
+

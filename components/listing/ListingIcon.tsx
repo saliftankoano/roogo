@@ -22,3 +22,4 @@ export default function ListingIcon({
       return <RulerIcon size={size} color={color} />;
   }
 }
+
