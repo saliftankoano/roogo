@@ -26,9 +26,9 @@ import {
   FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import UserTypeSelection from "../../components/UserTypeSelection";
-import SupportSheet from "../../components/SupportSheet";
-import { useUserType } from "../../hooks/useUserType";
+import UserTypeSelection from "@/components/auth/UserTypeSelection";
+import SupportSheet from "@/components/sheets/SupportSheet";
+import { useUserType } from "@/hooks/useUserType";
 import {
   getUserByClerkId,
   getUserStats,

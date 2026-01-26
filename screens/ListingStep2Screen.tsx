@@ -21,11 +21,11 @@ import {
   Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChipSelectable } from "@/components/ChipSelectable";
-import { OutlinedField } from "@/components/OutlinedField";
-import { PhotoDropZone } from "@/components/PhotoDropZone";
-import { PrimaryButton } from "@/components/PrimaryButton";
-import { Stepper } from "@/components/Stepper";
+import { ChipSelectable } from "@/components/ui/ChipSelectable";
+import { OutlinedField } from "@/components/ui/OutlinedField";
+import { PhotoDropZone } from "@/components/media/PhotoDropZone";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { Stepper } from "@/components/ui/Stepper";
 import type { ListingDraft } from "@/forms/listingSchema";
 import { EQUIPEMENTS, INTERDICTIONS } from "@/forms/listingSchema";
 import { tokens } from "@/theme/tokens";

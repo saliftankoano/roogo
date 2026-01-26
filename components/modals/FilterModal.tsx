@@ -14,8 +14,8 @@ import {
   Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { tokens } from "../theme/tokens";
-import { formatPrice, parsePrice } from "../utils/formatting";
+import { tokens } from "@/theme/tokens";
+import { formatPrice, parsePrice } from "@/utils/formatting";
 
 export type FiltersState = {
   neighborhood: string;
@@ -40,8 +40,8 @@ const NEIGHBORHOODS = [
 ];
 
 const HISTOGRAM_DATA = [
-  5, 15, 25, 40, 60, 75, 90, 100, 85, 70, 55, 40, 30, 20, 15, 10, 5, 8, 12, 18,
-  25, 15, 10, 5,
+  5, 15, 25, 40, 60, 75, 90, 100, 85, 70, 55, 40, 30, 20, 15, 10, 5, 8, 12,
+  18, 25, 15, 10, 5,
 ];
 
 const SURFACE_OPTIONS = [
@@ -140,7 +140,7 @@ const DualRangeSlider = ({
       const ratio = (value - min) / (max - min);
       return ratio * (sliderWidth.current - THUMB_SIZE);
     },
-    [min, max]
+    [min, max],
   );
 
   // Convert position to value
@@ -151,7 +151,7 @@ const DualRangeSlider = ({
       const rawValue = min + ratio * (max - min);
       return Math.round(rawValue / step) * step;
     },
-    [min, max, step]
+    [min, max, step],
   );
 
   // Update thumb positions when values change externally
@@ -176,8 +176,8 @@ const DualRangeSlider = ({
           0,
           Math.min(
             (minThumbX as any)._offset + gestureState.dx,
-            (maxThumbX as any)._value - THUMB_SIZE / 2
-          )
+            (maxThumbX as any)._value - THUMB_SIZE / 2,
+          ),
         );
         minThumbX.setValue(newX - (minThumbX as any)._offset);
       },
@@ -187,7 +187,7 @@ const DualRangeSlider = ({
         const clampedValue = Math.min(finalValue, maxValue - step);
         onMinChange(Math.max(min, clampedValue));
       },
-    })
+    }),
   ).current;
 
   // Max thumb pan responder
@@ -204,8 +204,8 @@ const DualRangeSlider = ({
           sliderWidth.current - THUMB_SIZE,
           Math.max(
             (maxThumbX as any)._offset + gestureState.dx,
-            (minThumbX as any)._value + THUMB_SIZE / 2
-          )
+            (minThumbX as any)._value + THUMB_SIZE / 2,
+          ),
         );
         maxThumbX.setValue(newX - (maxThumbX as any)._offset);
       },
@@ -215,7 +215,7 @@ const DualRangeSlider = ({
         const clampedValue = Math.max(finalValue, minValue + step);
         onMaxChange(Math.min(max, clampedValue));
       },
-    })
+    }),
   ).current;
 
   const handleLayout = (event: any) => {
@@ -320,9 +320,7 @@ export default function FilterModal({
   const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null);
 
   // Animated values for dropdown heights
-  const dropdownAnimations = useRef<{ [key: string]: Animated.Value }>(
-    {}
-  ).current;
+  const dropdownAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
 
   const getDropdownAnim = (key: string) => {
     if (!dropdownAnimations[key]) {
@@ -355,7 +353,7 @@ export default function FilterModal({
   const handleMinTextSubmit = () => {
     const clamped = Math.min(
       Math.max(localMinPrice, MIN_PRICE),
-      localMaxPrice - STEP
+      localMaxPrice - STEP,
     );
     setLocalMinPrice(clamped);
     onFilterChange("minPrice", clamped);
@@ -373,7 +371,7 @@ export default function FilterModal({
   const handleMaxTextSubmit = () => {
     const clamped = Math.max(
       Math.min(localMaxPrice, MAX_PRICE),
-      localMinPrice + STEP
+      localMinPrice + STEP,
     );
     setLocalMaxPrice(clamped);
     onFilterChange("maxPrice", clamped);
@@ -473,7 +471,7 @@ export default function FilterModal({
           </Animated.View>
         </TouchableOpacity>
 
-        {/* Animated Dropdown Content - Absolutely positioned to not affect siblings */}
+        {/* Animated Dropdown Content */}
         <Animated.View
           pointerEvents={isExpanded ? "auto" : "none"}
           style={{
@@ -558,10 +556,7 @@ export default function FilterModal({
             </TouchableOpacity>
           </View>
 
-          <ScrollView
-            className="flex-1 px-6 py-6"
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView className="flex-1 px-6 py-6" showsVerticalScrollIndicator={false}>
             {/* Neighborhood Chips */}
             <FilterSection title="Quartier">
               <View className="flex-row flex-wrap">
@@ -683,7 +678,7 @@ export default function FilterModal({
               </View>
             </FilterSection>
 
-            {/* Layout: Surface (Split) */}
+            {/* Surface */}
             <FilterSection title="Surface (m²)">
               <View className="flex-row gap-4">
                 <FilterDropdown
@@ -703,7 +698,7 @@ export default function FilterModal({
               </View>
             </FilterSection>
 
-            {/* Layout: Bed & Bath (Alternating Row) */}
+            {/* Bed & Bath */}
             <View className="flex-row gap-4 mb-8">
               <View className="flex-1">
                 <FilterSection title="Chambres">
@@ -711,9 +706,7 @@ export default function FilterModal({
                     dropdownKey="bedrooms"
                     value={filters.bedrooms}
                     options={BEDROOM_OPTIONS}
-                    onSelect={(val) =>
-                      onFilterChange("bedrooms", val || "Tous")
-                    }
+                    onSelect={(val) => onFilterChange("bedrooms", val || "Tous")}
                     placeholder="Indifférent"
                   />
                 </FilterSection>
@@ -724,16 +717,14 @@ export default function FilterModal({
                     dropdownKey="bathrooms"
                     value={filters.bathrooms}
                     options={BATHROOM_OPTIONS}
-                    onSelect={(val) =>
-                      onFilterChange("bathrooms", val || "Tous")
-                    }
+                    onSelect={(val) => onFilterChange("bathrooms", val || "Tous")}
                     placeholder="Indifférent"
                   />
                 </FilterSection>
               </View>
             </View>
 
-            {/* Layout: Parking (Full Width) */}
+            {/* Parking */}
             <FilterSection title="Parking">
               <FilterDropdown
                 dropdownKey="parking"
@@ -773,3 +764,4 @@ export default function FilterModal({
     </Modal>
   );
 }
+

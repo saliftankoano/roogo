@@ -1,6 +1,6 @@
 /**
  * OfflineBanner Component
- * 
+ *
  * Displays a banner when the device is offline.
  * Shows at the top of the screen with animation.
  */
@@ -9,8 +9,8 @@ import React, { useEffect, useRef } from "react";
 import { View, Text, Animated, StyleSheet, TouchableOpacity } from "react-native";
 import { WifiSlashIcon, ArrowClockwiseIcon } from "phosphor-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { tokens } from "../theme/tokens";
-import { useNetworkStatus } from "../hooks/useNetworkStatus";
+import { tokens } from "@/theme/tokens";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface OfflineBannerProps {
   /** Custom message to display */
@@ -56,11 +56,11 @@ export function OfflineBanner({
         <View style={styles.iconContainer}>
           <WifiSlashIcon size={20} color="#FFFFFF" weight="bold" />
         </View>
-        
+
         <Text style={styles.message} numberOfLines={2}>
           {message}
         </Text>
-        
+
         <TouchableOpacity
           style={styles.refreshButton}
           onPress={refresh}
@@ -153,3 +153,4 @@ const styles = StyleSheet.create({
 });
 
 export default OfflineBanner;
+

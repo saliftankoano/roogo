@@ -33,12 +33,12 @@ import {
   CalendarIcon,
 } from "phosphor-react-native";
 import { useUser } from "@clerk/clerk-expo";
-import AgentOnly from "../../components/AgentOnly";
+import AgentOnly from "@/components/auth/AgentOnly";
 import { tokens } from "../../theme/tokens";
 import { formatCurrency } from "../../utils/formatting";
-import { OutlinedField } from "../../components/OutlinedField";
-import { PrimaryButton } from "../../components/PrimaryButton";
-import { PaymentModal } from "../../components/PaymentModal";
+import { OutlinedField } from "@/components/ui/OutlinedField";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { PaymentModal } from "@/components/payment";
 import { fetchUserProperties } from "../../services/propertyFetchService";
 import type { Property } from "../../constants/properties";
 import { supabase } from "../../lib/supabase"; // Added supabase import

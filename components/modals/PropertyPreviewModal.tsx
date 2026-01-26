@@ -29,11 +29,11 @@ import {
   WarningCircleIcon,
   CoinsIcon,
 } from "phosphor-react-native";
-import { tokens } from "../theme/tokens";
-import { formatPrice } from "../utils/formatting";
-import type { Property } from "../constants/properties";
-import { fetchPropertyTransactions } from "../services/propertyFetchService";
-import { getInterdictionByLabel } from "../utils/interdictions";
+import { tokens } from "@/theme/tokens";
+import { formatPrice } from "@/utils/formatting";
+import type { Property } from "@/constants/properties";
+import { fetchPropertyTransactions } from "@/services/propertyFetchService";
+import { getInterdictionByLabel } from "@/utils/interdictions";
 
 interface PropertyPreviewModalProps {
   visible: boolean;
@@ -52,10 +52,7 @@ export default function PropertyPreviewModal({
   const lastFetchedUuid = React.useRef<string | null>(null);
 
   const loadTransactions = useCallback(async () => {
-    if (
-      !property?.uuid ||
-      (visible && lastFetchedUuid.current === property.uuid)
-    ) {
+    if (!property?.uuid || (visible && lastFetchedUuid.current === property.uuid)) {
       return;
     }
 
@@ -74,7 +71,7 @@ export default function PropertyPreviewModal({
 
       // Filter out failed transactions to show only successful or pending ones
       const relevantTransactions = data.filter(
-        (tx: any) => tx.status === "completed" || tx.status === "pending"
+        (tx: any) => tx.status === "completed" || tx.status === "pending",
       );
 
       setTransactions(relevantTransactions);
@@ -118,9 +115,7 @@ export default function PropertyPreviewModal({
       case "listing_submission":
         return <TagIcon size={18} color={tokens.colors.roogo.primary[500]} />;
       case "photography":
-        return (
-          <CameraIcon size={18} color={tokens.colors.roogo.primary[500]} />
-        );
+        return <CameraIcon size={18} color={tokens.colors.roogo.primary[500]} />;
       case "boost":
         return (
           <LightningIcon
@@ -130,9 +125,7 @@ export default function PropertyPreviewModal({
           />
         );
       case "property_lock":
-        return (
-          <CreditCardIcon size={18} color={tokens.colors.roogo.primary[500]} />
-        );
+        return <CreditCardIcon size={18} color={tokens.colors.roogo.primary[500]} />;
       default:
         return <TagIcon size={18} color={tokens.colors.roogo.primary[500]} />;
     }
@@ -166,8 +159,7 @@ export default function PropertyPreviewModal({
 
   const getAmenityIcon = (amenity: string) => {
     const lower = amenity.toLowerCase();
-    if (lower.includes("wifi") || lower.includes("internet"))
-      return WifiHighIcon;
+    if (lower.includes("wifi") || lower.includes("internet")) return WifiHighIcon;
     if (lower.includes("piscine")) return SwimmingPoolIcon;
     if (lower.includes("solaire") || lower.includes("panneau")) return SunIcon;
     if (lower.includes("sécurité") || lower.includes("gardien"))
@@ -236,26 +228,14 @@ export default function PropertyPreviewModal({
                 </View>
 
                 <View className="flex-row justify-between mt-4">
-                  <FeatureItem
-                    icon={BedIcon}
-                    value={property.bedrooms}
-                    label="Lits"
-                  />
+                  <FeatureItem icon={BedIcon} value={property.bedrooms} label="Lits" />
                   <FeatureItem
                     icon={ShowerIcon}
                     value={property.bathrooms}
                     label="Bains"
                   />
-                  <FeatureItem
-                    icon={RulerIcon}
-                    value={property.area}
-                    label="m²"
-                  />
-                  <FeatureItem
-                    icon={CarIcon}
-                    value={property.parking}
-                    label="Pkg"
-                  />
+                  <FeatureItem icon={RulerIcon} value={property.area} label="m²" />
+                  <FeatureItem icon={CarIcon} value={property.parking} label="Pkg" />
                 </View>
               </View>
             </View>
@@ -287,8 +267,7 @@ export default function PropertyPreviewModal({
                 </View>
                 {property.published_at && (
                   <Text className="text-xs text-roogo-neutral-500 font-urbanist-medium">
-                    Depuis le{" "}
-                    {new Date(property.published_at).toLocaleDateString()}
+                    Depuis le {new Date(property.published_at).toLocaleDateString()}
                   </Text>
                 )}
               </View>
@@ -365,20 +344,14 @@ export default function PropertyPreviewModal({
                 {property.deposit && (
                   <View className="flex-row items-center mb-4 bg-roogo-warning/10 p-4 rounded-2xl">
                     <View className="bg-roogo-warning/20 p-2 rounded-full mr-3">
-                      <CoinsIcon
-                        size={20}
-                        color={tokens.colors.roogo.warning}
-                      />
+                      <CoinsIcon size={20} color={tokens.colors.roogo.warning} />
                     </View>
                     <View>
                       <Text className="text-roogo-neutral-900 font-urbanist-bold">
                         Caution : {property.deposit} mois
                       </Text>
                       <Text className="text-roogo-neutral-600 font-urbanist-medium text-xs mt-1">
-                        Total:{" "}
-                        {formatPrice(
-                          String(Number(property.price) * property.deposit)
-                        )}{" "}
+                        Total: {formatPrice(String(Number(property.price) * property.deposit))}{" "}
                         CFA
                       </Text>
                     </View>
@@ -417,10 +390,7 @@ export default function PropertyPreviewModal({
                 <Text className="text-lg font-urbanist-bold text-roogo-neutral-900">
                   Mes Achats & Paiements
                 </Text>
-                <CreditCardIcon
-                  size={20}
-                  color={tokens.colors.roogo.neutral[400]}
-                />
+                <CreditCardIcon size={20} color={tokens.colors.roogo.neutral[400]} />
               </View>
 
               {loading ? (
@@ -451,8 +421,7 @@ export default function PropertyPreviewModal({
                           {getTransactionTypeLabel(tx.type)}
                         </Text>
                         <Text className="text-roogo-neutral-500 text-xs font-urbanist-medium mt-0.5">
-                          {new Date(tx.created_at).toLocaleDateString()} •{" "}
-                          {tx.provider}
+                          {new Date(tx.created_at).toLocaleDateString()} • {tx.provider}
                         </Text>
                       </View>
                       <View className="items-end">
@@ -462,9 +431,7 @@ export default function PropertyPreviewModal({
                         <View className="flex-row items-center mt-1">
                           <View
                             className="w-1.5 h-1.5 rounded-full mr-1.5"
-                            style={{
-                              backgroundColor: getStatusColor(tx.status),
-                            }}
+                            style={{ backgroundColor: getStatusColor(tx.status) }}
                           />
                           <Text
                             className="text-[10px] font-urbanist-bold uppercase"
@@ -505,3 +472,4 @@ const FeatureItem = ({
     </Text>
   </View>
 );
+

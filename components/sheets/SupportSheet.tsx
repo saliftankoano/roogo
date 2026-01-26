@@ -10,8 +10,8 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { tokens } from "../theme/tokens";
-import WhatsAppIcon from "./WhatsAppIcon";
+import { tokens } from "@/theme/tokens";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 
 interface SupportSheetProps {
   visible: boolean;
@@ -32,7 +32,7 @@ const SupportSheet: React.FC<SupportSheetProps> = ({ visible, onClose }) => {
   };
 
   const handleWhatsApp = (number: string) => {
-    let phoneNumber = number.replace(/\s/g, "").replace(/\+/g, "");
+    const phoneNumber = number.replace(/\s/g, "").replace(/\+/g, "");
     const message = "Bonjour Roogo, j'ai besoin d'assistance.";
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     Linking.openURL(url).catch(() => {
@@ -285,3 +285,4 @@ const SupportSheet: React.FC<SupportSheetProps> = ({ visible, onClose }) => {
 };
 
 export default SupportSheet;
+

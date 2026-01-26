@@ -21,9 +21,9 @@ import {
   UIManager,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import PropertyCard from "../../components/PropertyCard";
-import PropertyPreviewModal from "../../components/PropertyPreviewModal";
-import { useUserType } from "../../hooks/useUserType";
+import PropertyCard from "@/components/property/PropertyCard";
+import PropertyPreviewModal from "@/components/modals/PropertyPreviewModal";
+import { useUserType } from "@/hooks/useUserType";
 import { tokens } from "../../theme/tokens";
 import { fetchUserProperties } from "../../services/propertyFetchService";
 import { supabase } from "../../lib/supabase";

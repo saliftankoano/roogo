@@ -19,8 +19,8 @@ import {
   LightningIcon,
   CalendarIcon,
 } from "phosphor-react-native";
-import { tokens } from "../theme/tokens";
-import { PrimaryButton } from "./PrimaryButton";
+import { tokens } from "@/theme/tokens";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 export interface AddOn {
   id: string;
@@ -41,8 +41,7 @@ const ADD_ONS: AddOn[] = [
   {
     id: "extra_slots",
     name: "+25 Candidats",
-    description:
-      "Augmentez vos chances de trouver le bon locataire rapidement.",
+    description: "Augmentez vos chances de trouver le bon locataire rapidement.",
     price: 7500,
     icon: UsersIcon,
   },
@@ -339,3 +338,4 @@ const styles = StyleSheet.create({
     color: tokens.colors.roogo.primary[500],
   },
 });
+

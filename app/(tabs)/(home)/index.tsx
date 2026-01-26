@@ -10,8 +10,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import FilterModal, { FiltersState } from "../../../components/FilterModal";
-import PropertyCard from "../../../components/PropertyCard";
+import FilterModal, { FiltersState } from "@/components/modals/FilterModal";
+import PropertyCard from "@/components/property/PropertyCard";
 import type { Property } from "../../../constants/properties";
 import { fetchActiveProperties } from "../../../services/propertyFetchService";
 

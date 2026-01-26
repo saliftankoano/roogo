@@ -18,9 +18,9 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import type { Property } from "../constants/properties";
-import LeadForm from "./LeadForm";
-import WhatsAppIcon from "./WhatsAppIcon";
+import type { Property } from "@/constants/properties";
+import LeadForm from "@/components/forms/LeadForm";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 
 interface ContactSheetProps {
   visible: boolean;
@@ -78,7 +78,7 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
           return true;
         }
         return false;
-      }
+      },
     );
 
     return () => backHandler.remove();
@@ -89,7 +89,7 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
     (event: string, data?: any) => {
       console.log(`[Analytics] ${event}:`, { listingId: property.id, ...data });
     },
-    [property.id]
+    [property.id],
   );
 
   // Open WhatsApp
@@ -99,7 +99,7 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
     if (!property.agent?.phone) {
       Alert.alert(
         "Erreur",
-        "Numéro de téléphone de l&apos;agent non disponible."
+        "Numéro de téléphone de l&apos;agent non disponible.",
       );
       return;
     }
@@ -306,3 +306,4 @@ const ContactSheet: React.FC<ContactSheetProps> = ({
 };
 
 export default ContactSheet;
+

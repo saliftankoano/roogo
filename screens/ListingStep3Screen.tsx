@@ -18,8 +18,8 @@ import {
   UIManager,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { KeyValueRow } from "@/components/KeyValueRow";
-import { PrimaryButton } from "@/components/PrimaryButton";
+import { KeyValueRow } from "@/components/ui/KeyValueRow";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import type { ListingDraft } from "@/forms/listingSchema";
 import {
   CITIES,
@@ -29,7 +29,7 @@ import {
   TIERS,
 } from "@/forms/listingSchema";
 import { tokens } from "@/theme/tokens";
-import { TierSelectionCard } from "@/components/TierSelectionCard";
+import { TierSelectionCard } from "@/components/listing/TierSelectionCard";
 import { formatCurrency } from "@/utils/formatting";
 
 // Enable LayoutAnimation for Android
@@ -47,6 +47,7 @@ interface ListingStep3ScreenProps {
   onBack: () => void;
   onSubmit: () => Promise<void>;
   errors: Record<string, string>;
+  isStaff?: boolean;
 }
 
 export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
@@ -56,6 +57,7 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
   onBack,
   onSubmit,
   errors,
+  isStaff = false,
 }) => {
   const [showFullPreview, setShowFullPreview] = useState(false);
 
@@ -112,7 +114,9 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
             Dernière étape
           </Text>
           <Text className="text-xs font-urbanist-medium text-roogo-neutral-500">
-            Choisissez votre pack de visibilité
+            {isStaff 
+              ? "Vérifiez les détails avant publication" 
+              : "Choisissez votre pack de visibilité"}
           </Text>
         </View>
       </View>
@@ -309,34 +313,47 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
             )}
           </View>
 
-          {/* Tier Selection - NOW AT THE TOP (after unified card) */}
-          <View className="mb-8">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-lg font-urbanist-bold text-roogo-neutral-900">
-                Packs de publication
-              </Text>
-              <View className="bg-roogo-primary-100 px-3 py-1 rounded-full">
-                <Text className="text-[10px] font-urbanist-bold text-roogo-primary-600 uppercase tracking-widest">
-                  Meilleure visibilité
+          {/* Tier Selection - HIDE FOR STAFF (they get free premium) */}
+          {!isStaff && (
+            <View className="mb-8">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-lg font-urbanist-bold text-roogo-neutral-900">
+                  Packs de publication
                 </Text>
+                <View className="bg-roogo-primary-100 px-3 py-1 rounded-full">
+                  <Text className="text-[10px] font-urbanist-bold text-roogo-primary-600 uppercase tracking-widest">
+                    Meilleure visibilité
+                  </Text>
+                </View>
               </View>
-            </View>
 
-            {TIERS.map((tier) => (
-              <TierSelectionCard
-                key={tier.id}
-                tier={tier as any}
-                selected={formData.tier_id === tier.id}
-                onSelect={handleTierSelect}
-                calculatedPrice={calculateTierPrice(tier.id, tier.base_fee)}
-              />
-            ))}
-            {errors.tier_id && (
-              <Text className="text-xs text-roogo-error mt-1.5 font-urbanist font-medium ml-1">
-                {errors.tier_id}
+              {TIERS.map((tier) => (
+                <TierSelectionCard
+                  key={tier.id}
+                  tier={tier as any}
+                  selected={formData.tier_id === tier.id}
+                  onSelect={handleTierSelect}
+                  calculatedPrice={calculateTierPrice(tier.id, tier.base_fee)}
+                />
+              ))}
+              {errors.tier_id && (
+                <Text className="text-xs text-roogo-error mt-1.5 font-urbanist font-medium ml-1">
+                  {errors.tier_id}
+                </Text>
+              )}
+            </View>
+          )}
+
+          {isStaff && (
+            <View className="mb-8 p-6 bg-roogo-primary-50 rounded-[24px] border border-roogo-primary-100">
+              <Text className="text-lg font-urbanist-bold text-roogo-primary-700 mb-2">
+                Compte Staff
               </Text>
-            )}
-          </View>
+              <Text className="text-sm font-urbanist-medium text-roogo-primary-600 leading-relaxed">
+                En tant que membre de l&apos;équipe Roogo, vous bénéficiez de la publication gratuite et illimitée. Votre annonce sera vérifiée et mise en ligne immédiatement.
+              </Text>
+            </View>
+          )}
         </ScrollView>
 
         {/* Sticky Footer - Lifted to be above the TabBar */}
@@ -359,9 +376,15 @@ export const ListingStep3Screen: React.FC<ListingStep3ScreenProps> = ({
           }}
         >
           <PrimaryButton
-            title={formData.tier_id ? "Payer et Publier" : "Choisissez un pack"}
+            title={
+              isStaff 
+                ? "Publier (Gratuit Staff)" 
+                : formData.tier_id 
+                  ? "Payer et Publier" 
+                  : "Choisissez un pack"
+            }
             onPress={handlePublish}
-            disabled={!formData.tier_id}
+            disabled={!isStaff && !formData.tier_id}
           />
         </View>
       </View>

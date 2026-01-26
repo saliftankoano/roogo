@@ -186,7 +186,7 @@ export default function PhotoGallery({
               </Text>
             </View>
 
-            {/* Spacer to center the counter relative to space between buttons if there were more */}
+            {/* Spacer */}
             <View style={{ width: 48 }} />
           </View>
 
@@ -225,3 +225,4 @@ export default function PhotoGallery({
     </Modal>
   );
 }
+

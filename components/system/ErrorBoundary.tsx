@@ -1,6 +1,6 @@
 /**
  * ErrorBoundary Component
- * 
+ *
  * Catches JavaScript errors anywhere in child component tree and displays
  * a fallback UI instead of crashing the whole app.
  */
@@ -8,7 +8,7 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { WarningCircleIcon, ArrowClockwiseIcon } from "phosphor-react-native";
-import { tokens } from "../theme/tokens";
+import { tokens } from "@/theme/tokens";
 
 interface Props {
   children: ReactNode;
@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log error for debugging
     console.error("ErrorBoundary caught an error:", error, errorInfo);
-    
+
     // Call optional error handler
     this.props.onError?.(error, errorInfo);
   }
@@ -61,23 +61,21 @@ export class ErrorBoundary extends Component<Props, State> {
               weight="fill"
             />
           </View>
-          
+
           <Text style={styles.title}>Oups, une erreur est survenue</Text>
-          
+
           <Text style={styles.message}>
-            Nous sommes désolés, quelque chose s&apos;est mal passé.
-            Veuillez réessayer.
+            Nous sommes désolés, quelque chose s&apos;est mal passé. Veuillez
+            réessayer.
           </Text>
-          
+
           {__DEV__ && this.state.error && (
             <View style={styles.debugContainer}>
               <Text style={styles.debugTitle}>Debug Info:</Text>
-              <Text style={styles.debugText}>
-                {this.state.error.message}
-              </Text>
+              <Text style={styles.debugText}>{this.state.error.message}</Text>
             </View>
           )}
-          
+
           <TouchableOpacity
             style={styles.retryButton}
             onPress={this.handleRetry}
@@ -172,7 +170,7 @@ const styles = StyleSheet.create({
  */
 export function withErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
-  fallback?: ReactNode
+  fallback?: ReactNode,
 ): React.FC<P> {
   return function WithErrorBoundary(props: P) {
     return (
@@ -184,3 +182,4 @@ export function withErrorBoundary<P extends object>(
 }
 
 export default ErrorBoundary;
+

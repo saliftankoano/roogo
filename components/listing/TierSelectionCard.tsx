@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { CheckIcon, FireIcon } from "phosphor-react-native";
-import { tokens } from "../theme/tokens";
-import { formatCurrency } from "../utils/formatting";
+import { tokens } from "@/theme/tokens";
+import { formatCurrency } from "@/utils/formatting";
 
 export interface Tier {
   id: string;
@@ -45,12 +45,10 @@ export const TierSelectionCard: React.FC<TierSelectionCardProps> = ({
               </View>
             )}
           </View>
-            <Text style={styles.price}>{formatCurrency(calculatedPrice)}</Text>
+          <Text style={styles.price}>{formatCurrency(calculatedPrice)}</Text>
         </View>
 
-        <View
-          style={[styles.radioButton, selected && styles.radioButtonSelected]}
-        >
+        <View style={[styles.radioButton, selected && styles.radioButtonSelected]}>
           {selected && <CheckIcon size={14} weight="bold" color="white" />}
         </View>
       </View>
@@ -70,11 +68,7 @@ export const TierSelectionCard: React.FC<TierSelectionCardProps> = ({
 
 const FeatureItemCompact = ({ label }: { label: string }) => (
   <View style={styles.featureItemCompact}>
-    <CheckIcon
-      size={12}
-      color={tokens.colors.roogo.primary[500]}
-      weight="bold"
-    />
+    <CheckIcon size={12} color={tokens.colors.roogo.primary[500]} weight="bold" />
     <Text style={styles.featureLabelCompact}>{label}</Text>
   </View>
 );
@@ -164,3 +158,4 @@ const styles = StyleSheet.create({
     color: tokens.colors.roogo.neutral[700], // Darkened from 600 to 700
   },
 });
+

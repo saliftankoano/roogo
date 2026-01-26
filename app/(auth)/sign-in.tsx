@@ -17,7 +17,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import UserTypeSelection from "../../components/UserTypeSelection";
+import UserTypeSelection from "@/components/auth/UserTypeSelection";
 import { updateClerkMetadata } from "../../services/userService";
 
 WebBrowser.maybeCompleteAuthSession();

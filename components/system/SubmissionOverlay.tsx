@@ -1,11 +1,6 @@
-import { tokens } from "../theme/tokens";
+import { tokens } from "@/theme/tokens";
 import { BlurView } from "expo-blur";
-import {
-  CheckIcon,
-  CloudArrowUpIcon,
-  HouseIcon,
-  ImageIcon,
-} from "phosphor-react-native";
+import { CheckIcon, CloudArrowUpIcon, HouseIcon, ImageIcon } from "phosphor-react-native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 
@@ -63,7 +58,7 @@ export const SubmissionOverlay: React.FC<SubmissionOverlayProps> = ({
               easing: Easing.inOut(Easing.ease),
               useNativeDriver: true,
             }),
-          ])
+          ]),
         ).start();
 
         // Indeterminate progress bar
@@ -80,7 +75,7 @@ export const SubmissionOverlay: React.FC<SubmissionOverlayProps> = ({
               duration: 0,
               useNativeDriver: true,
             }),
-          ])
+          ]),
         ).start();
       }
     } else {
@@ -218,68 +213,60 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     backgroundColor: "white",
-    padding: 32,
-    borderRadius: 24,
+    borderRadius: 28,
+    paddingVertical: 28,
+    paddingHorizontal: 26,
+    width: 300,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 10,
-    width: "85%",
-    maxWidth: 340,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    elevation: 12,
   },
   iconContainer: {
-    marginBottom: 24,
+    marginBottom: 18,
   },
   iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
+    width: 92,
+    height: 92,
+    borderRadius: 46,
     alignItems: "center",
-    shadowColor: tokens.colors.roogo.primary[500],
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
+    justifyContent: "center",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
     elevation: 8,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontFamily: "Urbanist-Bold",
     color: tokens.colors.roogo.neutral[900],
     marginBottom: 8,
-    textAlign: "center",
   },
   statusText: {
-    fontSize: 16,
+    fontSize: 13,
+    fontFamily: "Urbanist-Medium",
     color: tokens.colors.roogo.neutral[500],
     textAlign: "center",
-    marginBottom: 24,
-    height: 24,
+    marginBottom: 18,
   },
   progressBarContainer: {
     width: "100%",
-    height: 6,
-    backgroundColor: tokens.colors.roogo.neutral[100],
-    borderRadius: 3,
-    overflow: "hidden",
-    marginTop: 16,
+    marginTop: 6,
   },
   progressBar: {
-    flex: 1,
-    borderRadius: 3,
+    height: 8,
+    width: "100%",
+    backgroundColor: tokens.colors.roogo.neutral[100],
+    borderRadius: 8,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
     backgroundColor: tokens.colors.roogo.primary[500],
-    borderRadius: 3,
+    borderRadius: 8,
+    opacity: 0.9,
   },
 });
+

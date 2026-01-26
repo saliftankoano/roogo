@@ -33,7 +33,7 @@ export default function AuthPromptModal({
           {/* Logo */}
           <View className="items-center mb-6">
             <Image
-              source={require("../assets/images/logo_160.png")}
+              source={require("../../assets/images/logo_160.png")}
               style={{ width: 80, height: 80 }}
               contentFit="contain"
             />
@@ -85,3 +85,4 @@ export default function AuthPromptModal({
     </Modal>
   );
 }
+

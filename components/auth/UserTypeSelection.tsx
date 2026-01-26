@@ -22,7 +22,7 @@ export default function UserTypeSelection({
           {/* Header */}
           <View className="items-center mb-6">
             <Image
-              source={require("../assets/images/logo_160.png")}
+              source={require("../../assets/images/logo_160.png")}
               style={{ width: 80, height: 80 }}
               contentFit="contain"
             />
@@ -167,9 +167,7 @@ export default function UserTypeSelection({
           >
             <Text
               className={`text-base font-bold font-urbanist ${
-                selectedUserType && !isLoading
-                  ? "text-white"
-                  : "text-figma-grey-500"
+                selectedUserType && !isLoading ? "text-white" : "text-figma-grey-500"
               }`}
             >
               {isLoading ? "Chargement..." : "Continuer"}
@@ -180,3 +178,4 @@ export default function UserTypeSelection({
     </Modal>
   );
 }
+

@@ -42,11 +42,11 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import AgentCard from "../../../components/AgentCard";
-import AuthPromptModal from "../../../components/AuthPromptModal";
-import ContactSheet from "../../../components/ContactSheet";
-import PhotoGallery from "../../../components/PhotoGallery";
-import { PrimaryButton } from "../../../components/PrimaryButton";
+import AgentCard from "@/components/agent/AgentCard";
+import AuthPromptModal from "@/components/auth/AuthPromptModal";
+import ContactSheet from "@/components/sheets/ContactSheet";
+import PhotoGallery from "@/components/media/PhotoGallery";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import type { Property } from "../../../constants/properties";
 import { properties } from "../../../constants/properties";
 import {
@@ -57,13 +57,13 @@ import { tokens } from "../../../theme/tokens";
 import { formatCurrency } from "../../../utils/formatting";
 import { cn } from "../../../lib/utils";
 import { getInterdictionByLabel } from "../../../utils/interdictions";
-import { SlotMeter } from "../../../components/SlotMeter";
+import { SlotMeter } from "@/components/ui/SlotMeter";
 import {
   submitApplication,
   bookOpenHouseSlot,
 } from "../../../services/applicationService";
-import { OpenHousePickerModal } from "../../../components/OpenHousePickerModal";
-import { PaymentModal } from "../../../components/PaymentModal";
+import { OpenHousePickerModal } from "@/components/modals/OpenHousePickerModal";
+import { PaymentModal } from "@/components/payment";
 import {
   shouldIncrementView,
   markPropertyViewed,

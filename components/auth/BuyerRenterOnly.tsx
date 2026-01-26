@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
-import { useUserType } from "../hooks/useUserType";
-import { tokens } from "../theme/tokens";
+import { useUserType } from "@/hooks/useUserType";
+import { tokens } from "@/theme/tokens";
 
 interface BuyerRenterOnlyProps {
   children: React.ReactNode;
@@ -46,7 +46,6 @@ export default function BuyerRenterOnly({
   }
 
   // Wrap children in a View with background to prevent any blank flash
-  return (
-    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>{children}</View>
-  );
+  return <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>{children}</View>;
 }
+

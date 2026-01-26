@@ -1,5 +1,5 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
-import type { PropertyAgent } from "../constants/properties";
+import type { PropertyAgent } from "@/constants/properties";
 
 type AgentCardProps = {
   agent: PropertyAgent;
@@ -56,3 +56,4 @@ export default function AgentCard({ agent, onContactPress }: AgentCardProps) {
     </View>
   );
 }
+

@@ -11,8 +11,8 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AuthPromptModal from "../../components/AuthPromptModal";
-import PropertyCard from "../../components/PropertyCard";
+import AuthPromptModal from "@/components/auth/AuthPromptModal";
+import PropertyCard from "@/components/property/PropertyCard";
 import type { Property } from "../../constants/properties";
 import {
   fetchUserFavorites,

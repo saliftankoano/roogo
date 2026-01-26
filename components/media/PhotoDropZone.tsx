@@ -2,7 +2,7 @@ import * as ImagePicker from "expo-image-picker";
 import { CameraIcon, XIcon } from "phosphor-react-native";
 import React from "react";
 import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
-import { tokens } from "../theme/tokens";
+import { tokens } from "@/theme/tokens";
 
 interface Photo {
   uri: string;
@@ -31,7 +31,7 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
       if (photos.length >= maxPhotos) {
         Alert.alert(
           "Limite atteinte",
-          `Vous ne pouvez ajouter que ${maxPhotos} photos maximum`
+          `Vous ne pouvez ajouter que ${maxPhotos} photos maximum`,
         );
         return;
       }
@@ -45,7 +45,7 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
       if (mediaStatus !== "granted" && cameraStatus !== "granted") {
         Alert.alert(
           "Permissions requises",
-          "Nous avons besoin d'accéder à votre galerie ou appareil photo pour ajouter des images."
+          "Nous avons besoin d'accéder à votre galerie ou appareil photo pour ajouter des images.",
         );
         return;
       }
@@ -119,111 +119,86 @@ export const PhotoDropZone: React.FC<PhotoDropZoneProps> = ({
             ? tokens.colors.roogo.error
             : tokens.colors.roogo.primary[500],
           borderRadius: 16,
-          padding: 32,
+          padding: 24,
           alignItems: "center",
-          backgroundColor: tokens.colors.roogo.secondary[100],
+          justifyContent: "center",
+          backgroundColor: error
+            ? "rgba(239, 68, 68, 0.05)"
+            : "rgba(59, 130, 246, 0.05)",
+          marginBottom: 16,
         }}
       >
-        <View
-          style={{
-            backgroundColor: "#FFFFFF",
-            padding: 12,
-            borderRadius: 50,
-            marginBottom: 12,
-          }}
-        >
-          <CameraIcon size={32} color={tokens.colors.roogo.primary[500]} />
-        </View>
+        <CameraIcon
+          size={32}
+          color={
+            error ? tokens.colors.roogo.error : tokens.colors.roogo.primary[500]
+          }
+          weight="fill"
+        />
         <Text
           style={{
-            color: tokens.colors.roogo.primary[500],
-            fontWeight: "700",
-            fontSize: 15,
+            marginTop: 12,
+            fontSize: 16,
             fontFamily: "Urbanist-Bold",
+            color: tokens.colors.roogo.neutral[900],
           }}
         >
           Ajouter des photos
         </Text>
         <Text
           style={{
-            color: tokens.colors.roogo.neutral[500],
-            fontSize: 13,
             marginTop: 4,
+            fontSize: 13,
             fontFamily: "Urbanist-Medium",
+            color: tokens.colors.roogo.neutral[500],
+            textAlign: "center",
           }}
         >
-          {photos.length}/{maxPhotos} photos • Min. {minPhotos}
+          Minimum {minPhotos} photos • Maximum {maxPhotos} photos
         </Text>
       </TouchableOpacity>
 
+      {/* Error message */}
       {error && (
-        <Text
-          style={{
-            fontSize: 12,
-            color: tokens.colors.roogo.error,
-            marginTop: 6,
-            fontWeight: "500",
-            fontFamily: "Urbanist-Medium",
-          }}
-        >
+        <Text className="text-xs text-roogo-error mb-3 font-urbanist font-medium ml-1">
           {error}
         </Text>
       )}
 
-      {/* Photo grid preview */}
+      {/* Photos preview grid */}
       {photos.length > 0 && (
-        <View style={{ marginTop: 16 }}>
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: "600",
-              color: tokens.colors.roogo.neutral[700],
-              marginBottom: 10,
-              fontFamily: "Urbanist-SemiBold",
-            }}
-          >
-            Photos ajoutées ({photos.length})
-          </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {photos.map((photo, index) => (
-              <View key={index} style={{ position: "relative" }}>
-                <Image
-                  source={{ uri: photo.uri }}
-                  style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 12,
-                  }}
-                  resizeMode="cover"
-                />
-                <TouchableOpacity
-                  onPress={() => handleRemovePhoto(index)}
-                  style={{
-                    position: "absolute",
-                    top: -6,
-                    right: -6,
-                    backgroundColor: tokens.colors.roogo.error,
-                    borderRadius: 12,
-                    width: 24,
-                    height: 24,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 3,
-                    elevation: 4,
-                    borderWidth: 2,
-                    borderColor: "#FFFFFF",
-                  }}
-                >
-                  <XIcon size={12} color="white" weight="bold" />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
+        <View className="flex-row flex-wrap gap-3">
+          {photos.map((photo, index) => (
+            <View key={index} style={{ position: "relative" }}>
+              <Image
+                source={{ uri: photo.uri }}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 12,
+                }}
+              />
+              <TouchableOpacity
+                onPress={() => handleRemovePhoto(index)}
+                style={{
+                  position: "absolute",
+                  top: -6,
+                  right: -6,
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
+                  backgroundColor: tokens.colors.roogo.error,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <XIcon size={12} color="white" weight="bold" />
+              </TouchableOpacity>
+            </View>
+          ))}
         </View>
       )}
     </View>
   );
 };
+

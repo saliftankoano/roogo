@@ -4,8 +4,9 @@ import { useNavigation } from "@react-navigation/native";
 import { useLocalSearchParams } from "expo-router";
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import AgentOnly from "../../components/AgentOnly";
-import { SubmissionOverlay } from "../../components/SubmissionOverlay";
+import AgentOnly from "@/components/auth/AgentOnly";
+import { SubmissionOverlay } from "@/components/system/SubmissionOverlay";
+import { useUserType } from "@/hooks/useUserType";
 import {
   listingSchema,
   type ListingDraft,
@@ -16,14 +17,15 @@ import { fetchPropertyById } from "../../services/propertyFetchService";
 import { ListingStep1Screen } from "../../screens/ListingStep1Screen";
 import { ListingStep2Screen } from "../../screens/ListingStep2Screen";
 import { ListingStep3Screen } from "../../screens/ListingStep3Screen";
-import { PaymentModal } from "../../components/PaymentModal";
-import { UpsellModal } from "../../components/UpsellModal";
+import { PaymentModal } from "@/components/payment";
+import { UpsellModal } from "@/components/modals/UpsellModal";
 
 export default function AddPropertyScreen() {
   const navigation = useNavigation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useUser();
   const { getToken } = useAuth();
+  const { isStaff } = useUserType();
   const [currentStep, setCurrentStep] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -321,6 +323,12 @@ export default function AddPropertyScreen() {
         throw new Error("User not authenticated");
       }
 
+      // If staff, skip upsell and payment
+      if (isStaff) {
+        await handlePaymentSuccess();
+        return;
+      }
+
       // Show upsell flow instead of going straight to payment
       setShowUpsellModal(true);
     } catch (error) {
@@ -424,6 +432,7 @@ export default function AddPropertyScreen() {
           onBack={handleBackStep3}
           onSubmit={handleSubmit}
           errors={errors}
+          isStaff={isStaff}
         />
       )}
 

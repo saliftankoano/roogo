@@ -13,8 +13,8 @@ import {
   XIcon,
   CheckCircleIcon,
 } from "phosphor-react-native";
-import { tokens } from "../theme/tokens";
-import { PrimaryButton } from "./PrimaryButton";
+import { tokens } from "@/theme/tokens";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 interface Slot {
   id: string;
@@ -28,7 +28,7 @@ interface Slot {
 interface OpenHousePickerModalProps {
   visible: boolean;
   onClose: () => void;
-  propertyId: string;
+  propertyId: string | number;
   availableSlots: Slot[];
   onBook: (slotId: string) => Promise<void>;
 }
@@ -120,53 +120,45 @@ export const OpenHousePickerModal: React.FC<OpenHousePickerModalProps> = ({
                   ]}
                   onPress={() => setSelectedSlotId(slot.id)}
                 >
-                  <View style={styles.slotInfo}>
-                    <CalendarIcon
-                      size={20}
-                      color={
-                        selectedSlotId === slot.id
-                          ? tokens.colors.roogo.primary[500]
-                          : tokens.colors.roogo.neutral[500]
-                      }
-                    />
-                    <View>
-                      <Text
-                        style={[
-                          styles.slotDate,
-                          selectedSlotId === slot.id && styles.textSelected,
-                        ]}
-                      >
-                        {formatDate(slot.date)}
+                  <View style={styles.slotHeader}>
+                    <View style={styles.slotDateContainer}>
+                      <CalendarIcon
+                        size={18}
+                        color={tokens.colors.roogo.primary[500]}
+                      />
+                      <Text style={styles.slotDate}>{formatDate(slot.date)}</Text>
+                    </View>
+
+                    <View style={styles.slotTimeContainer}>
+                      <ClockIcon
+                        size={16}
+                        color={tokens.colors.roogo.neutral[500]}
+                      />
+                      <Text style={styles.slotTime}>
+                        {slot.startTime} - {slot.endTime}
                       </Text>
-                      <View style={styles.timeRow}>
-                        <ClockIcon
-                          size={14}
-                          color={tokens.colors.roogo.neutral[400]}
-                        />
-                        <Text style={styles.slotTime}>
-                          {slot.startTime} - {slot.endTime}
-                        </Text>
-                      </View>
                     </View>
                   </View>
-                  <View
-                    style={[
-                      styles.radio,
-                      selectedSlotId === slot.id && styles.radioSelected,
-                    ]}
-                  >
-                    {selectedSlotId === slot.id && (
-                      <View style={styles.radioInner} />
-                    )}
+
+                  <View style={styles.slotFooter}>
+                    <Text style={styles.slotAvailability}>
+                      {slot.capacity - slot.bookings} place(s) disponible(s)
+                    </Text>
+                    <View
+                      style={[
+                        styles.radioButton,
+                        selectedSlotId === slot.id && styles.radioButtonSelected,
+                      ]}
+                    >
+                      {selectedSlotId === slot.id && (
+                        <View style={styles.radioButtonInner} />
+                      )}
+                    </View>
                   </View>
                 </TouchableOpacity>
               ))
             ) : (
               <View style={styles.emptyState}>
-                <CalendarIcon
-                  size={48}
-                  color={tokens.colors.roogo.neutral[200]}
-                />
                 <Text style={styles.emptyText}>
                   Aucun créneau disponible pour le moment.
                 </Text>
@@ -176,10 +168,9 @@ export const OpenHousePickerModal: React.FC<OpenHousePickerModalProps> = ({
 
           <View style={styles.footer}>
             <PrimaryButton
-              title="Confirmer la visite"
+              title={isBooking ? "Réservation..." : "Réserver ce créneau"}
               onPress={handleBook}
-              disabled={!selectedSlotId}
-              loading={isBooking}
+              disabled={!selectedSlotId || isBooking}
             />
           </View>
         </View>
@@ -196,16 +187,18 @@ const styles = StyleSheet.create({
   },
   content: {
     backgroundColor: "white",
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: 24,
-    maxHeight: "80%",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    maxHeight: "85%",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 10,
   },
   title: {
     fontSize: 20,
@@ -216,98 +209,107 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Urbanist-Medium",
     color: tokens.colors.roogo.neutral[500],
-    marginBottom: 24,
+    marginBottom: 20,
   },
   slotsList: {
-    marginBottom: 24,
+    flex: 1,
   },
   slotItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
+    backgroundColor: tokens.colors.roogo.neutral[50],
     borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: tokens.colors.roogo.neutral[100],
-    marginBottom: 12,
   },
   slotItemSelected: {
     borderColor: tokens.colors.roogo.primary[500],
     backgroundColor: tokens.colors.roogo.primary[50],
   },
-  slotInfo: {
+  slotHeader: {
+    marginBottom: 12,
+  },
+  slotDateContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    marginBottom: 6,
   },
   slotDate: {
     fontSize: 15,
     fontFamily: "Urbanist-Bold",
     color: tokens.colors.roogo.neutral[900],
-    textTransform: "capitalize",
+    marginLeft: 8,
   },
-  textSelected: {
-    color: tokens.colors.roogo.primary[500],
-  },
-  timeRow: {
+  slotTimeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    marginTop: 2,
   },
   slotTime: {
-    fontSize: 13,
-    fontFamily: "Urbanist-Medium",
-    color: tokens.colors.roogo.neutral[500],
-  },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: tokens.colors.roogo.neutral[200],
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  radioSelected: {
-    borderColor: tokens.colors.roogo.primary[500],
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: tokens.colors.roogo.primary[500],
-  },
-  footer: {
-    paddingBottom: 8,
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 40,
-    gap: 12,
-  },
-  emptyText: {
     fontSize: 14,
     fontFamily: "Urbanist-Medium",
-    color: tokens.colors.roogo.neutral[400],
-    textAlign: "center",
+    color: tokens.colors.roogo.neutral[500],
+    marginLeft: 6,
   },
   successContainer: {
     alignItems: "center",
-    paddingVertical: 40,
-    gap: 16,
+    paddingVertical: 20,
   },
   successTitle: {
     fontSize: 24,
     fontFamily: "Urbanist-Bold",
     color: tokens.colors.roogo.neutral[900],
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: "center",
   },
   successText: {
     fontSize: 16,
     fontFamily: "Urbanist-Medium",
     color: tokens.colors.roogo.neutral[500],
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: 30,
+    lineHeight: 24,
+  },
+  slotFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  slotAvailability: {
+    fontSize: 13,
+    fontFamily: "Urbanist-Medium",
+    color: tokens.colors.roogo.neutral[500],
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: tokens.colors.roogo.neutral[300],
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  radioButtonSelected: {
+    borderColor: tokens.colors.roogo.primary[500],
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: tokens.colors.roogo.primary[500],
+  },
+  emptyState: {
+    padding: 30,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    fontFamily: "Urbanist-Medium",
+    color: tokens.colors.roogo.neutral[500],
+    textAlign: "center",
+  },
+  footer: {
+    paddingTop: 12,
   },
 });
+

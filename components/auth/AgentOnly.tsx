@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
-import { useUserType } from "../hooks/useUserType";
-import { tokens } from "../theme/tokens";
+import { useUserType } from "@/hooks/useUserType";
+import { tokens } from "@/theme/tokens";
 
 interface AgentOnlyProps {
   children: React.ReactNode;
@@ -9,7 +9,7 @@ interface AgentOnlyProps {
 }
 
 export default function AgentOnly({ children, fallback }: AgentOnlyProps) {
-  const { isOwner, isAgent, isLoaded } = useUserType();
+  const { isOwner, isAgent, isStaff, isLoaded } = useUserType();
 
   // Show loading indicator while auth state is loading
   if (!isLoaded) {
@@ -30,12 +30,12 @@ export default function AgentOnly({ children, fallback }: AgentOnlyProps) {
     );
   }
 
-  if (!isOwner && !isAgent) {
+  if (!isOwner && !isAgent && !isStaff) {
     return (
       fallback || (
         <View className="flex-1 items-center justify-center p-6 bg-white">
           <Text className="text-figma-grey-600 text-center font-urbanist">
-            Cette fonctionnalité est réservée aux agents et propriétaires
+            Cette fonctionnalité est réservée aux agents, propriétaires et au staff
           </Text>
         </View>
       )
@@ -43,7 +43,6 @@ export default function AgentOnly({ children, fallback }: AgentOnlyProps) {
   }
 
   // Wrap children in a View with background to prevent any blank flash
-  return (
-    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>{children}</View>
-  );
+  return <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>{children}</View>;
 }
+

@@ -24,7 +24,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUserType } from "../../hooks/useUserType";
 import { tokens } from "../../theme/tokens";
-import { ErrorBoundary } from "../../components/ErrorBoundary";
+import { ErrorBoundary } from "@/components/system/ErrorBoundary";
 import { usePostHog } from "posthog-react-native";
 
 const ACTIVE_COLOR = tokens.colors.roogo.primary[500];

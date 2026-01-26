@@ -1,7 +1,7 @@
-import { tokens } from "../theme/tokens";
-import { formatCurrency } from "../utils/formatting";
+import { tokens } from "@/theme/tokens";
+import { formatCurrency } from "@/utils/formatting";
 import { useUser } from "@clerk/clerk-expo";
-import { useUserType } from "../hooks/useUserType";
+import { useUserType } from "@/hooks/useUserType";
 import {
   EyeIcon,
   HeartIcon,
@@ -24,7 +24,7 @@ import {
   Easing,
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
-import AuthPromptModal from "./AuthPromptModal";
+import AuthPromptModal from "@/components/auth/AuthPromptModal";
 
 const isVideo = (image: any) => {
   if (typeof image === "object" && image.uri) {
@@ -214,7 +214,7 @@ export default function PropertyCard({
           </View>
         )}
 
-        {/* Trending Badge (Popularity) */}
+        {/* Trending Badge */}
         {!property.isSponsored && (property.recentViews || 0) > 10 && (
           <View className="absolute top-3 left-28 flex-row items-center bg-roogo-error/90 px-2 py-1 rounded-full shadow-md backdrop-blur-md">
             <FireIcon size={10} weight="fill" color="white" />
@@ -245,7 +245,7 @@ export default function PropertyCard({
           </TouchableOpacity>
         )}
 
-        {/* Verified Badge - shown when property is approved (en_ligne) */}
+        {/* Verified Badge */}
         {property.status === "en_ligne" && (
           <View className="absolute bottom-3 left-3 flex-row items-center bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-full shadow-md border border-green-200">
             <SealCheckIcon size={14} weight="fill" color="#16A34A" />
@@ -294,11 +294,11 @@ export default function PropertyCard({
           numberOfLines={1}
           className="text-xs text-roogo-neutral-600 font-medium font-urbanist mt-1"
         >
-          {property.bedrooms} Ch • {property.bathrooms} Douches •{" "}
-          {property.area} m²
+          {property.bedrooms} Ch • {property.bathrooms} Douches • {property.area}{" "}
+          m²
         </Text>
 
-        {/* Stats Section - Only render if there are stats */}
+        {/* Stats Section */}
         {showStats &&
           property.views !== undefined &&
           property.favorites !== undefined && (
@@ -409,3 +409,4 @@ export default function PropertyCard({
     </>
   );
 }
+
