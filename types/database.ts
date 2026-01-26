@@ -200,7 +200,7 @@ export interface DatabaseTransaction {
   status: "pending" | "completed" | "failed" | "cancelled";
   provider: "ORANGE_MONEY" | "MOOV_MONEY";
   deposit_id: string;
-  transaction_type: "listing_submission" | "photography" | "property_lock" | "boost";
+  transaction_type: "listing_submission" | "photography" | "property_lock" | "boost" | "staff_listing";
   metadata: PaymentMetadata | null;
   created_at: string;
   updated_at: string;
