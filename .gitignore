@@ -52,3 +52,4 @@ app-example
 # local web app (not tracked)
 roogo-web/
 /.idea/
+.env.production
