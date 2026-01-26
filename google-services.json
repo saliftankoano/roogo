@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "341335602871",
+    "project_id": "roogo-91d8a",
+    "storage_bucket": "roogo-91d8a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:341335602871:android:86e36a37ab64566867bf32",
+        "android_client_info": {
+          "package_name": "com.salift_roogo.roogo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCI-5QDUqJNDcZX9_Gd6tiFfy4kGXkKnDg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

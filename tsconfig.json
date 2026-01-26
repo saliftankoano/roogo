@@ -7,7 +7,8 @@
     "lib": ["dom", "esnext"],
     "jsx": "react-native",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "expo-notifications": ["./node_modules/expo-notifications"]
     }
   },
   "include": [
